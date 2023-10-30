@@ -1,0 +1,634 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */; };
+		BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */; };
+		BC9BBFBA2AEFDE3D00FC068C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB92AEFDE3D00FC068C /* Item.swift */; };
+		BC9BBFBC2AEFDE3E00FC068C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC9BBFBB2AEFDE3E00FC068C /* Assets.xcassets */; };
+		BC9BBFC12AEFDE3E00FC068C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC9BBFC02AEFDE3E00FC068C /* Preview Assets.xcassets */; };
+		BC9BBFCB2AEFDE3E00FC068C /* JelloTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFCA2AEFDE3E00FC068C /* JelloTests.swift */; };
+		BC9BBFD52AEFDE3E00FC068C /* JelloUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFD42AEFDE3E00FC068C /* JelloUITests.swift */; };
+		BC9BBFD72AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFD62AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BC9BBFC72AEFDE3E00FC068C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BC9BBFAA2AEFDE3D00FC068C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BC9BBFB12AEFDE3D00FC068C;
+			remoteInfo = Jello;
+		};
+		BC9BBFD12AEFDE3E00FC068C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BC9BBFAA2AEFDE3D00FC068C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BC9BBFB12AEFDE3D00FC068C;
+			remoteInfo = Jello;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		BC9BBFB22AEFDE3D00FC068C /* Jello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jello.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloApp.swift; sourceTree = "<group>"; };
+		BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BC9BBFB92AEFDE3D00FC068C /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		BC9BBFBB2AEFDE3E00FC068C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BC9BBFBD2AEFDE3E00FC068C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BC9BBFBE2AEFDE3E00FC068C /* Jello.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Jello.entitlements; sourceTree = "<group>"; };
+		BC9BBFC02AEFDE3E00FC068C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		BC9BBFC62AEFDE3E00FC068C /* JelloTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JelloTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC9BBFCA2AEFDE3E00FC068C /* JelloTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloTests.swift; sourceTree = "<group>"; };
+		BC9BBFD02AEFDE3E00FC068C /* JelloUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JelloUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC9BBFD42AEFDE3E00FC068C /* JelloUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloUITests.swift; sourceTree = "<group>"; };
+		BC9BBFD62AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloUITestsLaunchTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BC9BBFAF2AEFDE3D00FC068C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BC9BBFC32AEFDE3E00FC068C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BC9BBFCD2AEFDE3E00FC068C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BC9BBFA92AEFDE3D00FC068C = {
+			isa = PBXGroup;
+			children = (
+				BC9BBFB42AEFDE3D00FC068C /* Jello */,
+				BC9BBFC92AEFDE3E00FC068C /* JelloTests */,
+				BC9BBFD32AEFDE3E00FC068C /* JelloUITests */,
+				BC9BBFB32AEFDE3D00FC068C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BC9BBFB32AEFDE3D00FC068C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BC9BBFB22AEFDE3D00FC068C /* Jello.app */,
+				BC9BBFC62AEFDE3E00FC068C /* JelloTests.xctest */,
+				BC9BBFD02AEFDE3E00FC068C /* JelloUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BC9BBFB42AEFDE3D00FC068C /* Jello */ = {
+			isa = PBXGroup;
+			children = (
+				BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */,
+				BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */,
+				BC9BBFB92AEFDE3D00FC068C /* Item.swift */,
+				BC9BBFBB2AEFDE3E00FC068C /* Assets.xcassets */,
+				BC9BBFBD2AEFDE3E00FC068C /* Info.plist */,
+				BC9BBFBE2AEFDE3E00FC068C /* Jello.entitlements */,
+				BC9BBFBF2AEFDE3E00FC068C /* Preview Content */,
+			);
+			path = Jello;
+			sourceTree = "<group>";
+		};
+		BC9BBFBF2AEFDE3E00FC068C /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				BC9BBFC02AEFDE3E00FC068C /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		BC9BBFC92AEFDE3E00FC068C /* JelloTests */ = {
+			isa = PBXGroup;
+			children = (
+				BC9BBFCA2AEFDE3E00FC068C /* JelloTests.swift */,
+			);
+			path = JelloTests;
+			sourceTree = "<group>";
+		};
+		BC9BBFD32AEFDE3E00FC068C /* JelloUITests */ = {
+			isa = PBXGroup;
+			children = (
+				BC9BBFD42AEFDE3E00FC068C /* JelloUITests.swift */,
+				BC9BBFD62AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift */,
+			);
+			path = JelloUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BC9BBFB12AEFDE3D00FC068C /* Jello */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BC9BBFDA2AEFDE3E00FC068C /* Build configuration list for PBXNativeTarget "Jello" */;
+			buildPhases = (
+				BC9BBFAE2AEFDE3D00FC068C /* Sources */,
+				BC9BBFAF2AEFDE3D00FC068C /* Frameworks */,
+				BC9BBFB02AEFDE3D00FC068C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Jello;
+			productName = Jello;
+			productReference = BC9BBFB22AEFDE3D00FC068C /* Jello.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BC9BBFC52AEFDE3E00FC068C /* JelloTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BC9BBFDD2AEFDE3E00FC068C /* Build configuration list for PBXNativeTarget "JelloTests" */;
+			buildPhases = (
+				BC9BBFC22AEFDE3E00FC068C /* Sources */,
+				BC9BBFC32AEFDE3E00FC068C /* Frameworks */,
+				BC9BBFC42AEFDE3E00FC068C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BC9BBFC82AEFDE3E00FC068C /* PBXTargetDependency */,
+			);
+			name = JelloTests;
+			productName = JelloTests;
+			productReference = BC9BBFC62AEFDE3E00FC068C /* JelloTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BC9BBFCF2AEFDE3E00FC068C /* JelloUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BC9BBFE02AEFDE3E00FC068C /* Build configuration list for PBXNativeTarget "JelloUITests" */;
+			buildPhases = (
+				BC9BBFCC2AEFDE3E00FC068C /* Sources */,
+				BC9BBFCD2AEFDE3E00FC068C /* Frameworks */,
+				BC9BBFCE2AEFDE3E00FC068C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BC9BBFD22AEFDE3E00FC068C /* PBXTargetDependency */,
+			);
+			name = JelloUITests;
+			productName = JelloUITests;
+			productReference = BC9BBFD02AEFDE3E00FC068C /* JelloUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BC9BBFAA2AEFDE3D00FC068C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					BC9BBFB12AEFDE3D00FC068C = {
+						CreatedOnToolsVersion = 15.0.1;
+					};
+					BC9BBFC52AEFDE3E00FC068C = {
+						CreatedOnToolsVersion = 15.0.1;
+						TestTargetID = BC9BBFB12AEFDE3D00FC068C;
+					};
+					BC9BBFCF2AEFDE3E00FC068C = {
+						CreatedOnToolsVersion = 15.0.1;
+						TestTargetID = BC9BBFB12AEFDE3D00FC068C;
+					};
+				};
+			};
+			buildConfigurationList = BC9BBFAD2AEFDE3D00FC068C /* Build configuration list for PBXProject "Jello" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BC9BBFA92AEFDE3D00FC068C;
+			productRefGroup = BC9BBFB32AEFDE3D00FC068C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BC9BBFB12AEFDE3D00FC068C /* Jello */,
+				BC9BBFC52AEFDE3E00FC068C /* JelloTests */,
+				BC9BBFCF2AEFDE3E00FC068C /* JelloUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BC9BBFB02AEFDE3D00FC068C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC9BBFC12AEFDE3E00FC068C /* Preview Assets.xcassets in Resources */,
+				BC9BBFBC2AEFDE3E00FC068C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BC9BBFC42AEFDE3E00FC068C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BC9BBFCE2AEFDE3E00FC068C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BC9BBFAE2AEFDE3D00FC068C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */,
+				BC9BBFBA2AEFDE3D00FC068C /* Item.swift in Sources */,
+				BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BC9BBFC22AEFDE3E00FC068C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC9BBFCB2AEFDE3E00FC068C /* JelloTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BC9BBFCC2AEFDE3E00FC068C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC9BBFD52AEFDE3E00FC068C /* JelloUITests.swift in Sources */,
+				BC9BBFD72AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BC9BBFC82AEFDE3E00FC068C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BC9BBFB12AEFDE3D00FC068C /* Jello */;
+			targetProxy = BC9BBFC72AEFDE3E00FC068C /* PBXContainerItemProxy */;
+		};
+		BC9BBFD22AEFDE3E00FC068C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BC9BBFB12AEFDE3D00FC068C /* Jello */;
+			targetProxy = BC9BBFD12AEFDE3E00FC068C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BC9BBFD82AEFDE3E00FC068C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BC9BBFD92AEFDE3E00FC068C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		BC9BBFDB2AEFDE3E00FC068C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Jello/Jello.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Jello/Preview Content\"";
+				DEVELOPMENT_TEAM = DPXLR65392;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Jello/Info.plist;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphonesimulator*]" = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuthbert.Jello;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BC9BBFDC2AEFDE3E00FC068C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Jello/Jello.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Jello/Preview Content\"";
+				DEVELOPMENT_TEAM = DPXLR65392;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Jello/Info.plist;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphonesimulator*]" = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuthbert.Jello;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BC9BBFDE2AEFDE3E00FC068C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DPXLR65392;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuthbert.JelloTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jello.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Jello";
+			};
+			name = Debug;
+		};
+		BC9BBFDF2AEFDE3E00FC068C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DPXLR65392;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuthbert.JelloTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jello.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Jello";
+			};
+			name = Release;
+		};
+		BC9BBFE12AEFDE3E00FC068C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DPXLR65392;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuthbert.JelloUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Jello;
+			};
+			name = Debug;
+		};
+		BC9BBFE22AEFDE3E00FC068C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DPXLR65392;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cuthbert.JelloUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Jello;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BC9BBFAD2AEFDE3D00FC068C /* Build configuration list for PBXProject "Jello" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC9BBFD82AEFDE3E00FC068C /* Debug */,
+				BC9BBFD92AEFDE3E00FC068C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BC9BBFDA2AEFDE3E00FC068C /* Build configuration list for PBXNativeTarget "Jello" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC9BBFDB2AEFDE3E00FC068C /* Debug */,
+				BC9BBFDC2AEFDE3E00FC068C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BC9BBFDD2AEFDE3E00FC068C /* Build configuration list for PBXNativeTarget "JelloTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC9BBFDE2AEFDE3E00FC068C /* Debug */,
+				BC9BBFDF2AEFDE3E00FC068C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BC9BBFE02AEFDE3E00FC068C /* Build configuration list for PBXNativeTarget "JelloUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC9BBFE12AEFDE3E00FC068C /* Debug */,
+				BC9BBFE22AEFDE3E00FC068C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BC9BBFAA2AEFDE3D00FC068C /* Project object */;
+}
