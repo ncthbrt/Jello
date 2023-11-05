@@ -23,7 +23,7 @@ struct ProjectManagement {
         }
         modelContext.insert(projectReference)
         try! modelContext.save()
-        var modelUrl = url.appendingPathComponent("StoreContent")
+        let modelUrl = url.appendingPathComponent("StoreContent")
         let config = ModelConfiguration(url: modelUrl)
         return try? ModelContainer(for: Schema(versionedSchema: JelloVersionedSchema.self), migrationPlan: JelloMigrationPlan.self, configurations: [config])
     }
@@ -47,7 +47,7 @@ struct ProjectManagement {
         try! modelContext.save()
         
         
-        var modelUrl = url.appendingPathComponent("StoreContent")
+        let modelUrl = url.appendingPathComponent("StoreContent")
         let config = ModelConfiguration(url: modelUrl)
         guard let container = try? ModelContainer(for: Schema(versionedSchema: JelloVersionedSchema.self), migrationPlan: JelloMigrationPlan.self, configurations: [config]) else {
             return nil

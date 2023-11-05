@@ -7,6 +7,10 @@
 
 import Foundation
 
+enum JelloDocumentType {
+    case material
+    case function
+}
 
 
 enum JelloDocumentReference: Hashable, Identifiable {
@@ -19,6 +23,15 @@ enum JelloDocumentReference: Hashable, Identifiable {
             return id
         case .function(let id):
             return id
+        }
+    }
+    
+    var type: JelloDocumentType {
+        switch(self) {
+        case .material(_):
+            return .material
+        case .function(_):
+            return .function
         }
     }
     
@@ -56,4 +69,15 @@ enum JelloDocument: Hashable, Identifiable {
             return JelloDocumentReference.function(function.id)
         }
     }
+    
+    
+    var type: JelloDocumentType {
+        switch(self) {
+        case .material(_):
+            return .material
+        case .function(_):
+            return .function
+        }
+    }
+    
 }

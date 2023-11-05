@@ -56,8 +56,9 @@ struct ProjectPickerView: View {
                     .fileExporter(isPresented: $showFileExporter, item: DummyDoc(), contentTypes: [.jelloProject], defaultFilename: "Untitled Project", onCompletion: { result in
                     switch result {
                     case .success(let file):
-                        navigation.modelContainer = ProjectManagement.createNewJelloProjectFile(modelContext: modelContext, url: file)
-                        break
+                        withAnimation {
+                            navigation.modelContainer = ProjectManagement.createNewJelloProjectFile(modelContext: modelContext, url: file)
+                        }
                     case .failure(let err):
                         print(err)
                     }
@@ -78,7 +79,9 @@ struct ProjectPickerView: View {
                     switch result {
                     case .success(let files):
                         for file in files {
-                            navigation.modelContainer = ProjectManagement.loadExistingJelloProjectFile(projects: projects, modelContext: modelContext, url: file)
+                            withAnimation {
+                                navigation.modelContainer = ProjectManagement.loadExistingJelloProjectFile(projects: projects, modelContext: modelContext, url: file)
+                            }
                             break
                         }
                     case .failure(let error):
@@ -94,7 +97,9 @@ struct ProjectPickerView: View {
                         LazyVGrid(columns: columns) {
                             ForEach(projects) { project in
                                 ProjectPickerTile(projectReference: project, onOpen: {
-                                    navigation.modelContainer = ProjectManagement.loadExistingJelloProjectFile(project: project)
+                                    withAnimation {
+                                        navigation.modelContainer = ProjectManagement.loadExistingJelloProjectFile(project: project)
+                                    }
                                 })
                             }
                         }

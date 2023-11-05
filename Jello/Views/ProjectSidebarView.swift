@@ -24,16 +24,16 @@ struct ListEntryCategoryView<V: View>: View {
 
 struct MaterialListEntryView: View {
     @Environment(\.modelContext) private var modelContext
-
     let material: JelloMaterial
     let selected: Bool
     
     var body: some View {
         HStack {
-            Text(material.name).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+            Text(material.name).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(selected ? .black : .white)
             Spacer()
-            ListEntryCategoryView(color: selected ? .white: .blue, label: {Text("Material")}).frame(maxWidth: .infinity, alignment: .trailing)
+            ListEntryCategoryView(color: selected ? .black: .blue, label: {Text("Material")}).frame(maxWidth: .infinity, alignment: .trailing)
         }
+        .buttonStyle(.borderless)
         .contextMenu(ContextMenu(menuItems: {
             Button {} label: {
                 Image(systemName: "square.and.arrow.up")    
@@ -51,21 +51,23 @@ struct MaterialListEntryView: View {
             Image(systemName: "trash")
             Text("Delete")
         }
-        }))
+        })).background(selected ? .blue : .clear)
+
     }
 }
 
 struct FunctionListEntryView: View {
     @Environment(\.modelContext) private var modelContext
-
+    
     let function: JelloFunction
     let selected: Bool
     
+    
     var body: some View {
         HStack {
-            Text(function.name).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+            Text(function.name).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(selected ? .black : .white)
             Spacer()
-            ListEntryCategoryView(color: selected ? .white: .orange, label: {Text("Function")}).frame(maxWidth: .infinity, alignment: .trailing)
+            ListEntryCategoryView(color: selected ? .black : .orange, label: {Text("Function")}).frame(maxWidth: .infinity, alignment: .trailing).foregroundStyle(selected ? .black : .white)
         }.contextMenu(ContextMenu(menuItems: {
             Button {
             } label: {
@@ -80,7 +82,6 @@ struct FunctionListEntryView: View {
             Text("Delete")
         }
         }))
-        
     }
 }
 
@@ -117,13 +118,23 @@ fileprivate struct ProjectSidebarViewResultsList : View {
         _functions = Query(filter: Self.functionPredicate(searchText: navigation.searchText, searchTag: navigation.searchTag, isSearching: isSearching))
         _materials = Query(filter: Self.materialPredicate(searchText: navigation.searchText, searchTag: navigation.searchTag, isSearching: isSearching))
     }
-    
+
+    var accentColor: Color {
+        switch(navigation.selectedItem?.type){
+            case .function:
+                return Color.orange
+            case .material:
+                return Color.blue
+            case .none:
+                return Color.clear
+        }
+    }
     
     var body: some View {
         VStack(alignment: .leading) {
             List(documents, id: \JelloDocument.reference, selection: $navigation.selectedItem) {
                 document in SidebarListEntryView(document: document, selected: navigation.selectedItem?.id == document.id)
-            }
+            }.tint(self.accentColor)
         }
     }
     

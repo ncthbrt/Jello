@@ -9,24 +9,33 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
+
+struct AppContents : View {
+    @Environment(ProjectNavigation.self) private var navigation
+    
+    var body: some View {
+        ZStack {
+            if navigation.modelContainer == nil {
+                ProjectPickerView()
+                    .transition(.move(edge: .trailing))
+            } else {
+                ContentView()
+                    .modelContainer(navigation.modelContainer!)
+                    .transition(.move(edge: .leading))
+            }
+        }.frame(maxWidth: .infinity)
+    }
+}
+
 @main
 struct JelloApp: App {
     @State private var navigation: ProjectNavigation = ProjectNavigation()
-    @State private var currentDocContainer : ModelContainer? = nil
-    @State private var currentScopedResource: URL? = nil
     var body: some Scene {
         WindowGroup {
-            if let currentContainer = navigation.modelContainer {
-                ContentView()
-                    .modelContainer(currentContainer)
-                    .transition(.slide)
-            } else {
-                ProjectPickerView()
-                    .transition(.slide)
-            }
+            AppContents()
+                .environment(navigation)
         }
         .modelContainer(for: [JelloProjectReference.self], inMemory: false, isAutosaveEnabled: true)
-        .environment(navigation)
     }
 }
 
