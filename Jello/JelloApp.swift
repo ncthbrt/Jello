@@ -11,22 +11,34 @@ import UniformTypeIdentifiers
 
 @main
 struct JelloApp: App {
+    @State private var navigation: ProjectNavigation = ProjectNavigation()
+    @State private var currentDocContainer : ModelContainer? = nil
+    @State private var currentScopedResource: URL? = nil
     var body: some Scene {
-        DocumentGroup(editing: .itemDocument, migrationPlan: JelloMigrationPlan.self) {
-            ContentView()
+        WindowGroup {
+            if let currentContainer = navigation.modelContainer {
+                ContentView()
+                    .modelContainer(currentContainer)
+                    .transition(.slide)
+            } else {
+                ProjectPickerView()
+                    .transition(.slide)
+            }
         }
+        .modelContainer(for: [JelloProjectReference.self], inMemory: false, isAutosaveEnabled: true)
+        .environment(navigation)
     }
 }
 
 extension UTType {
-    static var itemDocument: UTType {
-        UTType(importedAs: "com.example.item-document")
+    static var jelloProject: UTType {
+        UTType(importedAs: "com.cuthbert.jello-project")
     }
 }
 
 struct JelloMigrationPlan: SchemaMigrationPlan {
     static var schemas: [VersionedSchema.Type] = [
-        JelloVersionedSchema.self,
+        JelloVersionedSchema.self
     ]
 
     static var stages: [MigrationStage] = [
@@ -38,6 +50,7 @@ struct JelloVersionedSchema: VersionedSchema {
     static var versionIdentifier = Schema.Version(1, 0, 0)
 
     static var models: [any PersistentModel.Type] = [
-        Item.self,
+        JelloMaterial.self,
+        JelloFunction.self
     ]
 }

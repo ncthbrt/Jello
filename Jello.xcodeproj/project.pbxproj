@@ -7,14 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF772AF257C400E2A242 /* JelloDocument.swift */; };
+		BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */; };
+		BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */; };
+		BC7E22472AF4EE8600EC04E6 /* ProjectManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7E22462AF4EE8600EC04E6 /* ProjectManagement.swift */; };
 		BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */; };
 		BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */; };
-		BC9BBFBA2AEFDE3D00FC068C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB92AEFDE3D00FC068C /* Item.swift */; };
+		BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB92AEFDE3D00FC068C /* JelloMaterial.swift */; };
 		BC9BBFBC2AEFDE3E00FC068C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC9BBFBB2AEFDE3E00FC068C /* Assets.xcassets */; };
 		BC9BBFC12AEFDE3E00FC068C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC9BBFC02AEFDE3E00FC068C /* Preview Assets.xcassets */; };
 		BC9BBFCB2AEFDE3E00FC068C /* JelloTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFCA2AEFDE3E00FC068C /* JelloTests.swift */; };
 		BC9BBFD52AEFDE3E00FC068C /* JelloUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFD42AEFDE3E00FC068C /* JelloUITests.swift */; };
 		BC9BBFD72AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFD62AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift */; };
+		BC9BBFE52AEFE93600FC068C /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = BC9BBFE42AEFE93600FC068C /* Collections */; };
+		BC9BBFE72AEFE93600FC068C /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = BC9BBFE62AEFE93600FC068C /* DequeModule */; };
+		BC9BBFE92AEFE93600FC068C /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = BC9BBFE82AEFE93600FC068C /* OrderedCollections */; };
+		BC9BBFEB2AEFEFB400FC068C /* JelloFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFEA2AEFEFB400FC068C /* JelloFunction.swift */; };
+		BC9BBFEE2AEFF02100FC068C /* JelloGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFED2AEFF02100FC068C /* JelloGraph.swift */; };
+		BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFF32AF00C2400FC068C /* ProjectSidebarView.swift */; };
+		BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */; };
+		BCD540492AF3920F00D82714 /* ProjectPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD540482AF3920F00D82714 /* ProjectPickerView.swift */; };
+		BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,10 +48,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BC2BDF772AF257C400E2A242 /* JelloDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDocument.swift; sourceTree = "<group>"; };
+		BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDocumentView.swift; sourceTree = "<group>"; };
+		BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStates.swift; sourceTree = "<group>"; };
+		BC7E22462AF4EE8600EC04E6 /* ProjectManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectManagement.swift; sourceTree = "<group>"; };
 		BC9BBFB22AEFDE3D00FC068C /* Jello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloApp.swift; sourceTree = "<group>"; };
 		BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		BC9BBFB92AEFDE3D00FC068C /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		BC9BBFB92AEFDE3D00FC068C /* JelloMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloMaterial.swift; sourceTree = "<group>"; };
 		BC9BBFBB2AEFDE3E00FC068C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BC9BBFBD2AEFDE3E00FC068C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BC9BBFBE2AEFDE3E00FC068C /* Jello.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Jello.entitlements; sourceTree = "<group>"; };
@@ -48,6 +65,12 @@
 		BC9BBFD02AEFDE3E00FC068C /* JelloUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JelloUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC9BBFD42AEFDE3E00FC068C /* JelloUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloUITests.swift; sourceTree = "<group>"; };
 		BC9BBFD62AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		BC9BBFEA2AEFEFB400FC068C /* JelloFunction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloFunction.swift; sourceTree = "<group>"; };
+		BC9BBFED2AEFF02100FC068C /* JelloGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloGraph.swift; sourceTree = "<group>"; };
+		BC9BBFF32AF00C2400FC068C /* ProjectSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSidebarView.swift; sourceTree = "<group>"; };
+		BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectNavigation.swift; sourceTree = "<group>"; };
+		BCD540482AF3920F00D82714 /* ProjectPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPickerView.swift; sourceTree = "<group>"; };
+		BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloProjectReference.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +78,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC9BBFE52AEFE93600FC068C /* Collections in Frameworks */,
+				BC9BBFE72AEFE93600FC068C /* DequeModule in Frameworks */,
+				BC9BBFE92AEFE93600FC068C /* OrderedCollections in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +101,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BC7E22452AF4EE7900EC04E6 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				BC7E22462AF4EE8600EC04E6 /* ProjectManagement.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
 		BC9BBFA92AEFDE3D00FC068C = {
 			isa = PBXGroup;
 			children = (
@@ -98,9 +132,11 @@
 		BC9BBFB42AEFDE3D00FC068C /* Jello */ = {
 			isa = PBXGroup;
 			children = (
+				BC7E22452AF4EE7900EC04E6 /* Support */,
+				BC9BBFF22AF0073F00FC068C /* Physics */,
+				BC9BBFF12AF0072D00FC068C /* Views */,
+				BC9BBFEC2AEFEFBD00FC068C /* Models */,
 				BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */,
-				BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */,
-				BC9BBFB92AEFDE3D00FC068C /* Item.swift */,
 				BC9BBFBB2AEFDE3E00FC068C /* Assets.xcassets */,
 				BC9BBFBD2AEFDE3E00FC068C /* Info.plist */,
 				BC9BBFBE2AEFDE3E00FC068C /* Jello.entitlements */,
@@ -134,6 +170,38 @@
 			path = JelloUITests;
 			sourceTree = "<group>";
 		};
+		BC9BBFEC2AEFEFBD00FC068C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				BC9BBFEA2AEFEFB400FC068C /* JelloFunction.swift */,
+				BC9BBFB92AEFDE3D00FC068C /* JelloMaterial.swift */,
+				BC9BBFED2AEFF02100FC068C /* JelloGraph.swift */,
+				BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */,
+				BC2BDF772AF257C400E2A242 /* JelloDocument.swift */,
+				BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		BC9BBFF12AF0072D00FC068C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */,
+				BC9BBFF32AF00C2400FC068C /* ProjectSidebarView.swift */,
+				BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */,
+				BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */,
+				BCD540482AF3920F00D82714 /* ProjectPickerView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		BC9BBFF22AF0073F00FC068C /* Physics */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Physics;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -150,6 +218,11 @@
 			dependencies = (
 			);
 			name = Jello;
+			packageProductDependencies = (
+				BC9BBFE42AEFE93600FC068C /* Collections */,
+				BC9BBFE62AEFE93600FC068C /* DequeModule */,
+				BC9BBFE82AEFE93600FC068C /* OrderedCollections */,
+			);
 			productName = Jello;
 			productReference = BC9BBFB22AEFDE3D00FC068C /* Jello.app */;
 			productType = "com.apple.product-type.application";
@@ -222,6 +295,9 @@
 				Base,
 			);
 			mainGroup = BC9BBFA92AEFDE3D00FC068C;
+			packageReferences = (
+				BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */,
+			);
 			productRefGroup = BC9BBFB32AEFDE3D00FC068C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -265,7 +341,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */,
-				BC9BBFBA2AEFDE3D00FC068C /* Item.swift in Sources */,
+				BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */,
+				BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */,
+				BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */,
+				BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */,
+				BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */,
+				BC7E22472AF4EE8600EC04E6 /* ProjectManagement.swift in Sources */,
+				BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */,
+				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
+				BCD540492AF3920F00D82714 /* ProjectPickerView.swift in Sources */,
+				BC9BBFEE2AEFF02100FC068C /* JelloGraph.swift in Sources */,
+				BC9BBFEB2AEFEFB400FC068C /* JelloFunction.swift in Sources */,
 				BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -355,7 +441,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -410,7 +498,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -421,7 +511,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = JelloAppColor;
 				CODE_SIGN_ENTITLEMENTS = Jello/Jello.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -431,16 +521,22 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Jello/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportsDocumentBrowser = YES;
 				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphonesimulator*]" = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -450,8 +546,8 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cuthbert.Jello;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -462,7 +558,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = JelloAppColor;
 				CODE_SIGN_ENTITLEMENTS = Jello/Jello.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -472,16 +568,22 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Jello/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportsDocumentBrowser = YES;
 				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphonesimulator*]" = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -491,8 +593,8 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cuthbert.Jello;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -629,6 +731,35 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BC9BBFE42AEFE93600FC068C /* Collections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = Collections;
+		};
+		BC9BBFE62AEFE93600FC068C /* DequeModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = DequeModule;
+		};
+		BC9BBFE82AEFE93600FC068C /* OrderedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = OrderedCollections;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BC9BBFAA2AEFDE3D00FC068C /* Project object */;
 }
