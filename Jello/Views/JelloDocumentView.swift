@@ -21,7 +21,10 @@ fileprivate struct JelloFunctionView: View {
     
     var body: some View {
         if let function = functions.first {
-            Text("Function View: \(function.name)")
+            ZStack {
+                NodeView()
+            }.frame(width: 1000, height: 1000)
+//            /Text("Function View: \(function.name)")
                 .toolbarTitleDisplayMode(.inline)
                 .navigationTitle(.init(get: { function.name }, set: {  function.name = $0 }))
         } else {

@@ -28,6 +28,9 @@
 		BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */; };
 		BCD540492AF3920F00D82714 /* ProjectPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD540482AF3920F00D82714 /* ProjectPickerView.swift */; };
 		BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */; };
+		BCE067562AF8B8C10066F8D4 /* Vertlet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067552AF8B8C10066F8D4 /* Vertlet.swift */; };
+		BCE067582AF8B8E00066F8D4 /* CGPointExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067572AF8B8E00066F8D4 /* CGPointExtensions.swift */; };
+		BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE0675A2AF934820066F8D4 /* NodeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +74,9 @@
 		BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectNavigation.swift; sourceTree = "<group>"; };
 		BCD540482AF3920F00D82714 /* ProjectPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPickerView.swift; sourceTree = "<group>"; };
 		BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloProjectReference.swift; sourceTree = "<group>"; };
+		BCE067552AF8B8C10066F8D4 /* Vertlet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vertlet.swift; sourceTree = "<group>"; };
+		BCE067572AF8B8E00066F8D4 /* CGPointExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPointExtensions.swift; sourceTree = "<group>"; };
+		BCE0675A2AF934820066F8D4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +138,7 @@
 		BC9BBFB42AEFDE3D00FC068C /* Jello */ = {
 			isa = PBXGroup;
 			children = (
+				BCE067592AF8B8F30066F8D4 /* Math */,
 				BC7E22452AF4EE7900EC04E6 /* Support */,
 				BC9BBFF22AF0073F00FC068C /* Physics */,
 				BC9BBFF12AF0072D00FC068C /* Views */,
@@ -191,6 +198,7 @@
 				BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */,
 				BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */,
 				BCD540482AF3920F00D82714 /* ProjectPickerView.swift */,
+				BCE0675A2AF934820066F8D4 /* NodeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -198,8 +206,17 @@
 		BC9BBFF22AF0073F00FC068C /* Physics */ = {
 			isa = PBXGroup;
 			children = (
+				BCE067552AF8B8C10066F8D4 /* Vertlet.swift */,
 			);
 			path = Physics;
+			sourceTree = "<group>";
+		};
+		BCE067592AF8B8F30066F8D4 /* Math */ = {
+			isa = PBXGroup;
+			children = (
+				BCE067572AF8B8E00066F8D4 /* CGPointExtensions.swift */,
+			);
+			path = Math;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -347,9 +364,12 @@
 				BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */,
 				BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */,
 				BC7E22472AF4EE8600EC04E6 /* ProjectManagement.swift in Sources */,
+				BCE067582AF8B8E00066F8D4 /* CGPointExtensions.swift in Sources */,
 				BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */,
 				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
+				BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */,
 				BCD540492AF3920F00D82714 /* ProjectPickerView.swift in Sources */,
+				BCE067562AF8B8C10066F8D4 /* Vertlet.swift in Sources */,
 				BC9BBFEE2AEFF02100FC068C /* JelloGraph.swift in Sources */,
 				BC9BBFEB2AEFEFB400FC068C /* JelloFunction.swift in Sources */,
 				BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */,
