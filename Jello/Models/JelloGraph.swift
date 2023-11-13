@@ -39,9 +39,6 @@ enum JelloNodeType: Equatable, Hashable, Codable {
         }
     }
     
-    func createNode(graph: JelloGraph, position: CGPoint) -> JelloNode {
-        JelloNode(type: self, graph: graph, id: UUID(), inputPorts: [], outputPorts: [], persistedPosition: position)
-    }
     
     static func == (lhs: JelloNodeType, rhs: JelloNodeType) -> Bool {
         switch (lhs, rhs) {
@@ -187,10 +184,26 @@ struct Point: Codable {
 @Model
 final class JelloNode  {
 
+    var name: String {
+        switch type {
+        case .builtIn(let builtInType):
+            return String(describing: builtInType)
+        case .userFunction(_):
+            return function!.name
+        case .material(_):
+            return material!.name
+        }
+    }
+
     @Attribute(.unique) var id: UUID
     var graph: JelloGraph
     
     var persistedPosition: Point
+    
+    var material: JelloMaterial?
+    
+    var function: JelloFunction?
+
     
     @Transient
     var position: CGPoint {
@@ -207,16 +220,30 @@ final class JelloNode  {
     var outputPorts: [JelloOutputPort]
     
     
-    init(type: JelloNodeType, graph: JelloGraph, id: ID, inputPorts: [JelloInputPort], outputPorts: [JelloOutputPort], persistedPosition: CGPoint) {
+    private init(type: JelloNodeType, material: JelloMaterial?, function: JelloFunction?, graph: JelloGraph, id: ID, inputPorts: [JelloInputPort], outputPorts: [JelloOutputPort], position: CGPoint) {
         self.type = type
         self.graph = graph
         self.id = id
+        self.material = material
+        self.function = function
         self.inputPorts = inputPorts
         self.outputPorts = outputPorts
-        self.persistedPosition = Point(x: Float(persistedPosition.x), y: Float(persistedPosition.y))
+        self.persistedPosition = Point(x: Float(position.x), y: Float(position.y))
     }
     
-   
+    
+    convenience init(material: JelloMaterial, graph: JelloGraph, position: CGPoint) {
+        self.init(type: .material(material.uuid), material: material, function: nil, graph: graph, id: UUID(), inputPorts: [], outputPorts: [], position: position)
+    }
+    
+    convenience init(function: JelloFunction, graph: JelloGraph, position: CGPoint) {
+        self.init(type: .userFunction(function.uuid), material: nil, function: function, graph: graph, id: UUID(), inputPorts: [], outputPorts: [], position: position)
+    }
+    
+    
+    convenience init(builtIn: JelloBuiltInNodeType, graph: JelloGraph, position: CGPoint) {
+        self.init(type: .builtIn(builtIn), material: nil, function: nil, graph: graph, id: UUID(), inputPorts: [], outputPorts: [], position: position)
+    }
   
     func updatePortPositions() {
         

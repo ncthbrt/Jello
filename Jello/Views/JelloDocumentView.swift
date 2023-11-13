@@ -23,7 +23,7 @@ fileprivate struct JelloFunctionView: View {
     
     var body: some View {
         if let function = functions.first {
-            GraphView(graphId: function.graph.id, onOpenAddNodeMenu: { position in AddNewNodeMenuView(items: [:], includeMaterials: false, onAdd: { nodeType in modelContext.insert(nodeType.createNode(graph: function.graph, position: position)); try? modelContext.save() }) })
+            GraphView(graphId: function.graph.id, onOpenAddNodeMenu: { position in AddNewNodeMenuView(graph: function.graph, position: position, items: [:], includeMaterials: false) })
                 .toolbarTitleDisplayMode(.inline)
                 .navigationTitle(.init(get: { function.name }, set: {  function.name = $0 }))
                 .navigationViewStyle(.stack)

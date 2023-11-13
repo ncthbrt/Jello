@@ -490,25 +490,25 @@ class JellyBoxVertletSimulation: ObservableObject {
             let startPoint = top[0].position + (top[1].position - top[0].position).normal() * radius - position
             path.move(to: startPoint)
             
-            for i in 1..<top.count-1 {
-                path.addLine(to: top[i].position - position)
+            for v in top.dropFirst().dropLast() {
+                path.addLine(to: v.position - position)
             }
             
             drawCorner(path: &path, a: top[top.count-2].position, b: top[top.count-1].position, c: right[0].position)
             
-            for i in 1..<right.count-1 {
-                path.addLine(to: right[i].position - position)
+            for v in right.dropFirst().dropLast() {
+                path.addLine(to: v.position - position)
             }
             
             drawCorner(path: &path, a: right[right.count-1].position, b: bottom[0].position, c: bottom[1].position)
-            for i in 1..<bottom.count-1 {
-                path.addLine(to: bottom[i].position - position)
+            for v in bottom.dropFirst().dropLast() {
+                path.addLine(to: v.position - position)
             }
             
             drawCorner(path: &path, a: bottom[bottom.count-2].position, b: bottom[bottom.count-1].position, c: left[0].position)
             
-            for i in 1..<left.count-1 {
-                path.addLine(to: left[i].position - position)
+            for v in left.dropFirst().dropLast() {
+                path.addLine(to: v.position - position)
             }
             
             drawCorner(path: &path, a: left[left.count-1].position, b: top[0].position, c: top[1].position)

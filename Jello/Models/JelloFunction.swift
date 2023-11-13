@@ -15,6 +15,10 @@ final class JelloFunction {
 
     var id: JelloNodeType { .userFunction(uuid) }
     
+    
+    @Relationship(deleteRule: .cascade, inverse: \JelloNode.function)
+    var dependants: [JelloNode]
+    
     var name: String
 
     var userDescription: String
@@ -24,14 +28,15 @@ final class JelloFunction {
     var graph: JelloGraph
     
 
-    init(uuid: UUID, name: String, userDescription: String, graph: JelloGraph) {
+    init(uuid: UUID, name: String, userDescription: String, graph: JelloGraph, dependants: [JelloNode]) {
         self.uuid = uuid
         self.name = name
         self.graph = graph
         self.userDescription = userDescription
+        self.dependants = dependants
     }
     
     convenience init(){
-        self.init(uuid: UUID(), name: "Untitled Function", userDescription: "", graph: JelloGraph())
+        self.init(uuid: UUID(), name: "Untitled Function", userDescription: "", graph: JelloGraph(), dependants: [])
     }
 }

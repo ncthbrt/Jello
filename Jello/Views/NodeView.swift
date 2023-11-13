@@ -62,7 +62,7 @@ struct NodeRendererView: View {
                      .fill(.ultraThickMaterial)
                      .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3, antialiased: true)
                 VStack {
-                    Text("Unknown").font(.title2)
+                    Text(node.name).font(.title2)
                         .bold()
                         .monospaced()
                     Spacer()
@@ -70,7 +70,6 @@ struct NodeRendererView: View {
                 .padding(.all, JelloNode.padding)
             }
             .animation(.interactiveSpring(), value: node.position)
-            .frame(width: JelloNode.nodeWidth, height: nodeHeight, alignment: .center)
             .contextMenu {
                 Button {
                     // Add this item to a list of favorites.
@@ -88,7 +87,27 @@ struct NodeRendererView: View {
                     Label("Dissolve", systemImage: "wand.and.rays")
                 }
             }
+            .onTapGesture {
+            }
+            .frame(width: JelloNode.nodeWidth, height: nodeHeight, alignment: .center)
+            .contentShape(Rectangle())
             .position(node.position)
+            .gesture(DragGesture()
+                              .onChanged { dragGesture in
+                                      sim.dragging = true
+                                      dragStarted = true
+                                      let delta = CGPoint(x: dragGesture.translation.width - lastTranslation.width, y: dragGesture.translation.height - lastTranslation.height)
+                                      node.position = node.position + delta
+                                      sim.position = node.position
+                                      sim.dragPosition = dragGesture.location
+                                      lastTranslation = dragGesture.translation
+                                  }.onEnded {_ in
+                                      lastTranslation = .zero
+                                      dragStarted = false
+                                      sim.dragging = false
+                                  }
+                          )
+
             .onAppear {
                 self.sim.setup(dimensions: CGPoint(x: JelloNode.nodeWidth, y: nodeHeight), topLeft: node.position, particleDensity: 50, constraintIterations: 4, updateIterations: 4, radius: JelloNode.cornerRadius)
                 self.sim.startUpdate()
@@ -96,26 +115,10 @@ struct NodeRendererView: View {
             .onDisappear {
                 self.sim.stopUpdate()
             }
-            .onChange(of: node.position, { _, next in
-            })
             .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
                 return newValue ? .start : .stop
             }
-             .gesture(DragGesture()
-                               .onChanged { dragGesture in
-                                       sim.dragging = true
-                                       dragStarted = true
-                                       let delta = CGPoint(x: dragGesture.translation.width - lastTranslation.width, y: dragGesture.translation.height - lastTranslation.height)
-                                       node.position = node.position + delta
-                                       sim.position = node.position
-                                       sim.dragPosition = dragGesture.location
-                                       lastTranslation = dragGesture.translation
-                                   }.onEnded {_ in
-                                       lastTranslation = .zero
-                                       dragStarted = false
-                                       sim.dragging = false
-                                   }
-                           )
+           
             
         }
 }

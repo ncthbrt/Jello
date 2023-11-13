@@ -80,9 +80,15 @@ struct AddNewNodeMenuView: View {
     @State private var selection: JelloNodeType? = nil
     @State private var searchBarInFocus: Bool = false
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) var modelContext
+
+    let graph: JelloGraph
+    let position: CGPoint
+    
+    // TODO: Replace with static variable defined elsewhere
     let items: OrderedDictionary<JelloNodeCategory, [JelloBuiltInNodeDefinition]>
     let includeMaterials : Bool
-    let onAdd: (JelloNodeType) -> ()
+    
     
     @Query var functions: [JelloFunction]
     @Query var materials: [JelloMaterial]
@@ -92,7 +98,16 @@ struct AddNewNodeMenuView: View {
     var selectionBinding : Binding<JelloNodeType?> {
         .init(get: { selection }, set: { selection = $0;
             if let definiteSelection = selection {
-                onAdd(definiteSelection)
+                switch definiteSelection {
+                case .builtIn(let builtIn):
+                    modelContext.insert(JelloNode(builtIn: builtIn, graph: graph, position: position))
+                case .material(let materialId):
+                    let material = materials.first(where: { $0.uuid == materialId})!
+                    modelContext.insert(JelloNode(material: material, graph: graph, position: position))
+                case .userFunction(let functionId):
+                    let function = functions.first(where: { $0.uuid == functionId})!
+                    modelContext.insert(JelloNode(function: function, graph: graph, position: position))
+                }
             }
             dismiss()
         })
