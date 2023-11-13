@@ -45,9 +45,9 @@ enum JelloDocument: Hashable, Identifiable {
     var id: UUID {
         switch(self) {
         case .material(let mat):
-            return mat.id
+            return mat.uuid
         case .function(let function):
-            return function.id
+            return function.uuid
         }
     }
     
@@ -64,9 +64,9 @@ enum JelloDocument: Hashable, Identifiable {
     var reference: JelloDocumentReference {
         switch(self) {
         case .material(let mat):
-            return JelloDocumentReference.material(mat.id)
+            return JelloDocumentReference.material(mat.uuid)
         case .function(let function):
-            return JelloDocumentReference.function(function.id)
+            return JelloDocumentReference.function(function.uuid)
         }
     }
     

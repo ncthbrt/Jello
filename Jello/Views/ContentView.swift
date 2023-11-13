@@ -17,7 +17,6 @@ struct ContentView: View {
             sidebar: { ProjectSidebarView() },
             detail: { JelloDocumentNavigationStackView() })
         .onOpenJelloProjectUrl()
-        
     }
  
     

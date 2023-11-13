@@ -10,21 +10,26 @@ import SwiftData
 
 @Model
 final class JelloMaterial {
-   
-    @Attribute(.unique) var id: UUID
+    var id: JelloNodeType { .material(uuid) }
+    
+    @Attribute(.unique) var uuid: UUID
+    
     var name: String
+
+    var userDescription: String
 
     @Relationship(deleteRule: .cascade)
     var graph: JelloGraph
     
 
-    init(id: ID, name: String, graph: JelloGraph) {
+    init(uuid: UUID, name: String, userDescription: String, graph: JelloGraph) {
         self.name = name
-        self.id = id
+        self.uuid = uuid
         self.graph = graph
+        self.userDescription = userDescription
     }
     
     convenience init(){
-        self.init(id: UUID(), name: "Untitled Material", graph: JelloGraph())
+        self.init(uuid: UUID(), name: "Untitled Material", userDescription: "", graph: JelloGraph())
     }
 }

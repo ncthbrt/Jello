@@ -9,50 +9,68 @@ import SwiftUI
 import OrderedCollections
 
 struct NodeRendererView: View {
-    let name: String
-//    let node: Node
-//    @ObservedObject var graph: Graph
-    let selected: Bool
-    
+    var node: JelloNode
+    @Environment(\.modelContext) var modelContext
+    @State var selected: Bool = false
     @State var lastTranslation: CGSize = .zero
     @State var dragStarted: Bool = false
-    @Binding var position: CGPoint
     @State var dragPosition: CGPoint = .zero
     @ObservedObject var sim: JellyBoxVertletSimulation
+    @Binding var newEdge : JelloEdge?
 
- 
-    var body: some View {
-            ZStack {
-                if (sim.renderVertlets.count > 0) {
-                    Path {
-                        path in
-                        path.move(to: sim.renderVertlets[0].position - position)
-                        for i in 1..<sim.renderVertlets.count {
-                            path.addLine(to: sim.renderVertlets[i].position - position)
-                        }
-                    }
-                    .fill(Gradient(colors: [.green, .blue]))
-
-                    Path {
-                        path in
-                        path.move(to: sim.renderVertlets[0].position - position)
-                        for i in 1..<sim.renderVertlets.count {
-                            path.addLine(to: sim.renderVertlets[i].position - position)
-                        }
-                    }
-                     .fill(.ultraThickMaterial)
-                     .stroke(Gradient(colors: [.green, .blue]), lineWidth: 4, antialiased: true)
+    @ViewBuilder var inputPorts: some View {
+        ForEach(node.inputPorts) {
+            input in InputPortView(port: input, highlightPort: false)
+                .frame(height: JelloNode.portHeight, alignment: .topLeading)
+                .position(node.getInputPortPositionOffset(portId: input.id, relativeTo: .nodeSpace))
+        }
+    }
+    
+    @ViewBuilder var outputPorts: some View {
+        ForEach(node.outputPorts) {
+            output in OutputPortView(port: output)
+                .position(node.getOutputPortPositionOffset(portId: output.id, relativeTo: .nodeSpace))
+                .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
+                    return newValue ? .start : .stop
                 }
+                .gesture(DragGesture().onChanged({ drag in
+//                    if newEdge == nil {
+//                        dragStarted = true
+////                        newEdge = JelloEdge(id: Edge.Id(rawValue: UUID()), dataType: output.dataType, outputNode: node, outputPort: output)
+//                        graph.edges[newEdge!.id] = newEdge!
+//                        node.addOutputEdge(edge: newEdge!)
+//                    }
+//                    newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height), graph: graph, dependencies: newEdgeDependencies)
+                }).onEnded({ drag in
+//                    newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height), graph: graph, dependencies: newEdgeDependencies)
+//                    if let nEdge = newEdge, nEdge.inputNode == nil {
+//                        graph.edges.removeValue(forKey: nEdge.id)
+//                        nEdge.outputNode.removeOutputEdge(edge: nEdge)
+//                    }
+                    newEdge = nil
+                    dragStarted = false
+                }))
+        }
+    }
+    
+    var body: some View {
+            let nodeHeight = node.computeNodeHeight()
+            ZStack {
+                Path(sim.draw)
+                    .fill(Gradient(colors: [.green, .blue]))
+                Path(sim.draw)
+                     .fill(.ultraThickMaterial)
+                     .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3, antialiased: true)
                 VStack {
-                    Text(name).font(.title2)
+                    Text("Unknown").font(.title2)
                         .bold()
                         .monospaced()
                     Spacer()
                 }
-                .padding(.all, 20)
+                .padding(.all, JelloNode.padding)
             }
-            .animation(.interactiveSpring(), value: position)
-            .frame(width: 200, height:  200, alignment: .center)
+            .animation(.interactiveSpring(), value: node.position)
+            .frame(width: JelloNode.nodeWidth, height: nodeHeight, alignment: .center)
             .contextMenu {
                 Button {
                     // Add this item to a list of favorites.
@@ -70,19 +88,16 @@ struct NodeRendererView: View {
                     Label("Dissolve", systemImage: "wand.and.rays")
                 }
             }
-            .position(position)
+            .position(node.position)
             .onAppear {
-                self.sim.setup(dimensions: CGPoint(x: 200, y: 200), topLeft: position, particleDensity: 50, constraintIterations: 4, updateIterations: 4)
+                self.sim.setup(dimensions: CGPoint(x: JelloNode.nodeWidth, y: nodeHeight), topLeft: node.position, particleDensity: 50, constraintIterations: 4, updateIterations: 4, radius: JelloNode.cornerRadius)
                 self.sim.startUpdate()
             }
             .onDisappear {
                 self.sim.stopUpdate()
             }
-            .onChange(of: position, { _, next in
-                sim.topLeft = next
+            .onChange(of: node.position, { _, next in
             })
-//            .shadow(color: .orange.opacity(0.6), radius: 5)
-//            .animation(.spring(response: 0.15, dampingFraction: 0.4), value: position)
             .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
                 return newValue ? .start : .stop
             }
@@ -91,14 +106,13 @@ struct NodeRendererView: View {
                                        sim.dragging = true
                                        dragStarted = true
                                        let delta = CGPoint(x: dragGesture.translation.width - lastTranslation.width, y: dragGesture.translation.height - lastTranslation.height)
-                                       position = CGPoint(x: position.x + delta.x, y: position.y + delta.y)
-                                       sim.topLeft = position
+                                       node.position = node.position + delta
+                                       sim.position = node.position
                                        sim.dragPosition = dragGesture.location
                                        lastTranslation = dragGesture.translation
                                    }.onEnded {_ in
                                        lastTranslation = .zero
                                        dragStarted = false
-                                       sim.dragPosition = position
                                        sim.dragging = false
                                    }
                            )
@@ -107,16 +121,11 @@ struct NodeRendererView: View {
 }
 
 struct NodeView : View {
-    @State var position: CGPoint = CGPoint(x: 500, y: 500)
     @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
+    var node: JelloNode
+    @Binding var newEdge: JelloEdge?
     
     var body: some View {
-        NodeRendererView(name: "Frog", selected: false, position: $position, sim: sim)
+        NodeRendererView(node: node, sim: sim, newEdge: $newEdge)
     }
-}
-
-#Preview {
-    ZStack {
-        NodeView()
-    }.frame(width: 1000, height: 1000)
 }

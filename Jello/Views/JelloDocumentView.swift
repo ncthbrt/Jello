@@ -13,20 +13,20 @@ fileprivate struct JelloFunctionView: View {
     let id : UUID
     
     @Query var functions: [JelloFunction]
+    @State var newEdge: JelloEdge?
+    @Environment(\.modelContext) var modelContext
     
     init(id: UUID) {
         self.id = id
-        _functions = Query(filter: #Predicate<JelloFunction> { function in function.id == id })
+        _functions = Query(filter: #Predicate<JelloFunction> { function in function.uuid == id })
     }
     
     var body: some View {
         if let function = functions.first {
-            ZStack {
-                NodeView()
-            }.frame(width: 1000, height: 1000)
-//            /Text("Function View: \(function.name)")
+            GraphView(graphId: function.graph.id, onOpenAddNodeMenu: { position in AddNewNodeMenuView(items: [:], includeMaterials: false, onAdd: { nodeType in modelContext.insert(nodeType.createNode(graph: function.graph, position: position)); try? modelContext.save() }) })
                 .toolbarTitleDisplayMode(.inline)
                 .navigationTitle(.init(get: { function.name }, set: {  function.name = $0 }))
+                .navigationViewStyle(.stack)
         } else {
             NoSelectedItemView()
         }
@@ -42,7 +42,7 @@ fileprivate struct JelloMaterialView: View {
     
     init(id: UUID) {
         self.id = id
-        _materials = Query(filter: #Predicate<JelloMaterial> { material in material.id == id })
+        _materials = Query(filter: #Predicate<JelloMaterial> { material in material.uuid == id })
     }
     
     var body: some View {

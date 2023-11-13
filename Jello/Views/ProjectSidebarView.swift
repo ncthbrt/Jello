@@ -26,10 +26,11 @@ struct MaterialListEntryView: View {
     @Environment(\.modelContext) private var modelContext
     let material: JelloMaterial
     let selected: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         HStack {
-            Text(material.name).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(selected ? .black : .white)
+            Text(material.name).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(selected ? .black : (colorScheme == .dark ? .white : .black))
             Spacer()
             ListEntryCategoryView(color: selected ? .black: .blue, label: {Text("Material")}).frame(maxWidth: .infinity, alignment: .trailing)
         }
@@ -61,13 +62,14 @@ struct FunctionListEntryView: View {
     
     let function: JelloFunction
     let selected: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     
     var body: some View {
         HStack {
             Text(function.name).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(selected ? .black : .white)
             Spacer()
-            ListEntryCategoryView(color: selected ? .black : .orange, label: {Text("Function")}).frame(maxWidth: .infinity, alignment: .trailing).foregroundStyle(selected ? .black : .white)
+            ListEntryCategoryView(color: selected ? .black : .orange, label: {Text("Function")}).frame(maxWidth: .infinity, alignment: .trailing).foregroundStyle(selected ? .black : (colorScheme == .dark ? .white : .black))
         }.contextMenu(ContextMenu(menuItems: {
             Button {
             } label: {
@@ -213,13 +215,13 @@ struct ProjectSidebarView: View {
     private func addMaterial() {
         let material = JelloMaterial()
         modelContext.insert(material)
-        navigation.selectedItem = .material(material.id)
+        navigation.selectedItem = .material(material.uuid)
     }
     
     private func addFunction(){
         let jelloFunction = JelloFunction()
         modelContext.insert(jelloFunction)
-        navigation.selectedItem = .function(jelloFunction.id)
+        navigation.selectedItem = .function(jelloFunction.uuid)
     }
 }
 
