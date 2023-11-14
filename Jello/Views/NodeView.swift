@@ -62,7 +62,7 @@ struct NodeRendererView: View {
                      .fill(.ultraThickMaterial)
                      .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3, antialiased: true)
                 VStack {
-                    Text(node.name).font(.title2)
+                    Text(node.name ?? "Unknown").font(.title2).minimumScaleFactor(0.2)
                         .bold()
                         .monospaced()
                     Spacer()
@@ -77,12 +77,11 @@ struct NodeRendererView: View {
                     Label("Pin Preview", systemImage: "eye")
                 }
                 Button(role: .destructive) {
-                    // Add this item to a list of favorites.
+                    modelContext.delete(node)
                 } label: {
                     Label("Delete", systemImage: "trash.fill")
                 }
                 Button(role: .destructive) {
-                    // Open Maps and center it on this item.
                 } label: {
                     Label("Dissolve", systemImage: "wand.and.rays")
                 }
@@ -118,17 +117,27 @@ struct NodeRendererView: View {
             .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
                 return newValue ? .start : .stop
             }
-           
-            
         }
 }
 
 struct NodeView : View {
     @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
-    var node: JelloNode
+    @Environment(\.modelContext) var modelContext
+    
+    let node: JelloNode
+    let controller: JelloNodeController
     @Binding var newEdge: JelloEdge?
+    
+    init(node: JelloNode, newEdge: Binding<JelloEdge?>) {
+        self.node = node
+        self._newEdge = newEdge
+        self.controller = JelloNodeControllerFactory.getController(node)
+    }
     
     var body: some View {
         NodeRendererView(node: node, sim: sim, newEdge: $newEdge)
+            .onAppear {
+                controller.setup(modelContext: modelContext, node: node)
+            }
     }
 }

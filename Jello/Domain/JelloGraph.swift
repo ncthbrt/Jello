@@ -10,102 +10,6 @@ import SwiftData
 import OrderedCollections
 
 
-enum JelloBuiltInNodeType : Int, Codable, CaseIterable, Hashable {
-    case add = 0
-    case subtract = 1
-    
-    var name : String {
-        return String(describing: self).capitalized
-    }
-    
-    static func == (lhs: JelloBuiltInNodeType, rhs: JelloBuiltInNodeType) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
-}
-
-enum JelloNodeType: Equatable, Hashable, Codable {
-    case builtIn(JelloBuiltInNodeType)
-    case userFunction(UUID)
-    case material(UUID)
-
-    func hash(into hasher: inout Hasher) {
-        switch self {
-        case .builtIn(let t):
-            hasher.combine(t.hashValue)
-        case .userFunction(let id):
-            hasher.combine(id)
-        case .material(let id):
-            hasher.combine(id)
-        }
-    }
-    
-    
-    static func == (lhs: JelloNodeType, rhs: JelloNodeType) -> Bool {
-        switch (lhs, rhs) {
-        case (.builtIn(let a), .builtIn(let b)):
-            return a == b
-        case (.userFunction(let a), .userFunction(let b)):
-            return a == b
-        case (.material(let a), .material(let b)):
-            return a == b
-        default:
-            return false
-        }
-    }
-}
-
-
-enum JelloNodeCategory: Int, Codable, CaseIterable, Identifiable {
-    case math = 0
-    case other = 1
-    
-    var id: Int { self.rawValue }
-}
-
-struct JelloBuiltInNodeDefinition : Hashable, Identifiable, Equatable {
-    var id: JelloNodeType {.builtIn(type)}
-    let description: String
-    let previewImage: String
-    let category: JelloNodeCategory
-    let type: JelloBuiltInNodeType
-    
-    var name: String {
-        return type.name
-    }
-    
-    init(description: String, previewImage: String, category: JelloNodeCategory, type: JelloBuiltInNodeType) {
-        self.description = description
-        self.previewImage = previewImage
-        self.category = category
-        self.type = type
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(type)
-    }
-    
-    
-    static func == (lhs: JelloBuiltInNodeDefinition, rhs: JelloBuiltInNodeDefinition) -> Bool {
-        return lhs.type == rhs.type
-    }
-}
-
-
-enum JelloGraphDataType: Int, Codable, CaseIterable {
-    case any = 0
-    case anyFloat = 1
-    case float4 = 2
-    case float3 = 3
-    case float2 = 4
-    case float = 5
-    case int = 6
-    case bool = 7
-    case anyTexture = 8
-    case texture1d = 9
-    case texture2d = 10
-    case texture3d = 11
-}
-
 @Model
 final class JelloOutputPort {
     var name: String
@@ -184,14 +88,14 @@ struct Point: Codable {
 @Model
 final class JelloNode  {
 
-    var name: String {
+    var name: String? {
         switch type {
         case .builtIn(let builtInType):
             return String(describing: builtInType)
         case .userFunction(_):
-            return function!.name
+            return function?.name
         case .material(_):
-            return material!.name
+            return material?.name
         }
     }
 
@@ -241,7 +145,7 @@ final class JelloNode  {
     }
     
     
-    convenience init(builtIn: JelloBuiltInNodeType, graph: JelloGraph, position: CGPoint) {
+    convenience init(builtIn: JelloBuiltInNodeSubtype, graph: JelloGraph, position: CGPoint) {
         self.init(type: .builtIn(builtIn), material: nil, function: nil, graph: graph, id: UUID(), inputPorts: [], outputPorts: [], position: position)
     }
   

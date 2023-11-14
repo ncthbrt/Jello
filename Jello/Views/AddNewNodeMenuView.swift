@@ -30,7 +30,7 @@ struct NewNodeMenuItemView : View {
 
 struct AddNewNodeMenuBuiltinSectionView : View {
     let category: JelloNodeCategory
-    let items: [JelloBuiltInNodeDefinition]
+    let items: [JelloBuiltInNodeMenuDefinition]
     
     var body: some View {
         Section {
@@ -86,7 +86,7 @@ struct AddNewNodeMenuView: View {
     let position: CGPoint
     
     // TODO: Replace with static variable defined elsewhere
-    let items: OrderedDictionary<JelloNodeCategory, [JelloBuiltInNodeDefinition]>
+    let items: OrderedDictionary<JelloNodeCategory, [JelloBuiltInNodeMenuDefinition]>
     let includeMaterials : Bool
     
     
@@ -96,8 +96,8 @@ struct AddNewNodeMenuView: View {
     
 
     var selectionBinding : Binding<JelloNodeType?> {
-        .init(get: { selection }, set: { selection = $0;
-            if let definiteSelection = selection {
+        .init(get: { nil }, set: {
+            if let definiteSelection = $0 {
                 switch definiteSelection {
                 case .builtIn(let builtIn):
                     modelContext.insert(JelloNode(builtIn: builtIn, graph: graph, position: position))
@@ -125,7 +125,7 @@ struct AddNewNodeMenuView: View {
                 if !functions.isEmpty {
                     AddNewNodeMenuUserFunctionSectionView(items: functions)
                 }
-            }.tint(.green).searchable(text: $searchText, isPresented: $searchBarInFocus).navigationTitle("Add Node").navigationBarTitleDisplayMode(.inline).onAppear { searchBarInFocus = true }
+            }.tint(.green).searchable(text: $searchText, isPresented: $searchBarInFocus).navigationTitle("Add Node").navigationBarTitleDisplayMode(.automatic)
         }
     }
 }

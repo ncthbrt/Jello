@@ -10,7 +10,7 @@ enum PortRelativeTo {
 extension JelloNode {
     static let headerHeight: CGFloat = 60.0
     static let portHeight: CGFloat = 30.0
-    static let nodeWidth: CGFloat = 175.0
+    static let nodeWidth: CGFloat = 200.0
     static let padding: CGFloat = 15.0
     static let cornerRadius: CGFloat = 20.0
     static let outputPortDiameter : CGFloat = 20.0

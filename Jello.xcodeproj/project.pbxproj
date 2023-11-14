@@ -12,7 +12,9 @@
 		BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF772AF257C400E2A242 /* JelloDocument.swift */; };
 		BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */; };
 		BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */; };
-		BC39A8F82B00CEC400FC6FD0 /* NewJelloNodeDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC39A8F72B00CEC400FC6FD0 /* NewJelloNodeDefinition.swift */; };
+		BC31EB712B035F52004401FC /* JelloNodeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB702B035F52004401FC /* JelloNodeController.swift */; };
+		BC31EB732B039291004401FC /* JelloTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB722B039291004401FC /* JelloTypes.swift */; };
+		BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */; };
 		BC7E22472AF4EE8600EC04E6 /* ProjectManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7E22462AF4EE8600EC04E6 /* ProjectManagement.swift */; };
 		BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */; };
 		BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */; };
@@ -62,7 +64,9 @@
 		BC2BDF772AF257C400E2A242 /* JelloDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDocument.swift; sourceTree = "<group>"; };
 		BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDocumentView.swift; sourceTree = "<group>"; };
 		BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStates.swift; sourceTree = "<group>"; };
-		BC39A8F72B00CEC400FC6FD0 /* NewJelloNodeDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewJelloNodeDefinition.swift; sourceTree = "<group>"; };
+		BC31EB702B035F52004401FC /* JelloNodeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeController.swift; sourceTree = "<group>"; };
+		BC31EB722B039291004401FC /* JelloTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloTypes.swift; sourceTree = "<group>"; };
+		BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeMenu.swift; sourceTree = "<group>"; };
 		BC7E22462AF4EE8600EC04E6 /* ProjectManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectManagement.swift; sourceTree = "<group>"; };
 		BC9BBFB22AEFDE3D00FC068C /* Jello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloApp.swift; sourceTree = "<group>"; };
@@ -158,7 +162,7 @@
 				BC7E22452AF4EE7900EC04E6 /* Support */,
 				BC9BBFF22AF0073F00FC068C /* Physics */,
 				BC9BBFF12AF0072D00FC068C /* Views */,
-				BC9BBFEC2AEFEFBD00FC068C /* Models */,
+				BC9BBFEC2AEFEFBD00FC068C /* Domain */,
 				BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */,
 				BC9BBFBB2AEFDE3E00FC068C /* Assets.xcassets */,
 				BC9BBFBD2AEFDE3E00FC068C /* Info.plist */,
@@ -193,7 +197,7 @@
 			path = JelloUITests;
 			sourceTree = "<group>";
 		};
-		BC9BBFEC2AEFEFBD00FC068C /* Models */ = {
+		BC9BBFEC2AEFEFBD00FC068C /* Domain */ = {
 			isa = PBXGroup;
 			children = (
 				BC9BBFEA2AEFEFB400FC068C /* JelloFunction.swift */,
@@ -202,9 +206,11 @@
 				BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */,
 				BC2BDF772AF257C400E2A242 /* JelloDocument.swift */,
 				BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */,
-				BC39A8F72B00CEC400FC6FD0 /* NewJelloNodeDefinition.swift */,
+				BC31EB702B035F52004401FC /* JelloNodeController.swift */,
+				BC31EB722B039291004401FC /* JelloTypes.swift */,
+				BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */,
 			);
-			path = Models;
+			path = Domain;
 			sourceTree = "<group>";
 		};
 		BC9BBFF12AF0072D00FC068C /* Views */ = {
@@ -384,8 +390,11 @@
 				BC07D10A2AFFCB7500EFA199 /* GraphView.swift in Sources */,
 				BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */,
 				BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */,
+				BC31EB732B039291004401FC /* JelloTypes.swift in Sources */,
+				BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */,
 				BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */,
 				BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */,
+				BC31EB712B035F52004401FC /* JelloNodeController.swift in Sources */,
 				BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */,
 				BC7E22472AF4EE8600EC04E6 /* ProjectManagement.swift in Sources */,
 				BCEE1C6F2AFE2DE40012F619 /* GraphLayout.swift in Sources */,
@@ -394,7 +403,6 @@
 				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
 				BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */,
 				BCD540492AF3920F00D82714 /* ProjectPickerView.swift in Sources */,
-				BC39A8F82B00CEC400FC6FD0 /* NewJelloNodeDefinition.swift in Sources */,
 				BCE067562AF8B8C10066F8D4 /* Vertlet.swift in Sources */,
 				BC07D1092AFF674E00EFA199 /* AddNewNodeMenuView.swift in Sources */,
 				BCEE1C732AFE40180012F619 /* TypingUtils.swift in Sources */,

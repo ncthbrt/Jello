@@ -43,7 +43,7 @@ class JelloProjectReference {
             return nil
         }
         
-        var path = basePath.appendingPathComponent(subPath, conformingTo: .jelloProject)
+        let path = basePath.appendingPathComponent(subPath, conformingTo: .jelloProject)
         
         self.init(bookmark: bookmarkData.base64EncodedString(), fullPath: path, subPath: subPath, name: path.lastPathComponent)
     }
