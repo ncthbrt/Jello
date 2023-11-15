@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct InputPortView : View {
     let port: JelloInputPort
@@ -27,11 +28,15 @@ struct InputPortView : View {
                 .italic()
                 .monospaced()
         }.frame(width: JelloNode.nodeWidth / 2, height: JelloNode.portHeight, alignment: .topLeading)
+        .position(JelloNode.getInputPortPositionOffset(index: port.index, relativeTo: .nodeSpace))
     }
 }
 
 struct OutputPortView : View {
     let port: JelloOutputPort
+    @State var dragStarted: Bool = false
+    @State private var newEdge : JelloEdge? = nil
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
             HStack {
@@ -41,6 +46,57 @@ struct OutputPortView : View {
                 Circle()
                     .fill(port.dataType.getTypeGradient())
                     .frame(width: JelloNode.outputPortDiameter, height: JelloNode.outputPortDiameter, alignment: .center)
-            }.frame(width: JelloNode.nodeWidth / 2, height: JelloNode.portHeight, alignment: .topTrailing)
+            }
+            .frame(width: JelloNode.nodeWidth / 2, height: JelloNode.portHeight, alignment: .topTrailing)
+            .position(JelloNode.getOutputPortPositionOffset(index: port.index, relativeTo: .nodeSpace))
+            .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
+                return newValue ? .start : .stop
+            }
+            .gesture(DragGesture().onChanged({ drag in
+                if newEdge == nil {
+                    dragStarted = true
+                    let nEdge = JelloEdge(graph: port.node.graph, id: UUID(), dataType: port.dataType, outputPort: port, inputPort: nil)
+                    newEdge = nEdge
+                    modelContext.insert(nEdge)
+                    modelContext.processPendingChanges()
+                }
+                newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
+            }).onEnded({ drag in
+                newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
+                if let nEdge = newEdge, nEdge.inputPort == nil {
+                    modelContext.delete(nEdge)
+                }
+                newEdge = nil
+                dragStarted = false
+            }))
+    }
+}
+
+
+struct NodeOutputPortsView: View {
+    @Query var outputPorts: [JelloOutputPort]
+
+    init(nodeId: UUID) {
+        self._outputPorts = Query(FetchDescriptor(predicate: #Predicate { $0.node.id == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
+    }
+    
+    var body: some View  {
+        ForEach(outputPorts) {
+            output in OutputPortView(port: output)
+        }
+    }
+}
+
+struct NodeInputPortsView: View {
+    @Query var inputPorts: [JelloInputPort]
+
+    init(nodeId: UUID) {
+        self._inputPorts = Query(FetchDescriptor(predicate: #Predicate {  $0.node.id == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
+    }
+    
+    var body: some View  {
+        ForEach(inputPorts) {
+            input in InputPortView(port: input, highlightPort: false)
+        }
     }
 }

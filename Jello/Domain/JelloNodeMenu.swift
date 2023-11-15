@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import OrderedCollections
 
 struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
     var id: JelloNodeType {.builtIn(type)}
@@ -19,7 +19,7 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
         return type.name
     }
     
-    init(description: String, previewImage: String, category: JelloNodeCategory, type: JelloBuiltInNodeSubtype) {
+    private init(description: String, previewImage: String, category: JelloNodeCategory, type: JelloBuiltInNodeSubtype) {
         self.description = description
         self.previewImage = previewImage
         self.category = category
@@ -34,4 +34,13 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
     static func == (lhs: JelloBuiltInNodeMenuDefinition, rhs: JelloBuiltInNodeMenuDefinition) -> Bool {
         return lhs.type == rhs.type
     }
+    
+    public static let builtInFunctions:  OrderedDictionary<JelloNodeCategory, [JelloBuiltInNodeMenuDefinition]> = [
+        .math: [
+            JelloBuiltInNodeMenuDefinition(description: "Adds values together", previewImage: "", category: .math, type: .add),
+            JelloBuiltInNodeMenuDefinition(description: "Subtracts values from one another", previewImage: "", category: .math, type: .subtract)
+        ]
+    ]
 }
+
+

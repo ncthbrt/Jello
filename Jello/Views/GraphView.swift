@@ -11,6 +11,8 @@ import SwiftData
 struct GraphView<AddNodeMenu: View> : View {
     let graphId : UUID
     @Query var nodes: [JelloNode]
+    @Query var edges: [JelloEdge]
+
     @Environment(\.modelContext) var modelContext
     
     @ViewBuilder var onOpenAddNodeMenu: (CGPoint) -> AddNodeMenu
@@ -24,6 +26,7 @@ struct GraphView<AddNodeMenu: View> : View {
     init(graphId: UUID, onOpenAddNodeMenu: @escaping (CGPoint) -> AddNodeMenu) {
         self.graphId = graphId
         _nodes = Query(filter: #Predicate<JelloNode> { node in node.graph.id == graphId })
+        _edges = Query(filter: #Predicate<JelloEdge> { edge in edge.graph.id == graphId })
         self.onOpenAddNodeMenu = onOpenAddNodeMenu
     }
 
@@ -34,7 +37,10 @@ struct GraphView<AddNodeMenu: View> : View {
             JelloCanvas(scale: $scale){
                 ZStack {
                     ForEach(nodes) {
-                        node in NodeView(node: node, newEdge: $newEdge)
+                        node in NodeView(node: node)
+                    }
+                    ForEach(edges) {
+                        edge in EdgeView(edge: edge)
                     }
                 }.frame(width: geometry.size.width, height: geometry.size.height)
                     .contentShape(Rectangle())

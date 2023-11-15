@@ -15,6 +15,7 @@
 		BC31EB712B035F52004401FC /* JelloNodeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB702B035F52004401FC /* JelloNodeController.swift */; };
 		BC31EB732B039291004401FC /* JelloTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB722B039291004401FC /* JelloTypes.swift */; };
 		BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */; };
+		BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB7A2B049428004401FC /* EdgeView.swift */; };
 		BC7E22472AF4EE8600EC04E6 /* ProjectManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7E22462AF4EE8600EC04E6 /* ProjectManagement.swift */; };
 		BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */; };
 		BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */; };
@@ -67,6 +68,7 @@
 		BC31EB702B035F52004401FC /* JelloNodeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeController.swift; sourceTree = "<group>"; };
 		BC31EB722B039291004401FC /* JelloTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloTypes.swift; sourceTree = "<group>"; };
 		BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeMenu.swift; sourceTree = "<group>"; };
+		BC31EB7A2B049428004401FC /* EdgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeView.swift; sourceTree = "<group>"; };
 		BC7E22462AF4EE8600EC04E6 /* ProjectManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectManagement.swift; sourceTree = "<group>"; };
 		BC9BBFB22AEFDE3D00FC068C /* Jello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloApp.swift; sourceTree = "<group>"; };
@@ -226,6 +228,7 @@
 				BCEE1C742AFE43D90012F619 /* GraphView.swift */,
 				BCEE1C762AFE44440012F619 /* JelloCanvas.swift */,
 				BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */,
+				BC31EB7A2B049428004401FC /* EdgeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -401,6 +404,7 @@
 				BCE067582AF8B8E00066F8D4 /* CGPointExtensions.swift in Sources */,
 				BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */,
 				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
+				BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */,
 				BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */,
 				BCD540492AF3920F00D82714 /* ProjectPickerView.swift in Sources */,
 				BCE067562AF8B8C10066F8D4 /* Vertlet.swift in Sources */,

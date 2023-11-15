@@ -8,7 +8,8 @@
 import Foundation
 import SwiftData
 import OrderedCollections
-
+import Collections
+import SwiftUI
 
 @Model
 final class JelloOutputPort {
@@ -19,25 +20,20 @@ final class JelloOutputPort {
     var dataType: JelloGraphDataType
     
     var node: JelloNode
-    
+    var index: UInt8
+
     @Relationship(deleteRule: .cascade, inverse: \JelloEdge.outputPort)
     var edges: [JelloEdge]
     
     
-    var position: CGPoint {
-        didSet {
-            updateEdgePositions()
-        }
-    }
 
-    
-    init(id: ID, name: String, dataType: JelloGraphDataType, node: JelloNode, edges: [JelloEdge], position: CGPoint) {
+    init(id: ID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, edges: [JelloEdge]) {
         self.id = id
         self.name = name
+        self.index = index
         self.dataType = dataType
         self.edges = []
         self.node = node
-        self.position = position
     }
     
     func updateEdgePositions() {
@@ -50,6 +46,8 @@ final class JelloInputPort {
 
     @Attribute(.unique) var id: UUID
     
+    var index: UInt8
+    
     var name: String
     var dataType: JelloGraphDataType
     
@@ -59,30 +57,33 @@ final class JelloInputPort {
     @Relationship(deleteRule: .cascade, inverse: \JelloEdge.inputPort)
     var edge: JelloEdge?
     
-    var position: CGPoint {
-        didSet {
-            updateEdgePosition()
-        }
-    }
     
-    init(id: ID, name: String, dataType: JelloGraphDataType, node: JelloNode, edge: JelloEdge?, position: CGPoint) {
+    init(id: ID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, edge: JelloEdge?) {
         self.id = id
+        self.index = index
         self.name = name
         self.dataType = dataType
         self.node = node
         self.edge = edge
-        self.position = position
     }
     
-    func updateEdgePosition() {
-        
-    }
 }
 
 
 struct Point: Codable {
     let x: Float
     let y: Float
+    
+    init(_ point: CGPoint) {
+        self.x = Float(point.x)
+        self.y = Float(point.y)
+    }
+}
+
+extension CGPoint {
+    init(_ point: Point){
+        self.init(x: CGFloat(point.x), y: CGFloat(point.y))
+    }
 }
 
 @Model
@@ -102,7 +103,7 @@ final class JelloNode  {
     @Attribute(.unique) var id: UUID
     var graph: JelloGraph
     
-    var persistedPosition: Point
+    private var persistedPosition: Point
     
     var material: JelloMaterial?
     
@@ -111,8 +112,8 @@ final class JelloNode  {
     
     @Transient
     var position: CGPoint {
-        get {  CGPoint(x: CGFloat(persistedPosition.x), y: CGFloat(persistedPosition.y)) }
-        set { persistedPosition = Point(x: Float(newValue.x), y: Float(newValue.y)) }
+        get {  CGPoint(persistedPosition) }
+        set { persistedPosition = Point(newValue) }
     }
     
     var type: JelloNodeType
@@ -132,7 +133,7 @@ final class JelloNode  {
         self.function = function
         self.inputPorts = inputPorts
         self.outputPorts = outputPorts
-        self.persistedPosition = Point(x: Float(position.x), y: Float(position.y))
+        self.persistedPosition = Point(position)
     }
     
     
@@ -148,10 +149,7 @@ final class JelloNode  {
     convenience init(builtIn: JelloBuiltInNodeSubtype, graph: JelloGraph, position: CGPoint) {
         self.init(type: .builtIn(builtIn), material: nil, function: nil, graph: graph, id: UUID(), inputPorts: [], outputPorts: [], position: position)
     }
-  
-    func updatePortPositions() {
-        
-    }
+
 }
 
 @Model
@@ -167,13 +165,82 @@ final class JelloEdge {
     
     var inputPort: JelloInputPort?
 
+    private var freeEndPosition: Point
+    
+    @Transient
+    var endPosition: CGPoint {
+        if let iPort = inputPort {
+            return iPort.node.getInputPortWorldPosition(index: iPort.index, inputPortCount: iPort.node.inputPorts.count, outputPortCount: iPort.node.outputPorts.count)
+        } else {
+            return CGPoint(x: CGFloat(freeEndPosition.x), y: CGFloat(freeEndPosition.y))
+        }
+    }
+    
+    func getDependencies() -> Set<UUID> {
+        let node = outputPort.node
+        var dependencies = Set([node.id])
+        
+        var incomingNodes: Deque<JelloNode> = Deque(node.inputPorts.filter {$0.edge != nil}.map {$0.edge!.outputPort.node})
+        
+        while let first = incomingNodes.popFirst() {
+            dependencies.insert(first.id)
+            incomingNodes.append(contentsOf: first.inputPorts.filter{$0.edge != nil}.map{$0.edge!.outputPort.node})
+        }
+        return dependencies
+    }
+    
+    func setEndPosition(_ position: CGPoint) {
+        let dependencies =  getDependencies()
+        var minDist: CGFloat = CGFloat.greatestFiniteMagnitude
+        var closestPort: JelloInputPort? = nil
+        // TODO: Test if this is performant enough at scale
+        for node in graph.nodes {
+            if !dependencies.contains(node.id) {
+                for port in node.inputPorts {
+                    if JelloGraphDataType.isPortTypeCompatible(edge: dataType, port: port.dataType) {
+                        let nodePosition = node.getInputPortWorldPosition(index: port.index, inputPortCount: node.inputPorts.count, outputPortCount: node.outputPorts.count)
+                        let dist = (position - nodePosition).magnitude()
+                        if dist < minDist && dist <= JelloEdge.maxEdgeSnapDistance {
+                            minDist = dist
+                            closestPort = port
+                        }
+                    }
+                }
+            }
+        }
+
+        self.freeEndPosition = Point(position)
+        
+        if let port = closestPort {
+            self.inputPort = port
+            withAnimation(.easeIn.speed(0.5)) {
+                self.dataType = self.outputPort.dataType
+                self.dataType = JelloGraphDataType.getMostSpecificType(a: outputPort.dataType, b: port.dataType)
+            }
+        } else {
+            if let _ = self.inputPort {
+                self.inputPort = nil
+                withAnimation(.easeIn) {
+                    self.dataType = self.outputPort.dataType
+                }
+            }
+        }
+    }
+        
+
+    var startPosition: CGPoint {
+        return outputPort.node.getOutputPortWorldPosition(index: outputPort.index, inputPortCount: outputPort.node.inputPorts.count, outputPortCount: outputPort.node.outputPorts.count)
+    }
+     
     init(graph: JelloGraph, id: ID, dataType: JelloGraphDataType, outputPort: JelloOutputPort, inputPort: JelloInputPort?) {
         self.graph = graph
         self.id = id
         self.dataType = dataType
         self.inputPort = inputPort
         self.outputPort = outputPort
+        self.freeEndPosition = Point(outputPort.node.getOutputPortWorldPosition(index: outputPort.index, inputPortCount: outputPort.node.inputPorts.count, outputPortCount: outputPort.node.outputPorts.count))
     }
+    
 }
 
 @Model

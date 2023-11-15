@@ -94,21 +94,19 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
     
     func setup(modelContext: ModelContext, node: JelloNode) 
     {
-        for port in inputPorts {
+        for i in 0..<inputPorts.count {
+            let port = inputPorts[i]
             if !node.inputPorts.contains(where: { $0.name == port.name }) {
-                let port = JelloInputPort(id: UUID(), name: port.name, dataType: port.dataType, node: node, edge: nil, position: .zero)
+                let port = JelloInputPort(id: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, edge: nil)
                 modelContext.insert(port)
-                let offset = node.getInputPortPositionOffset(portId: port.id, relativeTo: .nodeSpace)
-                port.position = offset
             }
         }
         
-        for port in outputPorts {
+        for i in 0..<outputPorts.count {
+            let port = outputPorts[i]
             if !node.outputPorts.contains(where: { $0.name == port.name }) {
-                let port = JelloOutputPort(id: UUID(), name: port.name, dataType: port.dataType, node: node, edges: [], position: .zero)
+                let port = JelloOutputPort(id: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, edges: [])
                 modelContext.insert(port)
-                let offset = node.getInputPortPositionOffset(portId: port.id, relativeTo: .nodeSpace)
-                port.position = offset
             }
         }
     }

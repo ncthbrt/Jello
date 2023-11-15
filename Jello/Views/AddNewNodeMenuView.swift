@@ -38,7 +38,7 @@ struct AddNewNodeMenuBuiltinSectionView : View {
                 NewNodeMenuItemView(name: item.name, description: item.description)
             })
         } header: {
-            Text(String(describing: category.id))
+            Text(String(describing: category))
         }
     }
 }
@@ -85,8 +85,7 @@ struct AddNewNodeMenuView: View {
     let graph: JelloGraph
     let position: CGPoint
     
-    // TODO: Replace with static variable defined elsewhere
-    let items: OrderedDictionary<JelloNodeCategory, [JelloBuiltInNodeMenuDefinition]>
+    
     let includeMaterials : Bool
     
     
@@ -116,8 +115,8 @@ struct AddNewNodeMenuView: View {
     var body: some View {
         NavigationStack {
             List(selection: selectionBinding) {
-                ForEach(items.keys, content: { category in
-                    AddNewNodeMenuBuiltinSectionView(category: category, items: items[category]!)
+                ForEach(JelloBuiltInNodeMenuDefinition.builtInFunctions.elements, id: \.key, content: { pair in
+                    AddNewNodeMenuBuiltinSectionView(category: pair.key, items: pair.value)
                 })
                 if includeMaterials && !materials.isEmpty {
                     AddNewNodeMenuMaterialSectionView(items: materials)

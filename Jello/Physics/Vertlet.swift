@@ -40,7 +40,7 @@ class SpringForce: Force {
     let coefficient: CGFloat
     let target: Vertlet
     let distance: CGFloat
-    let targetOffset: CGPoint
+    var targetOffset: CGPoint
     
     init(coefficient: CGFloat, target: Vertlet, distance: CGFloat, targetOffset: CGPoint = .zero) {
         self.coefficient = coefficient
@@ -60,7 +60,7 @@ class InteractionDraggingConstraint: Constraint {
     let position: PositionCell
     let dragPoint: PositionCell
     let falloff: CGFloat
-    let targetOffset: CGPoint
+    var targetOffset: CGPoint
     let onOff: OnOffCell
     let v: Vertlet
     
@@ -202,8 +202,8 @@ class BidirectionalDistanceToVertletConstraint: Constraint {
 class RopeVertletSimulation: ObservableObject {
     var vertlets: [Vertlet] = []
     var constraints: [Constraint] = []
-    private var targetDistanceCell : DistanceCell = DistanceCell(distance: 50)
-    private var gravity: CGPoint = CGPoint(x: 0, y: 200)
+    private var targetDistanceCell : DistanceCell = DistanceCell(distance: 20)
+    private var gravity: CGPoint = CGPoint(x: 0, y: 150)
     
     var targetDistance: CGFloat {
         get {
@@ -240,14 +240,14 @@ class RopeVertletSimulation: ObservableObject {
     }
     
     
-    var iterations: Int = 20
+    var iterations: Int = 10
     var simulationTask: Task<Void, Error>? = nil
     
     func setup(start: CGPoint, end: CGPoint, particleCount: Int, iterations: Int) {
         constraints = []
         vertlets = []
         self.iterations = iterations
-        self.targetDistance = 50
+        self.targetDistance = 20
         let gravitationalForce = ConstantForce(force: gravity)
         
         let startVertlet = Vertlet(acceleration: CGPoint(x: 0, y: 200), position: start, velocity: .zero)
@@ -256,7 +256,6 @@ class RopeVertletSimulation: ObservableObject {
         
         let endVertlet = Vertlet(acceleration: CGPoint(x: 0, y: 200), position: end, velocity: .zero)
         self.constraints.append(LockPositionConstraint(v: endVertlet, p: endPositionCell))
-        vertlets.append(endVertlet)
         
 
         for i in 1..<(particleCount-1) {
@@ -276,6 +275,8 @@ class RopeVertletSimulation: ObservableObject {
             }
         }
         
+        vertlets.append(endVertlet)
+        
     }
     
     @Sendable private func loop() async throws {
@@ -286,23 +287,27 @@ class RopeVertletSimulation: ObservableObject {
             let deltaTime = currentTime - previousTime
             previousTime = currentTime
             
-            targetDistance = CGFloat(min(50, Float(max(0.01, (startPosition - endPosition).magnitude())) * Float(1.02 / max(Float(self.vertlets.count), 2))))
+            let dtDouble: Double = Double(deltaTime.components.attoseconds) * 1.0e-18
+            let dt = CGFloat(dtDouble)
+            let dt2 = CGFloat(dtDouble * dtDouble)
             
-            let dt = Float(Double(deltaTime.components.attoseconds) * 1.0e-18)
-            let dt2 = CGFloat(dt * dt)
             for v in self.vertlets {
-                v.update(deltaTime: CGFloat(dt), deltaTimeSquared: dt2)
+                v.prepareForces(deltaTime: dt, deltaTimeSquared: dt2)
             }
-                        
+            for v in self.vertlets {
+                v.update(deltaTime: dt, deltaTimeSquared: dt2)
+            }
+            
             for _ in 0..<iterations {
                 for i in 0..<self.constraints.count {
                     self.constraints[i].relaxConstraint()
                 }
             }
-            DispatchQueue.main.async {
+            DispatchQueue.main.asyncAndWait {
                 self.objectWillChange.send()
             }
-            await Task.yield()
+            try Task.checkCancellation()
+            try await Task.sleep(for: Duration.milliseconds(16))
         }
     }
     
@@ -316,6 +321,13 @@ class RopeVertletSimulation: ObservableObject {
             task.cancel()
         }
     }
+    
+    func draw(path: inout Path){
+        path.move(to: startPosition)
+        for v in vertlets.dropFirst(1) {
+            path.addLine(to: v.position)
+        }
+    }
    
 }
 
@@ -326,13 +338,26 @@ class JellyBoxVertletSimulation: ObservableObject {
     private var left: [Vertlet] = []
     private var right: [Vertlet] = []
     
+    private var topConstraints: [InteractionDraggingConstraint] = []
+    private var bottomConstraints: [InteractionDraggingConstraint] = []
+    private var leftConstraints: [InteractionDraggingConstraint] = []
+    private var rightConstraints: [InteractionDraggingConstraint] = []
+    
+    private var isSetup: Bool = false
     private var vertlets: [Vertlet] = []
     private var constraints: [Constraint] = []
-    private var dragConstraint: InteractionDraggingConstraint? = nil
     
     var radius : CGFloat = 5
-    var dimensions : CGPoint = .zero
+    var dimensions : CGPoint = .zero {
+        didSet {
+            if isSetup {
+                update()
+            }
+        }
+    }
     
+    let xCount = 4
+    let yCount = 4
     
     var draggingCell: OnOffCell = OnOffCell()
     var dragging : Bool {
@@ -354,11 +379,11 @@ class JellyBoxVertletSimulation: ObservableObject {
     
     var dragPositionCell: PositionCell = PositionCell()
     var dragPosition: CGPoint {
-        get { dragPositionCell.position}
+        get { dragPositionCell.position }
         set { dragPositionCell.position = newValue }
     }
     
-    func setup(dimensions: CGPoint, topLeft: CGPoint, particleDensity: Float, constraintIterations: Int, updateIterations: Int, radius: CGFloat) {
+    func setup(dimensions: CGPoint, topLeft: CGPoint, constraintIterations: Int, updateIterations: Int, radius: CGFloat) {
         constraints = []
         vertlets = []
         self.dimensions = dimensions
@@ -368,20 +393,20 @@ class JellyBoxVertletSimulation: ObservableObject {
         self.updateIterations = updateIterations
         self.constraintIterations = constraintIterations
         
-        let xCount = max(Int(ceilf(Float(dimensions.x) / particleDensity)), 2)
-        let yCount = max(2, Int(ceilf(Float(dimensions.y) / particleDensity)))
-        
         
         let xStride = CGPoint(x: dimensions.x / CGFloat(xCount), y: 0)
         let yStride = CGPoint(x: 0, y: dimensions.y / CGFloat(yCount))
                 
         let dampingForce = DamperForce(coefficient: 4)
-
         
         top = []
         bottom = []
         left = []
         right = []
+        topConstraints = []
+        bottomConstraints = []
+        leftConstraints = []
+        rightConstraints = []
         
         let anchorVertlet = Vertlet(acceleration: .zero, position: topLeft, velocity: .zero)
         vertlets.append(anchorVertlet)
@@ -393,7 +418,9 @@ class JellyBoxVertletSimulation: ObservableObject {
             let vertlet = Vertlet(acceleration: .zero, position: initialPosition, velocity: .zero)
             top.append(vertlet)
             vertlet.forces.append(dampingForce)
-            constraints.append(InteractionDraggingConstraint(v: vertlet, position: topLeftCell, dragPoint: dragPositionCell, targetOffset: offset, falloff: 100, onOff: draggingCell))
+            let constraint = InteractionDraggingConstraint(v: vertlet, position: topLeftCell, dragPoint: dragPositionCell, targetOffset: offset, falloff: 100, onOff: draggingCell)
+            constraints.append(constraint)
+            topConstraints.append(constraint)
             vertlet.forces.append(SpringForce(coefficient: 50, target: anchorVertlet, distance: 0, targetOffset: offset))
             vertlets.append(vertlet)
         }
@@ -404,7 +431,9 @@ class JellyBoxVertletSimulation: ObservableObject {
             let vertlet = Vertlet(acceleration: .zero, position: initialPosition, velocity: .zero)
             bottom.append(vertlet)
             vertlet.forces.append(dampingForce)
-            constraints.append(InteractionDraggingConstraint(v: vertlet, position: topLeftCell, dragPoint: dragPositionCell, targetOffset: offset, falloff: 100, onOff: draggingCell))
+            let constraint = InteractionDraggingConstraint(v: vertlet, position: topLeftCell, dragPoint: dragPositionCell, targetOffset: offset, falloff: 100, onOff: draggingCell)
+            constraints.append(constraint)
+            bottomConstraints.append(constraint)
             vertlet.forces.append(SpringForce(coefficient: 50, target: anchorVertlet, distance: 0, targetOffset: offset))
             vertlets.append(vertlet)
         }
@@ -415,7 +444,9 @@ class JellyBoxVertletSimulation: ObservableObject {
             let vertlet = Vertlet(acceleration: .zero, position: initialPosition, velocity: .zero)
             left.append(vertlet)
             vertlet.forces.append(dampingForce)
-            constraints.append(InteractionDraggingConstraint(v: vertlet, position: topLeftCell, dragPoint: dragPositionCell, targetOffset: offset, falloff: 100, onOff: draggingCell))
+            let constraint = InteractionDraggingConstraint(v: vertlet, position: topLeftCell, dragPoint: dragPositionCell, targetOffset: offset, falloff: 100, onOff: draggingCell)
+            constraints.append(constraint)
+            leftConstraints.append(constraint)
             vertlet.forces.append(SpringForce(coefficient: 50, target: anchorVertlet, distance: 0, targetOffset: offset))
             vertlets.append(vertlet)
         }
@@ -426,16 +457,84 @@ class JellyBoxVertletSimulation: ObservableObject {
             let vertlet = Vertlet(acceleration: .zero, position: initialPosition, velocity: .zero)
             right.append(vertlet)
             vertlet.forces.append(dampingForce)
-            constraints.append(InteractionDraggingConstraint(v: vertlet, position: topLeftCell, dragPoint: dragPositionCell, targetOffset: offset, falloff: 100, onOff: draggingCell))
+            let constraint = InteractionDraggingConstraint(v: vertlet, position: topLeftCell, dragPoint: dragPositionCell, targetOffset: offset, falloff: 100, onOff: draggingCell)
+            constraints.append(constraint)
+            rightConstraints.append(constraint)
             vertlet.forces.append(SpringForce(coefficient: 50, target: anchorVertlet, distance: 0, targetOffset: offset))
             vertlets.append(vertlet)
+        }
+        
+        isSetup = true
+
+    }
+    
+    func update() {
+        let xStride = CGPoint(x: dimensions.x / CGFloat(xCount), y: 0)
+        let yStride = CGPoint(x: 0, y: dimensions.y / CGFloat(yCount))
+        
+        for i in 0...xCount {
+            let offset = xStride * CGFloat(i)
+            let vertlet = top[i]
+            let springForces = vertlet.forces.map{ force in force as? SpringForce }.filter {
+                force in force != nil
+            }
+            for springForce in springForces {
+                springForce!.targetOffset = offset
+            }
+            
+            
+            let constraint = topConstraints[i]
+            constraint.targetOffset = offset
+        }
+        
+        for i in (0...xCount) {
+            let offset = xStride * CGFloat(i) + dimensions * CGPoint(x: 0, y: 1)
+            let vertlet = bottom[bottom.count-1-i]
+            let springForces = vertlet.forces.map{ force in force as? SpringForce }.filter {
+                force in force != nil
+            }
+            for springForce in springForces {
+                springForce!.targetOffset = offset
+            }
+            
+            let constraint = bottomConstraints[bottomConstraints.count-1-i]
+            constraint.targetOffset = offset
+            
+        }
+        
+        
+        for i in (1..<yCount) {
+            let offset = yStride * CGFloat(i)
+            let vertlet = left[left.count-i]
+            let springForces = vertlet.forces.map{ force in force as? SpringForce }.filter {
+                force in force != nil
+            }
+            for springForce in springForces {
+                springForce!.targetOffset = offset
+            }
+            
+            let constraint = leftConstraints[leftConstraints.count-i]
+            constraint.targetOffset = offset
+        }
+        
+        for i in (1..<yCount) {
+            let offset = yStride * CGFloat(i) + dimensions * CGPoint(x: 1, y: 0)
+            let vertlet = right[i-1]
+            let springForces = vertlet.forces.map{ force in force as? SpringForce }.filter {
+                force in force != nil
+            }
+            for springForce in springForces {
+                springForce!.targetOffset = offset
+            }
+            let constraint = rightConstraints[i-1]
+            constraint.targetOffset = offset
         }
     }
     
     @Sendable private func loop() async throws {
         let clock = SuspendingClock()
         var previousTime = clock.now
-        while(true){
+        while(true) {
             let currentTime = clock.now
             let deltaTime = currentTime - previousTime
             previousTime = currentTime
@@ -460,12 +559,12 @@ class JellyBoxVertletSimulation: ObservableObject {
                 self.objectWillChange.send()
             }
             try Task.checkCancellation()
-            await Task.yield()
+            try await Task.sleep(for: Duration.milliseconds(16))
         }
     }
     
     func startUpdate(){
-        self.simulationTask = Task.detached(priority: .background, operation: self.loop)
+        self.simulationTask = Task.detached(priority: .medium, operation: self.loop)
     }
     
     
@@ -475,13 +574,13 @@ class JellyBoxVertletSimulation: ObservableObject {
         }
     }
         
-    private func drawCorner(path: inout Path, a: CGPoint, b: CGPoint, c: CGPoint) {
+    private func drawCorner(path: inout Path, z: CGPoint, a: CGPoint, b: CGPoint, c: CGPoint) {
         let deltaAB = b - a
         let deltaCB = c - b
         
         let p1 = b - deltaAB.normal() * radius
         let p2 = b + deltaCB.normal() * radius
-        path.addLine(to: p1 - position)
+        path.addCurve(to: p1 - position, control1: z-position, control2: a-position)
         path.addQuadCurve(to: p2 - position, control: b  - position)
     }
     
@@ -490,28 +589,13 @@ class JellyBoxVertletSimulation: ObservableObject {
             let startPoint = top[0].position + (top[1].position - top[0].position).normal() * radius - position
             path.move(to: startPoint)
             
-            for v in top.dropFirst().dropLast() {
-                path.addLine(to: v.position - position)
-            }
+            drawCorner(path: &path, z: top[top.count-3].position, a: top[top.count-2].position, b: top[top.count-1].position, c: right[0].position)
+                        
+            drawCorner(path: &path, z: right[right.count-2].position, a: right[right.count-1].position, b: bottom[0].position, c: bottom[1].position)
+
+            drawCorner(path: &path, z: bottom[bottom.count-3].position, a: bottom[bottom.count-2].position, b: bottom[bottom.count-1].position, c: left[0].position)
             
-            drawCorner(path: &path, a: top[top.count-2].position, b: top[top.count-1].position, c: right[0].position)
-            
-            for v in right.dropFirst().dropLast() {
-                path.addLine(to: v.position - position)
-            }
-            
-            drawCorner(path: &path, a: right[right.count-1].position, b: bottom[0].position, c: bottom[1].position)
-            for v in bottom.dropFirst().dropLast() {
-                path.addLine(to: v.position - position)
-            }
-            
-            drawCorner(path: &path, a: bottom[bottom.count-2].position, b: bottom[bottom.count-1].position, c: left[0].position)
-            
-            for v in left.dropFirst().dropLast() {
-                path.addLine(to: v.position - position)
-            }
-            
-            drawCorner(path: &path, a: left[left.count-1].position, b: top[0].position, c: top[1].position)
+            drawCorner(path: &path, z: left[left.count-2].position, a: left[left.count-1].position, b: top[0].position, c: top[1].position)
             path.closeSubpath()
         }
     }
