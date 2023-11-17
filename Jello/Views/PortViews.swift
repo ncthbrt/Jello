@@ -3,9 +3,11 @@ import SwiftData
 
 struct InputPortView : View {
     let port: JelloInputPort
-    let highlightPort: Bool
+    @Environment(\.freeEdges) var freeEdges: [(edge: JelloEdge, dependencies: Set<UUID>)]
     
     var body: some View {
+        let highlightPort = port.edge == nil && freeEdges.contains(where: { JelloGraphDataType.isPortTypeCompatible(edge: $0.edge.dataType, port: port.dataType) && !$0.dependencies.contains(port.node?.id ?? UUID()) })
+
         HStack {
             ZStack {
                 if highlightPort {
@@ -95,7 +97,7 @@ struct NodeInputPortsView: View {
     
     var body: some View  {
         ForEach(inputPorts) {
-            input in InputPortView(port: input, highlightPort: false)
+            input in InputPortView(port: input)
         }
     }
 }

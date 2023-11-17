@@ -198,7 +198,7 @@ final class JelloEdge {
         var minDist: CGFloat = CGFloat.greatestFiniteMagnitude
         var closestPort: JelloInputPort? = nil
         // TODO: Test if this is performant enough at scale
-        let graphId = graph?.id ?? UUID()
+        let graphId = graph?.id
         let nodes = ((try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloNode>{ $0.graph?.id == graphId }))) ?? [])
 
         for node in nodes {

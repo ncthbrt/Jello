@@ -12,6 +12,7 @@ struct GraphView<AddNodeMenu: View> : View {
     let graphId : UUID
     @Query var nodes: [JelloNode]
     @Query var edges: [JelloEdge]
+    @Query var freeEdges: [JelloEdge]
 
     @Environment(\.modelContext) var modelContext
     
@@ -27,6 +28,7 @@ struct GraphView<AddNodeMenu: View> : View {
         self.graphId = graphId
         _nodes = Query(filter: #Predicate<JelloNode> { node in node.graph?.id == graphId })
         _edges = Query(filter: #Predicate<JelloEdge> { edge in edge.graph?.id == graphId })
+        _freeEdges = Query(filter: #Predicate<JelloEdge> { edge in edge.graph?.id == graphId && edge.inputPort == nil })
         self.onOpenAddNodeMenu = onOpenAddNodeMenu
     }
 
@@ -40,7 +42,7 @@ struct GraphView<AddNodeMenu: View> : View {
                         if !node.isDeleted {
                             NodeView(node: node)
                         }
-                    }
+                    }.freeEdges(freeEdges.map({ return (edge: $0, $0.getDependencies()) }))
                     ForEach(edges) { edge in
                         if !edge.isDeleted {
                             EdgeView(edge: edge)
