@@ -48,14 +48,19 @@ struct NodeRendererView: View {
                 Label("Pin Preview", systemImage: "eye")
             }
             Button(role: .destructive) {
+                let nodeId = node.id
                 try! modelContext.transaction {
-                    for port in inputPorts {
-                        if let edge = port.edge {
+                    let inputPorts = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == nodeId }))
+                    for inputPort in inputPorts {
+                        if let edge = inputPort.edge {
                             modelContext.delete(edge)
                         }
                     }
-                    for port in outputPorts {
-                        for edge in port.edges {
+                    let outputPorts = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.id == nodeId }))
+                    for outputPort in outputPorts {
+                        let outputPortId = outputPort.id
+                        let edges = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloEdge>{ $0.outputPort?.id == outputPortId }))
+                        for edge in edges {
                             modelContext.delete(edge)
                         }
                     }

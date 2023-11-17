@@ -204,7 +204,7 @@ final class JelloEdge {
         for node in nodes {
             if !dependencies.contains(node.id) {
                 for port in node.inputPorts {
-                    if JelloGraphDataType.isPortTypeCompatible(edge: dataType, port: port.dataType) {
+                    if JelloGraphDataType.isPortTypeCompatible(edge: dataType, port: port.dataType) && (port.edge == nil || port.edge == self) {
                         let nodePosition = node.getInputPortWorldPosition(index: port.index, inputPortCount: node.inputPorts.count, outputPortCount: node.outputPorts.count)
                         let dist = (position - nodePosition).magnitude()
                         if dist < minDist && dist <= JelloEdge.maxEdgeSnapDistance {
