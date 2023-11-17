@@ -113,7 +113,6 @@ struct NodeRendererView: View {
 
 struct NodeView : View {
     @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
-    @Environment(\.modelContext) var modelContext
 
     @Query var outputPorts: [JelloOutputPort]
     @Query var inputPorts: [JelloInputPort]
@@ -139,7 +138,7 @@ struct NodeView : View {
     var body: some View {
         NodeRendererView(sim: sim, node: node, inputPorts: inputPorts, outputPorts: outputPorts)
             .onAppear {
-                controller.setup(modelContext: modelContext, node: node)
+                controller.setup(node: node)
             }
     }
 }

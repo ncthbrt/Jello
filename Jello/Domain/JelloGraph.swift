@@ -174,26 +174,34 @@ final class JelloEdge {
     }
     
     func getDependencies() -> Set<UUID> {
+        
         guard let node = outputPort?.node else {
             return Set()
         }
         var dependencies = Set([node.id])
         
+        
         var incomingNodes: Deque<JelloNode> = Deque(node.inputPorts.compactMap({$0.edge?.outputPort?.node}))
         
         while let first = incomingNodes.popFirst() {
             dependencies.insert(first.id)
-            incomingNodes.append(contentsOf: first.inputPorts.compactMap{$0.edge?.outputPort?.node})
+            let firstId = first.id
+            let inputPorts = (try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == firstId }))) ?? []
+            incomingNodes.append(contentsOf: inputPorts.compactMap{$0.edge?.outputPort?.node})
         }
         return dependencies
     }
     
     func setEndPosition(_ position: CGPoint) {
-        let dependencies =  getDependencies()
+        modelContext?.processPendingChanges()
+        let dependencies = getDependencies()
         var minDist: CGFloat = CGFloat.greatestFiniteMagnitude
         var closestPort: JelloInputPort? = nil
         // TODO: Test if this is performant enough at scale
-        for node in graph?.nodes ?? [] {
+        let graphId = graph?.id ?? UUID()
+        let nodes = ((try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloNode>{ $0.graph?.id == graphId }))) ?? [])
+
+        for node in nodes {
             if !dependencies.contains(node.id) {
                 for port in node.inputPorts {
                     if JelloGraphDataType.isPortTypeCompatible(edge: dataType, port: port.dataType) {

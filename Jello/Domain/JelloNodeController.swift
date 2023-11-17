@@ -9,38 +9,38 @@ import Foundation
 import SwiftData
 
 protocol JelloNodeController {
-    func setup(modelContext: ModelContext, node: JelloNode)
-    func onInputPortConnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
-    func onOutputPortConnected(modelContext: ModelContext, port: JelloOutputPort, edge: JelloEdge)
-    func onInputPortDisconnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
-    func onOutputPortDisconnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func setup(node: JelloNode)
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
+    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
 }
 
 
 private class JelloMaterialNodeController: JelloNodeController {
     init(){}
     
-    func setup(modelContext: ModelContext, node: JelloNode) 
+    func setup(node: JelloNode)
     {
         
     }
     
-    func onInputPortConnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }
     
-    func onOutputPortConnected(modelContext: ModelContext, port: JelloOutputPort, edge: JelloEdge)
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
     {
         
     }
     
-    func onInputPortDisconnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }
     
-    func onOutputPortDisconnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }
@@ -50,27 +50,27 @@ private class JelloMaterialNodeController: JelloNodeController {
 fileprivate class JelloUserFunctionNodeController: JelloNodeController {
     init(){}
     
-    func setup(modelContext: ModelContext, node: JelloNode)
+    func setup(node: JelloNode)
     {
         
     }
     
-    func onInputPortConnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }
     
-    func onOutputPortConnected(modelContext: ModelContext, port: JelloOutputPort, edge: JelloEdge)
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
     {
         
     }
     
-    func onInputPortDisconnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }
     
-    func onOutputPortDisconnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }
@@ -92,13 +92,13 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
         self.outputPorts = outputPorts
     }
     
-    func setup(modelContext: ModelContext, node: JelloNode) 
+    func setup(node: JelloNode)
     {
         for i in 0..<inputPorts.count {
             let port = inputPorts[i]
             if !node.inputPorts.contains(where: { $0.name == port.name }) {
                 let port = JelloInputPort(id: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node)
-                modelContext.insert(port)
+                node.modelContext?.insert(port)
             }
         }
         
@@ -106,27 +106,27 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
             let port = outputPorts[i]
             if !node.outputPorts.contains(where: { $0.name == port.name }) {
                 let port = JelloOutputPort(id: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, edges: [])
-                modelContext.insert(port)
+                node.modelContext?.insert(port)
             }
         }
     }
     
-    func onInputPortConnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }
     
-    func onOutputPortConnected(modelContext: ModelContext, port: JelloOutputPort, edge: JelloEdge)
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
     {
         
     }
     
-    func onInputPortDisconnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }
     
-    func onOutputPortDisconnected(modelContext: ModelContext, port: JelloInputPort, edge: JelloEdge)
+    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
     {
         
     }

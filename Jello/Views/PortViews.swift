@@ -58,9 +58,7 @@ struct OutputPortView : View {
                     let nEdge = JelloEdge(graph: graph, id: UUID(), dataType: port.dataType, outputPort: port, inputPort: nil)
                     newEdge = nEdge
                     modelContext.insert(nEdge)
-                    try! modelContext.save()
                 }
-                modelContext.processPendingChanges()
                 newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
             }).onEnded({ drag in
                 newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
