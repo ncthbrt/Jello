@@ -17,7 +17,7 @@ final class JelloFunction {
     
     
     @Relationship(deleteRule: .cascade, inverse: \JelloNode.function)
-    var dependants: [JelloNode]
+    private var dependants: [JelloNode]
     
     var name: String
 

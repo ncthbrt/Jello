@@ -15,14 +15,14 @@ final class JelloMaterial {
     @Attribute(.unique) var uuid: UUID
     
     @Relationship(deleteRule: .cascade, inverse: \JelloNode.material)
-    var dependants: [JelloNode]
+    private var dependants: [JelloNode]
     
     var name: String
 
     var userDescription: String
 
     @Relationship(deleteRule: .cascade)
-    var graph: JelloGraph
+    private var graph: JelloGraph
     
 
     init(uuid: UUID, name: String, userDescription: String, graph: JelloGraph, dependants: [JelloNode]) {

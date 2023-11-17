@@ -94,9 +94,14 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
     
     func setup(node: JelloNode)
     {
+        let nodeId = node.id
+        let existingInputPorts = ((try? node.modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == nodeId }))) ?? [])
+        let existingOutputPorts = ((try? node.modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.id == nodeId }))) ?? [])
+
         for i in 0..<inputPorts.count {
             let port = inputPorts[i]
-            if !node.inputPorts.contains(where: { $0.name == port.name }) {
+
+            if !existingInputPorts.contains(where: { $0.name == port.name }) {
                 let port = JelloInputPort(id: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node)
                 node.modelContext?.insert(port)
             }
@@ -104,7 +109,7 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
         
         for i in 0..<outputPorts.count {
             let port = outputPorts[i]
-            if !node.outputPorts.contains(where: { $0.name == port.name }) {
+            if !existingOutputPorts.contains(where: { $0.name == port.name }) {
                 let port = JelloOutputPort(id: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, edges: [])
                 node.modelContext?.insert(port)
             }

@@ -23,7 +23,7 @@ final class JelloOutputPort {
     var index: UInt8
 
     @Relationship(inverse: \JelloEdge.outputPort)
-    var edges: [JelloEdge]
+    private var edges: [JelloEdge]
     
 
     init(id: ID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, edges: [JelloEdge]) {
@@ -116,10 +116,10 @@ final class JelloNode  {
     var type: JelloNodeType
      
     @Relationship(deleteRule: .cascade, inverse: \JelloInputPort.node)
-    var inputPorts: [JelloInputPort]
+    private var inputPorts: [JelloInputPort]
     
     @Relationship(deleteRule: .cascade, inverse: \JelloOutputPort.node)
-    var outputPorts: [JelloOutputPort]
+    private var outputPorts: [JelloOutputPort]
     
     
     private init(type: JelloNodeType, material: JelloMaterial?, function: JelloFunction?, graph: JelloGraph, id: ID, inputPorts: [JelloInputPort], outputPorts: [JelloOutputPort], position: CGPoint) {
@@ -167,7 +167,10 @@ final class JelloEdge {
     @Transient
     var endPosition: CGPoint {
         if let iPort = inputPort, let node = iPort.node, !iPort.isDeleted {
-            return node.getInputPortWorldPosition(index: iPort.index, inputPortCount: node.inputPorts.count, outputPortCount: node.outputPorts.count)
+            let nodeId = node.id
+            let inputPorts = ((try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == nodeId }))) ?? [])
+            let outputPorts = ((try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.id == nodeId }))) ?? [])
+            return node.getInputPortWorldPosition(index: iPort.index, inputPortCount: inputPorts.count, outputPortCount: outputPorts.count)
         } else {
             return CGPoint(x: CGFloat(freeEndPosition.x), y: CGFloat(freeEndPosition.y))
         }
@@ -178,16 +181,13 @@ final class JelloEdge {
         guard let node = outputPort?.node else {
             return Set()
         }
-        var dependencies = Set([node.id])
-        
-        
-        var incomingNodes: Deque<JelloNode> = Deque(node.inputPorts.compactMap({$0.edge?.outputPort?.node}))
+        var dependencies = Set<UUID>()
+        var incomingNodes: Deque<UUID> = Deque([node.id])
         
         while let first = incomingNodes.popFirst() {
-            dependencies.insert(first.id)
-            let firstId = first.id
-            let inputPorts = (try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == firstId }))) ?? []
-            incomingNodes.append(contentsOf: inputPorts.compactMap{$0.edge?.outputPort?.node})
+            dependencies.insert(first)
+            let inputPorts = (try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == first }))) ?? []
+            incomingNodes.append(contentsOf: inputPorts.compactMap{$0.edge?.outputPort?.node?.id})
         }
         return dependencies
     }
@@ -203,9 +203,12 @@ final class JelloEdge {
 
         for node in nodes {
             if !dependencies.contains(node.id) {
-                for port in node.inputPorts {
+                let nodeId = node.id
+                let inputPorts = ((try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == nodeId }))) ?? [])
+                let outputPorts = ((try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.id == nodeId }))) ?? [])
+                for port in inputPorts {
                     if JelloGraphDataType.isPortTypeCompatible(edge: dataType, port: port.dataType) && (port.edge == nil || port.edge == self) {
-                        let nodePosition = node.getInputPortWorldPosition(index: port.index, inputPortCount: node.inputPorts.count, outputPortCount: node.outputPorts.count)
+                        let nodePosition = node.getInputPortWorldPosition(index: port.index, inputPortCount: inputPorts.count, outputPortCount: outputPorts.count)
                         let dist = (position - nodePosition).magnitude()
                         if dist < minDist && dist <= JelloEdge.maxEdgeSnapDistance {
                             minDist = dist
@@ -236,8 +239,12 @@ final class JelloEdge {
         
 
     var startPosition: CGPoint {
+        
         if let oPort = outputPort, let node = oPort.node {
-            return node.getOutputPortWorldPosition(index: oPort.index, inputPortCount: node.inputPorts.count, outputPortCount: node.outputPorts.count)
+            let nodeId = node.id
+            let inputPorts = ((try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == nodeId }))) ?? [])
+            let outputPorts = ((try? modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.id == nodeId }))) ?? [])
+            return node.getOutputPortWorldPosition(index: oPort.index, inputPortCount: inputPorts.count, outputPortCount: outputPorts.count)
         } else {
             return CGPoint(freeEndPosition)
         }
@@ -249,7 +256,7 @@ final class JelloEdge {
         self.dataType = dataType
         self.inputPort = inputPort
         self.outputPort = outputPort
-        self.freeEndPosition = Point(outputPort.node?.getOutputPortWorldPosition(index: outputPort.index, inputPortCount: outputPort.node?.inputPorts.count ?? 0, outputPortCount: outputPort.node?.outputPorts.count ?? 0) ?? .zero)
+        self.freeEndPosition = Point(CGPoint.zero)
     }
 }
 
@@ -258,10 +265,10 @@ final class JelloGraph {
     @Attribute(.unique) var id: UUID
     
     @Relationship(deleteRule: .cascade, inverse: \JelloNode.graph)
-    var nodes: [JelloNode]
+    private var nodes: [JelloNode]
 
     @Relationship(inverse: \JelloNode.graph)
-    var edges: [JelloEdge]
+    private var edges: [JelloEdge]
 
     init(id: ID, nodes: [JelloNode], edges: [JelloEdge]) {
         self.id = id
