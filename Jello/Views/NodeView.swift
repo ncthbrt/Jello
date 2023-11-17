@@ -18,26 +18,11 @@ struct NodeRendererView: View {
     @ObservedObject var sim: JellyBoxVertletSimulation
     @State var dragStarted: Bool = false
     @State var nodeHeight: CGFloat = 50.0
-    @Query var inputPorts: [JelloInputPort]
-    @Query var outputPorts: [JelloOutputPort]
+    
     var node : JelloNode
+    let inputPorts: [JelloInputPort]
+    let outputPorts: [JelloOutputPort]
     
-    init(node: JelloNode, sim: JellyBoxVertletSimulation){
-        self.node = node
-        self.sim = sim
-        _inputPorts = Query(FetchDescriptor(predicate: Self.inputPortPredicate(nodeId: node.id)))
-        _outputPorts = Query(FetchDescriptor(predicate: Self.outputPortPredicate(nodeId: node.id)))
-    }
-    
-    static func outputPortPredicate(nodeId: UUID) -> Predicate<JelloOutputPort> {
-        return #Predicate { $0.node.id == nodeId }
-    }
-    
-    static func inputPortPredicate(nodeId: UUID) -> Predicate<JelloInputPort> {
-        return #Predicate { $0.node.id == nodeId }
-    }
-    
-
     var body: some View {
         ZStack {
             Path(sim.draw)
@@ -52,8 +37,8 @@ struct NodeRendererView: View {
                 Spacer()
             }
             .padding(.all, JelloNode.padding)
-            NodeOutputPortsView(nodeId: node.id)
             NodeInputPortsView(nodeId: node.id)
+            NodeOutputPortsView(nodeId: node.id)
         }
         .animation(.interactiveSpring(), value: node.position)
         .contextMenu {
@@ -63,6 +48,18 @@ struct NodeRendererView: View {
                 Label("Pin Preview", systemImage: "eye")
             }
             Button(role: .destructive) {
+                try! modelContext.transaction {
+                    for port in inputPorts {
+                        if let edge = port.edge {
+                            modelContext.delete(edge)
+                        }
+                    }
+                    for port in outputPorts {
+                        for edge in port.edges {
+                            modelContext.delete(edge)
+                        }
+                    }
+                }
                 modelContext.delete(node)
             } label: {
                 Label("Delete", systemImage: "trash.fill")
@@ -117,17 +114,30 @@ struct NodeRendererView: View {
 struct NodeView : View {
     @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
     @Environment(\.modelContext) var modelContext
-    
+
+    @Query var outputPorts: [JelloOutputPort]
+    @Query var inputPorts: [JelloInputPort]
+
     let node: JelloNode
     let controller: JelloNodeController
     
     init(node: JelloNode) {
         self.node = node
         self.controller = JelloNodeControllerFactory.getController(node)
+        _outputPorts = Query(FetchDescriptor(predicate: Self.outputPortPredicate(nodeId: node.id)))
+        _inputPorts = Query(FetchDescriptor(predicate: Self.inputPortPredicate(nodeId:node.id)))
+    }
+    
+    static func outputPortPredicate(nodeId: UUID) -> Predicate<JelloOutputPort> {
+        return #Predicate { $0.node?.id == nodeId }
+    }
+    
+    static func inputPortPredicate(nodeId: UUID) -> Predicate<JelloInputPort> {
+        return #Predicate { $0.node?.id == nodeId }
     }
     
     var body: some View {
-        NodeRendererView(node: node, sim: sim)
+        NodeRendererView(sim: sim, node: node, inputPorts: inputPorts, outputPorts: outputPorts)
             .onAppear {
                 controller.setup(modelContext: modelContext, node: node)
             }

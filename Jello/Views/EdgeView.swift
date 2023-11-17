@@ -63,7 +63,6 @@ fileprivate struct Rope: View {
 }
 
 
-
 struct EdgeView: View {
     var edge: JelloEdge
     @Environment(\.modelContext) var modelContext
@@ -71,17 +70,15 @@ struct EdgeView: View {
 
     
     var body: some View {
-        Rope(start: edge.startPosition, end: edge.endPosition, onEndUnhook: { value in
-            if edge.inputPort != nil {
-                edge.inputPort = nil
-                edge.dataType = edge.outputPort.dataType
-            }
-            edge.setEndPosition(value.location)
-        }, onEndUnhookEnd:  { value in
-            if edge.inputPort == nil {
-                modelContext.delete(edge)
-            }
-        }, fill: edge.dataType.getTypeGradient(), ropeSim: ropeSim)
+        if !edge.isDeleted {
+            Rope(start: edge.startPosition, end: edge.endPosition, onEndUnhook: { value in
+                edge.setEndPosition(value.location)
+            }, onEndUnhookEnd:  { value in
+                if edge.inputPort == nil {
+                    modelContext.delete(edge)
+                }
+            }, fill: edge.dataType.getTypeGradient(), ropeSim: ropeSim)
+        }
     }
 }
 

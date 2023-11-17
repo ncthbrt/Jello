@@ -53,13 +53,14 @@ struct OutputPortView : View {
                 return newValue ? .start : .stop
             }
             .gesture(DragGesture().onChanged({ drag in
-                if newEdge == nil {
+                if newEdge == nil, let graph = port.node?.graph {
                     dragStarted = true
-                    let nEdge = JelloEdge(graph: port.node.graph, id: UUID(), dataType: port.dataType, outputPort: port, inputPort: nil)
+                    let nEdge = JelloEdge(graph: graph, id: UUID(), dataType: port.dataType, outputPort: port, inputPort: nil)
                     newEdge = nEdge
                     modelContext.insert(nEdge)
-                    modelContext.processPendingChanges()
+                    try! modelContext.save()
                 }
+                modelContext.processPendingChanges()
                 newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
             }).onEnded({ drag in
                 newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
@@ -77,7 +78,7 @@ struct NodeOutputPortsView: View {
     @Query var outputPorts: [JelloOutputPort]
 
     init(nodeId: UUID) {
-        self._outputPorts = Query(FetchDescriptor(predicate: #Predicate { $0.node.id == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
+        self._outputPorts = Query(FetchDescriptor(predicate: #Predicate { $0.node?.id == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
     }
     
     var body: some View  {
@@ -91,7 +92,7 @@ struct NodeInputPortsView: View {
     @Query var inputPorts: [JelloInputPort]
 
     init(nodeId: UUID) {
-        self._inputPorts = Query(FetchDescriptor(predicate: #Predicate {  $0.node.id == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
+        self._inputPorts = Query(FetchDescriptor(predicate: #Predicate { $0.node?.id == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
     }
     
     var body: some View  {

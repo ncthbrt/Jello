@@ -97,7 +97,7 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
         for i in 0..<inputPorts.count {
             let port = inputPorts[i]
             if !node.inputPorts.contains(where: { $0.name == port.name }) {
-                let port = JelloInputPort(id: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, edge: nil)
+                let port = JelloInputPort(id: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node)
                 modelContext.insert(port)
             }
         }

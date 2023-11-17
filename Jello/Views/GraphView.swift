@@ -25,8 +25,8 @@ struct GraphView<AddNodeMenu: View> : View {
     
     init(graphId: UUID, onOpenAddNodeMenu: @escaping (CGPoint) -> AddNodeMenu) {
         self.graphId = graphId
-        _nodes = Query(filter: #Predicate<JelloNode> { node in node.graph.id == graphId })
-        _edges = Query(filter: #Predicate<JelloEdge> { edge in edge.graph.id == graphId })
+        _nodes = Query(filter: #Predicate<JelloNode> { node in node.graph?.id == graphId })
+        _edges = Query(filter: #Predicate<JelloEdge> { edge in edge.graph?.id == graphId })
         self.onOpenAddNodeMenu = onOpenAddNodeMenu
     }
 
@@ -36,11 +36,15 @@ struct GraphView<AddNodeMenu: View> : View {
         GeometryReader { geometry  in
             JelloCanvas(scale: $scale){
                 ZStack {
-                    ForEach(nodes) {
-                        node in NodeView(node: node)
+                    ForEach(nodes) { node in
+                        if !node.isDeleted {
+                            NodeView(node: node)
+                        }
                     }
-                    ForEach(edges) {
-                        edge in EdgeView(edge: edge)
+                    ForEach(edges) { edge in
+                        if !edge.isDeleted {
+                            EdgeView(edge: edge)
+                        }
                     }
                 }.frame(width: geometry.size.width, height: geometry.size.height)
                     .contentShape(Rectangle())

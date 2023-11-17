@@ -60,6 +60,12 @@ struct JelloVersionedSchema: VersionedSchema {
 
     static var models: [any PersistentModel.Type] = [
         JelloMaterial.self,
-        JelloFunction.self
+        JelloFunction.self,
+        JelloGraph.self,
+        JelloEdge.self,
+        JelloNode.self,
+        JelloInputPort.self,
+        JelloOutputPort.self,
+        JelloProjectReference.self
     ]
 }
