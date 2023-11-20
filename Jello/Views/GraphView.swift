@@ -43,7 +43,8 @@ struct GraphView<AddNodeMenu: View> : View {
 
     var body: some View {
         GeometryReader { geometry in
-            JelloCanvasRepresentable(onGesture: { gesture in
+            let canvasTransform = CanvasTransform(scale: currentZoom+totalZoom, position: position + offset)
+            JelloCanvasRepresentable(onPanZoomGesture: { gesture in
                 withAnimation(.easeInOut) {
                     let magnification = gesture.currentDistance / gesture.startDistance
                     currentZoom = magnification - 1
@@ -52,7 +53,7 @@ struct GraphView<AddNodeMenu: View> : View {
                     let zoomOffset = (-1 * (gesture.startCentroid / (totalZoom+currentZoom)) * currentZoom)
                     offset = panOffset + zoomOffset
                 }
-            }, onGestureEnd: {
+            }, onPanZoomGestureEnd: {
                 totalZoom += currentZoom
                 currentZoom = 0
                 position = position + offset
@@ -60,26 +61,31 @@ struct GraphView<AddNodeMenu: View> : View {
             })
             {
                 ZStack {
-                    ForEach(nodes) { node in
-                        if !node.isDeleted {
-                            NodeView(node: node)
-                        }
-                    }.freeEdges(freeEdges.map({ return (edge: $0, $0.getDependencies()) }))
-                    ForEach(edges) { edge in
-                        if !edge.isDeleted {
-                            EdgeView(edge: edge)
+                    ZStack {
+                        ForEach(nodes) { node in
+                            if !node.isDeleted {
+                                NodeView(node: node)
+                            }
+                        }.freeEdges(freeEdges.map({ return (edge: $0, $0.getDependencies()) }))
+                        ForEach(edges) { edge in
+                            if !edge.isDeleted {
+                                EdgeView(edge: edge)
+                            }
                         }
                     }
+                    .frame(width: geometry.size.width / (currentZoom + totalZoom), height: geometry.size.height / (currentZoom + totalZoom))
+                    .scaleEffect(currentZoom + totalZoom)
+                    .canvasTransform(canvasTransform)
                 }
-                .frame(width: geometry.size.width / (currentZoom + totalZoom), height: geometry.size.height / (currentZoom + totalZoom))
-                .scaleEffect(currentZoom + totalZoom)
-                .canvasTransform(CanvasTransform(scale: currentZoom+totalZoom, position: position + offset))
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2) { location in
+                    tapLocation = location
+                    showNodeMenu = true
+                }
+                .popover(isPresented: $showNodeMenu, attachmentAnchor: .point(UnitPoint(x: tapLocation.x / geometry.size.width, y: tapLocation.y / geometry.size.height)), content: { onOpenAddNodeMenu(canvasTransform.transform(viewPosition: tapLocation)).frame(minWidth: 400, maxWidth: 400, idealHeight: 600) })
             }
-            .popover(isPresented: $showNodeMenu, attachmentAnchor: .point(UnitPoint(x: tapLocation.x / geometry.size.width, y: tapLocation.y / geometry.size.height)), content: { onOpenAddNodeMenu(tapLocation / (currentZoom + totalZoom)+position+offset).frame(minWidth: 400, maxWidth: 400, idealHeight: 600) })
-            .onTapGesture(count: 2) { location in
-                       tapLocation = location
-                       showNodeMenu = true
-                   }
+            
 
         }
     }

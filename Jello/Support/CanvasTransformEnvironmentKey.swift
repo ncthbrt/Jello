@@ -11,6 +11,15 @@ import SwiftUI
 struct CanvasTransform {
     let scale: CGFloat
     let position: CGPoint
+    
+    
+    func transform(viewPosition: CGPoint) -> CGPoint {
+        viewPosition / scale - position
+    }
+    
+    func transform(worldPosition: CGPoint) -> CGPoint {
+        (worldPosition - position) * scale
+    }
 }
 
 

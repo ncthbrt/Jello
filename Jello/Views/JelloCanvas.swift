@@ -72,15 +72,15 @@ class PanZoomGestureRecognizer: UIGestureRecognizer {
 
 
 struct JelloCanvasRepresentable<Content: View> : UIViewRepresentable {
-    let onGesture: (PanZoomGesture) -> ()
-    let onGestureEnd: () -> ()
+    let onPanZoomGesture: (PanZoomGesture) -> ()
+    let onPanZoomGestureEnd: () -> ()
     
     private var content: Content
     
 
-    init(onGesture: @escaping (PanZoomGesture) -> (), onGestureEnd: @escaping () -> (), @ViewBuilder content: () -> Content) {
-        self.onGesture = onGesture
-        self.onGestureEnd = onGestureEnd
+    init(onPanZoomGesture: @escaping (PanZoomGesture) -> (), onPanZoomGestureEnd: @escaping () -> (), @ViewBuilder content: () -> Content) {
+        self.onPanZoomGesture = onPanZoomGesture
+        self.onPanZoomGestureEnd = onPanZoomGestureEnd
         self.content = content()
     }
     
@@ -99,14 +99,14 @@ struct JelloCanvasRepresentable<Content: View> : UIViewRepresentable {
     
     func updateUIView(_ uiView: UIView, context: Context) {
         context.coordinator.hostingController.rootView = self.content
-        context.coordinator.gestureRecognizer.onGesture = onGesture
-        context.coordinator.gestureRecognizer.onGestureEnd = onGestureEnd
+        context.coordinator.gestureRecognizer.onGesture = onPanZoomGesture
+        context.coordinator.gestureRecognizer.onGestureEnd = onPanZoomGestureEnd
         assert(context.coordinator.hostingController.view.superview == uiView)
      }
     
     func makeCoordinator() -> Coordinator {
         let hostingController = UIHostingController(rootView: self.content)
-        let recognizer = PanZoomGestureRecognizer(target: nil, onGesture: onGesture, onGestureEnd: onGestureEnd)
+        let recognizer = PanZoomGestureRecognizer(target: nil, onGesture: onPanZoomGesture, onGestureEnd: onPanZoomGestureEnd)
         let coordinator = Coordinator(hostingController: hostingController, gestureRecognizer: recognizer)
         recognizer.delegate = coordinator
         return coordinator

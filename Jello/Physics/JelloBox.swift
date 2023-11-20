@@ -363,7 +363,7 @@ class JellyBoxVertletSimulation: ObservableObject {
                 self.objectWillChange.send()
             }
             try Task.checkCancellation()
-            try await Task.sleep(for: Duration.milliseconds(16))
+            try await Task.sleep(for: Duration.milliseconds(8))
         }
     }
     
