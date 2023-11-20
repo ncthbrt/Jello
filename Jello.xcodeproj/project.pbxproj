@@ -12,6 +12,7 @@
 		BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5712B0763ED008F75C2 /* Rope.swift */; };
 		BC2AE5742B0764FA008F75C2 /* VertletShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5732B0764FA008F75C2 /* VertletShared.swift */; };
 		BC2AE5762B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */; };
+		BC2AE5782B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5772B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift */; };
 		BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF772AF257C400E2A242 /* JelloDocument.swift */; };
 		BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */; };
 		BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */; };
@@ -68,6 +69,7 @@
 		BC2AE5712B0763ED008F75C2 /* Rope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rope.swift; sourceTree = "<group>"; };
 		BC2AE5732B0764FA008F75C2 /* VertletShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VertletShared.swift; sourceTree = "<group>"; };
 		BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeEdgesEnvironmentKey.swift; sourceTree = "<group>"; };
+		BC2AE5772B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasTransformEnvironmentKey.swift; sourceTree = "<group>"; };
 		BC2BDF772AF257C400E2A242 /* JelloDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDocument.swift; sourceTree = "<group>"; };
 		BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDocumentView.swift; sourceTree = "<group>"; };
 		BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStates.swift; sourceTree = "<group>"; };
@@ -140,6 +142,7 @@
 				BCEE1C6E2AFE2DE40012F619 /* GraphLayout.swift */,
 				BCEE1C722AFE40180012F619 /* TypingUtils.swift */,
 				BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */,
+				BC2AE5772B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -404,6 +407,7 @@
 				BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */,
 				BC31EB732B039291004401FC /* JelloTypes.swift in Sources */,
 				BC2AE5742B0764FA008F75C2 /* VertletShared.swift in Sources */,
+				BC2AE5782B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift in Sources */,
 				BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */,
 				BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */,
 				BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */,

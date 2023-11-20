@@ -63,7 +63,7 @@ struct OutputPortView : View {
                 }
                 newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
             }).onEnded({ drag in
-                newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
+                newEdge?.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
                 if let nEdge = newEdge, nEdge.inputPort == nil {
                     modelContext.delete(nEdge)
                 }

@@ -18,6 +18,7 @@ struct NodeRendererView: View {
     @ObservedObject var sim: JellyBoxVertletSimulation
     @State var dragStarted: Bool = false
     @State var nodeHeight: CGFloat = 50.0
+    @Environment(\.canvasTransform) var canvasTransform
     
     var node : JelloNode
     let inputPorts: [JelloInputPort]
@@ -74,8 +75,6 @@ struct NodeRendererView: View {
                 Label("Dissolve", systemImage: "wand.and.rays")
             }
         }
-        .onTapGesture {
-        }
         .frame(width: JelloNode.nodeWidth, height: nodeHeight, alignment: .center)
         .contentShape(Rectangle())
         .position(node.position)
@@ -94,6 +93,7 @@ struct NodeRendererView: View {
                 sim.dragging = false
             }
         )
+        .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
         .onAppear {
             self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
             self.sim.setup(dimensions: CGPoint(x: JelloNode.nodeWidth, y: nodeHeight), topLeft: node.position, constraintIterations: 4, updateIterations: 4, radius: JelloNode.cornerRadius)

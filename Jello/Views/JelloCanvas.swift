@@ -1,67 +1,127 @@
 import SwiftUI
 
-let maxAllowedScale = 4.0
 
-struct JelloCanvas<Content: View>: UIViewRepresentable {
+import Foundation
+import UIKit
+
+
+struct PanZoomGesture {
+    let startDistance: CGFloat
+    let currentDistance: CGFloat
+    let startCentroid: CGPoint
+    let currentCentroid: CGPoint
+}
+
+class PanZoomGestureRecognizer: UIGestureRecognizer {
+    
+    private var startCentroid: CGPoint = .zero
+    private var startDistance: CGFloat = .zero
+    
+    var onGesture: (PanZoomGesture) -> ()
+    var onGestureEnd: () -> ()
+
+    init(target: Any?, onGesture: @escaping (PanZoomGesture) -> (), onGestureEnd: @escaping () -> ()) {
+        self.onGesture = onGesture
+        self.onGestureEnd = onGestureEnd
+        super.init(target: target, action: nil)
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        if self.state == .possible {
+            if (self.numberOfTouches == 2) { // we have a two finger interaction starting
+                self.state = .began
+                self.startCentroid = location(in: view)
+                self.startDistance = (location(ofTouch: 0, in: view) - location(ofTouch: 1, in: view)).magnitude()
+                onGesture(PanZoomGesture(startDistance: startDistance, currentDistance: startDistance, startCentroid: startCentroid, currentCentroid: startCentroid))
+            }
+        } else {        // check to see if there are more touches
+            if (self.numberOfTouches > 2){ // too many fingers
+                self.state = .failed
+            }
+        }
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        state = .cancelled
+        onGestureEnd()
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        if (self.state != .possible) {
+            self.state = .changed
+            if (self.numberOfTouches == 2) {
+                let currentCentroid = location(in: view)
+                let currentDistance = (location(ofTouch: 0, in: view) - location(ofTouch: 1, in: view)).magnitude()
+                onGesture(PanZoomGesture(startDistance: startDistance, currentDistance: currentDistance, startCentroid: startCentroid, currentCentroid: currentCentroid))
+            }
+        }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        if numberOfTouches == 2 {
+            state = .ended
+            onGestureEnd()
+        }
+        else {
+            state = .failed
+        }
+    }
+    
+
+}
+
+
+struct JelloCanvasRepresentable<Content: View> : UIViewRepresentable {
+    let onGesture: (PanZoomGesture) -> ()
+    let onGestureEnd: () -> ()
     
     private var content: Content
-    @Binding private var scale: CGFloat
     
-    init(scale: Binding<CGFloat>, @ViewBuilder content: () -> Content) {
-        self._scale = scale
+
+    init(onGesture: @escaping (PanZoomGesture) -> (), onGestureEnd: @escaping () -> (), @ViewBuilder content: () -> Content) {
+        self.onGesture = onGesture
+        self.onGestureEnd = onGestureEnd
         self.content = content()
     }
     
-    
-    func makeUIView(context: Context) -> UIScrollView {
-        // set up the UIScrollView
-        let scrollView = UIScrollView()
-        scrollView.delegate = context.coordinator  // for viewForZooming(in:)
-        scrollView.maximumZoomScale = maxAllowedScale
-        scrollView.minimumZoomScale = 0.1
-        scrollView.showsVerticalScrollIndicator = false
-        scrollView.showsHorizontalScrollIndicator = false
-        scrollView.bouncesZoom = true
-        //      Create a UIHostingController to hold our SwiftUI content
-        let hostedView = context.coordinator.hostingController.view!
-        hostedView.translatesAutoresizingMaskIntoConstraints = true
-        hostedView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        scrollView.addSubview(hostedView)
-        
-        return scrollView
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.addGestureRecognizer(context.coordinator.gestureRecognizer)
+        view.addSubview(context.coordinator.hostingController.view)
+        view.isMultipleTouchEnabled = true
+
+        let hostingController = context.coordinator.hostingController
+        hostingController.view.frame = view.bounds
+        hostingController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
+        return view
     }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.hostingController.rootView = self.content
+        context.coordinator.gestureRecognizer.onGesture = onGesture
+        context.coordinator.gestureRecognizer.onGestureEnd = onGestureEnd
+        assert(context.coordinator.hostingController.view.superview == uiView)
+     }
     
     func makeCoordinator() -> Coordinator {
-        return Coordinator(hostingController: UIHostingController(rootView: self.content), scale: $scale)
+        let hostingController = UIHostingController(rootView: self.content)
+        let recognizer = PanZoomGestureRecognizer(target: nil, onGesture: onGesture, onGestureEnd: onGestureEnd)
+        let coordinator = Coordinator(hostingController: hostingController, gestureRecognizer: recognizer)
+        recognizer.delegate = coordinator
+        return coordinator
     }
+       
     
-    func updateUIView(_ uiView: UIScrollView, context: Context) {
-        // update the hosting controller's SwiftUI content
-        context.coordinator.hostingController.rootView = self.content
-        uiView.zoomScale = scale
-        let contentRect: CGRect = uiView.subviews.reduce(into: .zero) { rect, view in
-            rect = rect.union(view.frame)
-        }
-        uiView.contentSize = contentRect.size
-        assert(context.coordinator.hostingController.view.superview == uiView)
-    }
-    
-    class Coordinator: NSObject, UIScrollViewDelegate {
-        
+    class Coordinator: NSObject, UIGestureRecognizerDelegate {
         var hostingController: UIHostingController<Content>
-        @Binding var scale: CGFloat
+        var gestureRecognizer: PanZoomGestureRecognizer
         
-        init(hostingController: UIHostingController<Content>, scale: Binding<CGFloat>) {
+        init(hostingController: UIHostingController<Content>, gestureRecognizer: PanZoomGestureRecognizer) {
             self.hostingController = hostingController
-            self._scale = scale
+            self.gestureRecognizer = gestureRecognizer
         }
-        
-        func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-            return hostingController.view
-        }
-        
-        func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
-            self.scale = scale
-        }
+                 
     }
+    
 }

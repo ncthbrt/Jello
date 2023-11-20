@@ -59,6 +59,7 @@ fileprivate struct Rope: View {
             .onDisappear(perform: {
                 self.ropeSim.stopUpdate()
             })
+        
     }
 }
 
@@ -66,6 +67,7 @@ fileprivate struct Rope: View {
 struct EdgeView: View {
     var edge: JelloEdge
     @Environment(\.modelContext) var modelContext
+    @Environment(\.canvasTransform) var canvasTransform
     @State var ropeSim: RopeVertletSimulation = RopeVertletSimulation()
 
     
@@ -78,6 +80,7 @@ struct EdgeView: View {
                     modelContext.delete(edge)
                 }
             }, fill: edge.dataType.getTypeGradient(), ropeSim: ropeSim)
+            .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
         }
     }
 }
