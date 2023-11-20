@@ -27,9 +27,12 @@ struct GraphView<AddNodeMenu: View> : View {
     @State private var totalZoom = 1.0
     @State private var position: CGPoint = .zero
     @State private var offset: CGPoint = .zero
-
+    @State private var isDragging = false
+    @State private var startLocation: CGPoint = .zero
+    @State private var endLocation: CGPoint = .zero
     let maxZoom: CGFloat = CGFloat(4)
     let minZoom: CGFloat = CGFloat(0.1)
+    
     
     init(graphId: UUID, onOpenAddNodeMenu: @escaping (CGPoint) -> AddNodeMenu) {
         self.graphId = graphId
@@ -72,6 +75,9 @@ struct GraphView<AddNodeMenu: View> : View {
                                 EdgeView(edge: edge)
                             }
                         }
+                        if (isDragging) {
+                            BoxSelectionView(start: startLocation, end: endLocation)
+                        }
                     }
                     .frame(width: geometry.size.width / (currentZoom + totalZoom), height: geometry.size.height / (currentZoom + totalZoom))
                     .scaleEffect(currentZoom + totalZoom)
@@ -83,10 +89,20 @@ struct GraphView<AddNodeMenu: View> : View {
                     tapLocation = location
                     showNodeMenu = true
                 }
+                .gesture(DragGesture()
+                    .onChanged { event in
+                        if !isDragging {
+                            isDragging = true
+                            startLocation =  canvasTransform.transform(viewPosition: event.startLocation)
+                        }
+                        endLocation = canvasTransform.transform(viewPosition: event.location)
+                    }
+                    .onEnded {_ in
+                        isDragging = false
+                    }
+                )
                 .popover(isPresented: $showNodeMenu, attachmentAnchor: .point(UnitPoint(x: tapLocation.x / geometry.size.width, y: tapLocation.y / geometry.size.height)), content: { onOpenAddNodeMenu(canvasTransform.transform(viewPosition: tapLocation)).frame(minWidth: 400, maxWidth: 400, idealHeight: 600) })
             }
-            
-
         }
     }
         
