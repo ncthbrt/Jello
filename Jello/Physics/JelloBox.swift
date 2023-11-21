@@ -187,7 +187,7 @@ class JellyBoxVertletSimulation: ObservableObject {
         set { dragPositionCell.position = newValue }
     }
     
-    func setup(dimensions: CGPoint, topLeft: CGPoint, constraintIterations: Int, updateIterations: Int, radius: CGFloat) {
+    func setup(dimensions: CGPoint, topLeft: CGPoint, constraintIterations: Int, updateIterations: Int, radius: CGFloat) async {
         constraints = []
         vertlets = []
         self.dimensions = dimensions
@@ -269,6 +269,10 @@ class JellyBoxVertletSimulation: ObservableObject {
         }
         
         isSetup = true
+        
+        DispatchQueue.main.asyncAndWait {
+            self.objectWillChange.send()
+        }
 
     }
     
@@ -335,7 +339,7 @@ class JellyBoxVertletSimulation: ObservableObject {
         }
     }
     
-    @Sendable private func loop() async throws {
+    @Sendable func loop() async throws {
         let clock = SuspendingClock()
         var previousTime = clock.now
         while(true) {
@@ -359,7 +363,7 @@ class JellyBoxVertletSimulation: ObservableObject {
                     self.constraints[i].relaxConstraint()
                 }
             }
-            DispatchQueue.main.async {
+            DispatchQueue.main.asyncAndWait {
                 self.objectWillChange.send()
             }
             try Task.checkCancellation()
@@ -367,16 +371,7 @@ class JellyBoxVertletSimulation: ObservableObject {
         }
     }
     
-    func startUpdate(){
-        self.simulationTask = Task.detached(priority: .background, operation: self.loop)
-    }
     
-    
-    func stopUpdate() {
-        if let task = self.simulationTask {
-            task.cancel()
-        }
-    }
         
     private func drawCorner(path: inout Path, z: CGPoint, a: CGPoint, b: CGPoint, c: CGPoint) {
         let deltaAB = b - a

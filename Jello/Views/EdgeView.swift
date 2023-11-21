@@ -52,14 +52,10 @@ fileprivate struct Rope: View {
                 .position(start)
                 .allowsHitTesting(false)
         }
-            .onAppear(perform: {
-                self.ropeSim.setup(start: CGPoint(x: start.x, y: start.y), end: CGPoint(x: end.x,y: end.y), particleCount: Rope.particleCount, iterations: Rope.constraintIterations)
-                self.ropeSim.startUpdate()
-            })
-            .onDisappear(perform: {
-                self.ropeSim.stopUpdate()
-            })
-        
+            .task {
+                await self.ropeSim.setup(start: CGPoint(x: start.x, y: start.y), end: CGPoint(x: end.x,y: end.y), particleCount: Rope.particleCount, iterations: Rope.constraintIterations)
+                try? await self.ropeSim.loop()
+            }
     }
 }
 

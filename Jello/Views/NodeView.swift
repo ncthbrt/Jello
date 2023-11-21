@@ -95,13 +95,10 @@ struct NodeRendererView: View {
             }
         )
         .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
-        .onAppear {
+        .task {
             self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
-            self.sim.setup(dimensions: CGPoint(x: JelloNode.nodeWidth, y: nodeHeight), topLeft: node.position, constraintIterations: 4, updateIterations: 4, radius: JelloNode.cornerRadius)
-            self.sim.startUpdate()
-        }
-        .onDisappear {
-            self.sim.stopUpdate()
+            await self.sim.setup(dimensions: CGPoint(x: JelloNode.nodeWidth, y: nodeHeight), topLeft: node.position, constraintIterations: 4, updateIterations: 4, radius: JelloNode.cornerRadius)
+            try? await self.sim.loop()
         }
         .onChange(of: inputPorts.count) { _, _ in
             self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)

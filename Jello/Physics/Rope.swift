@@ -158,7 +158,7 @@ class RopeVertletSimulation: ObservableObject {
     var iterations: Int = 10
     var simulationTask: Task<Void, Error>? = nil
     
-    func setup(start: CGPoint, end: CGPoint, particleCount: Int, iterations: Int) {
+    func setup(start: CGPoint, end: CGPoint, particleCount: Int, iterations: Int) async {
         constraints = []
         vertlets = []
         self.iterations = iterations
@@ -192,9 +192,12 @@ class RopeVertletSimulation: ObservableObject {
         
         vertlets.append(endVertlet)
         
+        DispatchQueue.main.asyncAndWait {
+            self.objectWillChange.send()
+        }
     }
     
-    @Sendable private func loop() async throws {
+    @Sendable func loop() async throws {
         let clock = SuspendingClock()
         var previousTime = clock.now
         
@@ -202,7 +205,7 @@ class RopeVertletSimulation: ObservableObject {
             let currentTime = clock.now
             let deltaTime = currentTime - previousTime
             previousTime = currentTime
-            targetDistance = CGFloat(min(50, Float(max(0.01, (startPosition - endPosition).magnitude())) * Float(1.02 / max(Float(self.vertlets.count), 2))))
+            targetDistance = CGFloat(min(50, Float(max(0.01, (startPosition - endPosition).magnitude())) * Float(1.015 / max(Float(self.vertlets.count), 2))))
 
             let dtDouble: Double = Double(deltaTime.components.attoseconds) * 1.0e-18
             let dt = CGFloat(dtDouble)
@@ -228,16 +231,6 @@ class RopeVertletSimulation: ObservableObject {
         }
     }
     
-    func startUpdate(){
-        self.simulationTask = Task.detached(priority: .background, operation: self.loop)
-    }
-    
-    
-    func stopUpdate() {
-        if let task = self.simulationTask {
-            task.cancel()
-        }
-    }
     
     func draw(path: inout Path){
         path.move(to: startPosition)
