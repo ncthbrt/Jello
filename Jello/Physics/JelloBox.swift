@@ -363,12 +363,12 @@ class JellyBoxVertletSimulation: ObservableObject {
                 self.objectWillChange.send()
             }
             try Task.checkCancellation()
-            try await Task.sleep(for: Duration.milliseconds(8))
+            await Task.yield()
         }
     }
     
     func startUpdate(){
-        self.simulationTask = Task.detached(priority: .medium, operation: self.loop)
+        self.simulationTask = Task.detached(priority: .background, operation: self.loop)
     }
     
     

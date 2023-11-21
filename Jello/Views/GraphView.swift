@@ -28,8 +28,7 @@ struct GraphView<AddNodeMenu: View> : View {
     @State private var position: CGPoint = .zero
     @State private var offset: CGPoint = .zero
     @State private var isDragging = false
-    @State private var startLocation: CGPoint = .zero
-    @State private var endLocation: CGPoint = .zero
+    @State private var selection: BoxSelection = BoxSelection()
     let maxZoom: CGFloat = CGFloat(4)
     let minZoom: CGFloat = CGFloat(0.1)
     
@@ -69,36 +68,44 @@ struct GraphView<AddNodeMenu: View> : View {
                             if !node.isDeleted {
                                 NodeView(node: node)
                             }
-                        }.freeEdges(freeEdges.map({ return (edge: $0, $0.getDependencies()) }))
+                        }
+                        .freeEdges(freeEdges.map({ return (edge: $0, $0.getDependencies()) }))
+                        .boxSelection(selection)
                         ForEach(edges) { edge in
                             if !edge.isDeleted {
                                 EdgeView(edge: edge)
                             }
                         }
                         if (isDragging) {
-                            BoxSelectionView(start: startLocation, end: endLocation)
+                            BoxSelectionView(start: selection.startPosition, end: selection.endPosition)
                         }
                     }
                     .frame(width: geometry.size.width / (currentZoom + totalZoom), height: geometry.size.height / (currentZoom + totalZoom))
                     .scaleEffect(currentZoom + totalZoom)
                     .canvasTransform(canvasTransform)
                 }
+                .onBoxSelectionChange({items in selection.selectedNodes = items })
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .contentShape(Rectangle())
                 .onTapGesture(count: 2) { location in
                     tapLocation = location
                     showNodeMenu = true
                 }
+                .onTapGesture(count: 1) { location in
+                    selection.selectedNodes.removeAll()
+                }
                 .gesture(DragGesture()
                     .onChanged { event in
                         if !isDragging {
                             isDragging = true
-                            startLocation =  canvasTransform.transform(viewPosition: event.startLocation)
+                            selection.startPosition = canvasTransform.transform(viewPosition: event.startLocation)
+                            selection.selecting = true
                         }
-                        endLocation = canvasTransform.transform(viewPosition: event.location)
+                        selection.endPosition = canvasTransform.transform(viewPosition: event.location)
                     }
                     .onEnded {_ in
                         isDragging = false
+                        selection.selecting = false
                     }
                 )
                 .popover(isPresented: $showNodeMenu, attachmentAnchor: .point(UnitPoint(x: tapLocation.x / geometry.size.width, y: tapLocation.y / geometry.size.height)), content: { onOpenAddNodeMenu(canvasTransform.transform(viewPosition: tapLocation)).frame(minWidth: 400, maxWidth: 400, idealHeight: 600) })

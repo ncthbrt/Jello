@@ -12,13 +12,13 @@ import SwiftData
 
 struct NodeRendererView: View {
     @Environment(\.modelContext) var modelContext
-    @State var selected: Bool = false
     @State var lastTranslation: CGSize = .zero
     @State var dragPosition: CGPoint = .zero
     @ObservedObject var sim: JellyBoxVertletSimulation
     @State var dragStarted: Bool = false
     @State var nodeHeight: CGFloat = 50.0
     @Environment(\.canvasTransform) var canvasTransform
+    @Environment(\.boxSelection) var boxSelection
     
     var node : JelloNode
     let inputPorts: [JelloInputPort]
@@ -41,6 +41,7 @@ struct NodeRendererView: View {
             NodeInputPortsView(nodeId: node.id)
             NodeOutputPortsView(nodeId: node.id)
         }
+        .shadow(color: boxSelection.selectedNodes.contains(node.id) ? Color.white : Color.clear, radius: 10)
         .animation(.interactiveSpring(), value: node.position)
         .contextMenu {
             Button {
@@ -113,6 +114,7 @@ struct NodeRendererView: View {
         .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
             return newValue ? .start : .stop
         }
+        .setSelection(node.id, select: (!boxSelection.selecting && boxSelection.selectedNodes.contains(node.id)) || boxSelection.intersects(position: node.position, width: JelloNode.nodeWidth, height: nodeHeight))
     }
 }
 

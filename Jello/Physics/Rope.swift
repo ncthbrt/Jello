@@ -224,7 +224,7 @@ class RopeVertletSimulation: ObservableObject {
                 self.objectWillChange.send()
             }
             try Task.checkCancellation()
-            try await Task.sleep(for: Duration.milliseconds(8))
+            await Task.yield()
         }
     }
     
