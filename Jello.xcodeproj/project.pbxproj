@@ -40,8 +40,9 @@
 		BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */; };
 		BCD540492AF3920F00D82714 /* ProjectPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD540482AF3920F00D82714 /* ProjectPickerView.swift */; };
 		BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */; };
+		BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */; };
 		BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067552AF8B8C10066F8D4 /* JelloBox.swift */; };
-		BCE067582AF8B8E00066F8D4 /* CGPointExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067572AF8B8E00066F8D4 /* CGPointExtensions.swift */; };
+		BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */; };
 		BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE0675A2AF934820066F8D4 /* NodeView.swift */; };
 		BCEE1C6F2AFE2DE40012F619 /* GraphLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C6E2AFE2DE40012F619 /* GraphLayout.swift */; };
 		BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C702AFE3F040012F619 /* PortViews.swift */; };
@@ -101,8 +102,9 @@
 		BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectNavigation.swift; sourceTree = "<group>"; };
 		BCD540482AF3920F00D82714 /* ProjectPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPickerView.swift; sourceTree = "<group>"; };
 		BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloProjectReference.swift; sourceTree = "<group>"; };
+		BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationRunner.swift; sourceTree = "<group>"; };
 		BCE067552AF8B8C10066F8D4 /* JelloBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloBox.swift; sourceTree = "<group>"; };
-		BCE067572AF8B8E00066F8D4 /* CGPointExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPointExtensions.swift; sourceTree = "<group>"; };
+		BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointExtensions.swift; sourceTree = "<group>"; };
 		BCE0675A2AF934820066F8D4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
 		BCEE1C6E2AFE2DE40012F619 /* GraphLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphLayout.swift; sourceTree = "<group>"; };
 		BCEE1C702AFE3F040012F619 /* PortViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortViews.swift; sourceTree = "<group>"; };
@@ -255,6 +257,7 @@
 				BCE067552AF8B8C10066F8D4 /* JelloBox.swift */,
 				BC2AE5712B0763ED008F75C2 /* Rope.swift */,
 				BC2AE5732B0764FA008F75C2 /* VertletShared.swift */,
+				BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */,
 			);
 			path = Physics;
 			sourceTree = "<group>";
@@ -262,7 +265,7 @@
 		BCE067592AF8B8F30066F8D4 /* Math */ = {
 			isa = PBXGroup;
 			children = (
-				BCE067572AF8B8E00066F8D4 /* CGPointExtensions.swift */,
+				BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */,
 			);
 			path = Math;
 			sourceTree = "<group>";
@@ -423,10 +426,11 @@
 				BC7E22472AF4EE8600EC04E6 /* ProjectManagement.swift in Sources */,
 				BC2AE5762B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift in Sources */,
 				BCEE1C6F2AFE2DE40012F619 /* GraphLayout.swift in Sources */,
-				BCE067582AF8B8E00066F8D4 /* CGPointExtensions.swift in Sources */,
+				BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */,
 				BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */,
 				BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */,
 				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
+				BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */,
 				BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */,
 				BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */,
 				BCD540492AF3920F00D82714 /* ProjectPickerView.swift in Sources */,

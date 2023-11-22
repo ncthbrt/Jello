@@ -8,7 +8,7 @@
 import SwiftUI
 import OrderedCollections
 import SwiftData
-
+import simd
 
 struct NodeRendererView: View {
     @Environment(\.modelContext) var modelContext
@@ -19,6 +19,7 @@ struct NodeRendererView: View {
     @State var nodeHeight: CGFloat = 50.0
     @Environment(\.canvasTransform) var canvasTransform
     @Environment(\.boxSelection) var boxSelection
+    @EnvironmentObject var simulationRunner: SimulationRunner
     
     var node : JelloNode
     let inputPorts: [JelloInputPort]
@@ -26,9 +27,9 @@ struct NodeRendererView: View {
     
     var body: some View {
         ZStack {
-            Path(sim.draw)
+            Path({ path in sim.draw?(&path) })
                 .fill(Gradient(colors: [.green, .blue]))
-            Path(sim.draw)
+            Path({ path in sim.draw?(&path) })
                 .fill(.ultraThickMaterial)
                 .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3, antialiased: true)
             VStack {
@@ -85,8 +86,8 @@ struct NodeRendererView: View {
                 dragStarted = true
                 let delta = CGPoint(x: dragGesture.translation.width - lastTranslation.width, y: dragGesture.translation.height - lastTranslation.height)
                 node.position = node.position + delta
-                sim.position = node.position
-                sim.dragPosition = dragGesture.location
+                sim.position =  vector_float2(x: Float(node.position.x), y: Float(node.position.y))
+                sim.dragPosition = vector_float2(x: Float(dragGesture.location.x), y: Float(dragGesture.location.y))
                 lastTranslation = dragGesture.translation
             }.onEnded {_ in
                 lastTranslation = .zero
@@ -95,18 +96,23 @@ struct NodeRendererView: View {
             }
         )
         .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
-        .task {
+        .onAppear() {
             self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
-            await self.sim.setup(dimensions: CGPoint(x: JelloNode.nodeWidth, y: nodeHeight), topLeft: node.position, constraintIterations: 4, updateIterations: 4, radius: JelloNode.cornerRadius)
-            try? await self.sim.loop()
+            self.sim.setup(dimensions:  vector_float2(x: Float(JelloNode.nodeWidth), y: Float(nodeHeight)), topLeft: vector_float2(node.position), constraintIterations: 4, updateIterations: 4, radius: Float(JelloNode.cornerRadius))
+        }
+        .onDisappear() {
+            self.simulationRunner.removeSimulation(id: node.id)
+        }
+        .task {
+            await self.simulationRunner.addSimulation(id: node.id, sim: sim)
         }
         .onChange(of: inputPorts.count) { _, _ in
             self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
-            self.sim.dimensions = CGPoint(x: self.sim.dimensions.x, y: nodeHeight)
+            self.sim.dimensions = vector_float2(x: Float(self.sim.dimensions.x), y: Float(nodeHeight))
         }
         .onChange(of: outputPorts.count) { _, _ in
             self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
-            self.sim.dimensions = CGPoint(x: self.sim.dimensions.x, y: nodeHeight)
+            self.sim.dimensions = vector_float2(x: Float(self.sim.dimensions.x), y: Float(nodeHeight))
         }
         .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
             return newValue ? .start : .stop

@@ -7,18 +7,20 @@
 
 import Foundation
 import SwiftUI
+import Combine
+import simd 
 
 fileprivate protocol Force {
-    func apply(v: PositionVertlet, deltaTime: CGFloat, deltaTimeSquared: CGFloat) -> CGPoint
+    func apply(v: PositionVertlet, deltaTime: Float, deltaTimeSquared: Float) -> vector_float2
 }
 
 fileprivate class ConstantForce: Force {
-    let force: CGPoint
-    init(force: CGPoint) {
+    let force: vector_float2
+    init(force: vector_float2) {
         self.force = force
     }
     
-    func apply(v: PositionVertlet, deltaTime: CGFloat, deltaTimeSquared: CGFloat) -> CGPoint {
+    func apply(v: PositionVertlet, deltaTime: Float, deltaTimeSquared: Float) -> vector_float2 {
         return force
     }
 }
@@ -27,9 +29,9 @@ fileprivate class ConstantForce: Force {
 fileprivate class LockPositionConstraint : Constraint {
     var v: PositionVertlet
     var p : PositionCell
-    var offset : CGPoint
+    var offset : vector_float2
     
-    init(v: PositionVertlet, p: PositionCell, offset: CGPoint){
+    init(v: PositionVertlet, p: PositionCell, offset: vector_float2){
         self.v = v
         self.p = p
         self.offset = offset
@@ -58,7 +60,7 @@ fileprivate class UnidirectionalDistanceToVertletConstraint : Constraint {
     
     func relaxConstraint() {
         let direction = (target.position - v.position).normal()
-        let deltaD = (target.position - v.position).magnitude() - CGFloat(targetDistance.distance)
+        let deltaD = (target.position - v.position).magnitude() - targetDistance.distance
         v.position = v.position + (deltaD * direction)
     }
 }
@@ -77,50 +79,56 @@ fileprivate class BidirectionalDistanceToVertletConstraint: Constraint {
     func relaxConstraint() {
         let direction = (v2.position - v1.position).normal()
         let deltaD = (v1.position - v2.position).magnitude() - targetDistance.distance
-        v1.position = v1.position + (deltaD*direction) * CGFloat(0.5)
-        v2.position = v2.position - (deltaD*direction) * CGFloat(0.5)
+        v1.position = v1.position + (deltaD*direction) * Float(0.5)
+        v2.position = v2.position - (deltaD*direction) * Float(0.5)
     }
 }
 
 
 
 fileprivate class PositionVertlet {
-    var acceleration: CGPoint
-    var previousPosition: CGPoint
-    var position: CGPoint
+    var acceleration: vector_float2
+    var previousPosition: vector_float2
+    var position: vector_float2
     var forces: [Force] = []
-    var newAcceleration: CGPoint
+    var newAcceleration: vector_float2
     
-    init(acceleration: CGPoint, position: CGPoint){
+    init(acceleration: vector_float2, position: vector_float2){
         self.acceleration = acceleration
         self.position = position
         self.previousPosition = position
         self.newAcceleration = acceleration
     }
     
-    func prepareForces(deltaTime: CGFloat, deltaTimeSquared: CGFloat) {
+    func prepareForces(deltaTime: Float, deltaTimeSquared: Float) {
         newAcceleration = applyForces(deltaTime: deltaTime, deltaTimeSquared: deltaTimeSquared)
     }
    
-    func update(deltaTime: CGFloat, deltaTimeSquared: CGFloat){
-        let positionCopy: CGPoint = CGPoint(x: position.x, y: position.y)
-        self.position = CGFloat(2.0)*position - previousPosition + deltaTimeSquared*acceleration
+    func update(deltaTime: Float, deltaTimeSquared: Float){
+        let positionCopy: vector_float2 = vector_float2(x: position.x, y: position.y)
+        self.position = Float(2.0)*position - previousPosition + deltaTimeSquared*acceleration
         self.previousPosition = positionCopy
     }
     
-    func applyForces(deltaTime: CGFloat, deltaTimeSquared: CGFloat) -> CGPoint {
-        return forces.reduce(CGPoint.zero, {result, force in result + force.apply(v: self, deltaTime: deltaTime, deltaTimeSquared: deltaTimeSquared) })
+    func applyForces(deltaTime: Float, deltaTimeSquared: Float) -> vector_float2 {
+        return forces.reduce(vector_float2.zero, {result, force in result + force.apply(v: self, deltaTime: deltaTime, deltaTimeSquared: deltaTimeSquared) })
     }
 }
 
 
-class RopeVertletSimulation: ObservableObject {
+class RopeVertletSimulation: ObservableObject, SimulationDrawable {
+    static let particleCount = 8
+    static let constraintIterations = 4
+
     private var vertlets: [PositionVertlet] = []
     private var constraints: [Constraint] = []
     private var targetDistanceCell : DistanceCell = DistanceCell(distance: 20)
-    private var gravity: CGPoint = CGPoint(x: 0, y: 200)
+    private var gravity: vector_float2 = vector_float2(x: 0, y: 200)
     
-    var targetDistance: CGFloat {
+    @Published var draw: SimulationDrawable.DrawOperation? = nil
+
+    
+    var targetDistance: Float {
         get {
             return targetDistanceCell.distance
         }
@@ -133,7 +141,7 @@ class RopeVertletSimulation: ObservableObject {
     
     private var startPositionCell : PositionCell = PositionCell()
     
-    var startPosition: CGPoint {
+    var startPosition: vector_float2 {
         get {
             return startPositionCell.position
         }
@@ -144,7 +152,7 @@ class RopeVertletSimulation: ObservableObject {
     }
     
     private var endPositionCell : PositionCell = PositionCell()
-    var endPosition: CGPoint {
+    var endPosition: vector_float2 {
         get {
             return endPositionCell.position
         }
@@ -154,35 +162,31 @@ class RopeVertletSimulation: ObservableObject {
         }
     }
     
-    
-    var iterations: Int = 10
-    var simulationTask: Task<Void, Error>? = nil
-    
-    func setup(start: CGPoint, end: CGPoint, particleCount: Int, iterations: Int) async {
+        
+    func setup(start: vector_float2, end: vector_float2) {
         constraints = []
         vertlets = []
-        self.iterations = iterations
         self.targetDistance = 20
         let gravitationalForce = ConstantForce(force: gravity)
         
-        let startVertlet = PositionVertlet(acceleration: CGPoint(x: 0, y: 200), position: start)
+        let startVertlet = PositionVertlet(acceleration: vector_float2(x: 0, y: 200), position: start)
         vertlets.append(startVertlet)
         self.constraints.append(LockPositionConstraint(v: startVertlet, p: startPositionCell))
         
-        let endVertlet = PositionVertlet(acceleration: CGPoint(x: 0, y: 200), position: end)
+        let endVertlet = PositionVertlet(acceleration: vector_float2(x: 0, y: 200), position: end)
         self.constraints.append(LockPositionConstraint(v: endVertlet, p: endPositionCell))
         
 
-        for i in 1..<(particleCount-1) {
-            let position = CGPoint.lerp(a: start, b: end, t: Float(i)  / Float(particleCount))
+        for i in 1..<(Self.particleCount-1) {
+            let position = vector_float2.lerp(a: start, b: end, t: Float(i)  / Float(Self.particleCount))
             let previousVertlet = vertlets.last!;
-            let currentVertlet = PositionVertlet(acceleration: CGPoint(x: 0, y: 200), position: position)
+            let currentVertlet = PositionVertlet(acceleration: vector_float2(x: 0, y: 200), position: position)
             currentVertlet.forces.append(gravitationalForce)
             vertlets.append(currentVertlet)
             
             if (i == 1) {
                 constraints.append(UnidirectionalDistanceToVertletConstraint(target: previousVertlet, v: currentVertlet, targetDistance: targetDistanceCell))
-            } else if(i < particleCount-2) {
+            } else if(i < Self.particleCount-2) {
                 constraints.append(BidirectionalDistanceToVertletConstraint(v1: previousVertlet, v2: currentVertlet, targetDistance: targetDistanceCell))
             } else {
                 constraints.append(BidirectionalDistanceToVertletConstraint(v1: previousVertlet, v2: currentVertlet, targetDistance: targetDistanceCell))
@@ -191,51 +195,40 @@ class RopeVertletSimulation: ObservableObject {
         }
         
         vertlets.append(endVertlet)
-        
-        DispatchQueue.main.asyncAndWait {
-            self.objectWillChange.send()
-        }
     }
     
-    @Sendable func loop() async throws {
-        let clock = SuspendingClock()
-        var previousTime = clock.now
+    func update(dt: Float, dt2: Float) -> SimulationDrawable.DrawOperation {
+        targetDistance = Float(min(50, Float(max(0.01, (startPosition - endPosition).magnitude())) * Float(1.1 / max(Float(self.vertlets.count), 2))))
         
-        while(true){
-            let currentTime = clock.now
-            let deltaTime = currentTime - previousTime
-            previousTime = currentTime
-            targetDistance = CGFloat(min(50, Float(max(0.01, (startPosition - endPosition).magnitude())) * Float(1.015 / max(Float(self.vertlets.count), 2))))
+        for v in self.vertlets {
+            v.prepareForces(deltaTime: dt, deltaTimeSquared: dt2)
+        }
+        for v in self.vertlets {
+            v.update(deltaTime: dt, deltaTimeSquared: dt2)
+        }
+        
+        for _ in 0..<Self.constraintIterations {
+            for i in 0..<self.constraints.count {
+                self.constraints[i].relaxConstraint()
+            }
+        }
+        let positions = vertlets.map { $0.position }
 
-            let dtDouble: Double = Double(deltaTime.components.attoseconds) * 1.0e-18
-            let dt = CGFloat(dtDouble)
-            let dt2 = CGFloat(dtDouble * dtDouble)
-            
-            for v in self.vertlets {
-                v.prepareForces(deltaTime: dt, deltaTimeSquared: dt2)
-            }
-            for v in self.vertlets {
-                v.update(deltaTime: dt, deltaTimeSquared: dt2)
-            }
-            
-            for _ in 0..<iterations {
-                for i in 0..<self.constraints.count {
-                    self.constraints[i].relaxConstraint()
-                }
-            }
-            DispatchQueue.main.asyncAndWait {
-                self.objectWillChange.send()
-            }
-            try Task.checkCancellation()
-            await Task.yield()
-        }
+        return { path in self.drawFunc(positions: positions, path: &path) }
     }
     
     
-    func draw(path: inout Path){
-        path.move(to: startPosition)
-        for v in vertlets.dropFirst(1) {
-            path.addLine(to: v.position)
+    func sync(operation: @escaping DrawOperation) {
+        draw = operation
+    }
+    
+    
+    @Sendable private func drawFunc(positions: [vector_float2], path: inout Path) {
+        if let first = positions.first {
+            path.move(to: CGPoint(first))
+        }
+        for p in positions.dropFirst(1) {
+            path.addLine(to: CGPoint(p))
         }
     }
    

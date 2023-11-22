@@ -22,6 +22,7 @@ struct GraphView<AddNodeMenu: View> : View {
     @State private var tapLocation: CGPoint = .zero
     @State var scale : CGFloat = 1
     @State var newEdge : JelloEdge? = nil
+    @State var simulationRunner: SimulationRunner = SimulationRunner()
     
     @State private var currentZoom = 0.0
     @State private var totalZoom = 1.0
@@ -80,6 +81,7 @@ struct GraphView<AddNodeMenu: View> : View {
                             BoxSelectionView(start: selection.startPosition, end: selection.endPosition)
                         }
                     }
+                    .environmentObject(simulationRunner)
                     .frame(width: geometry.size.width / (currentZoom + totalZoom), height: geometry.size.height / (currentZoom + totalZoom))
                     .scaleEffect(currentZoom + totalZoom)
                     .canvasTransform(canvasTransform)
@@ -109,6 +111,8 @@ struct GraphView<AddNodeMenu: View> : View {
                     }
                 )
                 .popover(isPresented: $showNodeMenu, attachmentAnchor: .point(UnitPoint(x: tapLocation.x / geometry.size.width, y: tapLocation.y / geometry.size.height)), content: { onOpenAddNodeMenu(canvasTransform.transform(viewPosition: tapLocation)).frame(minWidth: 400, maxWidth: 400, idealHeight: 600) })
+                .onAppear() {  simulationRunner.start() }
+                .onDisappear() {  simulationRunner.stop() }
             }
         }
     }

@@ -6,10 +6,10 @@
 //
 
 import Foundation
-
+import simd
 
 class PositionCell: ObservableObject {
-    var position: CGPoint = .zero
+    var position: vector_float2 = .zero
 }
 
 class OnOffCell: ObservableObject {
@@ -17,9 +17,9 @@ class OnOffCell: ObservableObject {
 }
 
 class DistanceCell: ObservableObject {
-    var distance: CGFloat
+    var distance: Float
     
-    init(distance: CGFloat) {
+    init(distance: Float) {
         self.distance = distance
     }
     

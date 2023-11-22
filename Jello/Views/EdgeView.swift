@@ -7,11 +7,10 @@
 
 import SwiftUI
 import SwiftData
+import simd
 
-fileprivate struct Rope: View {
-    static let particleCount = 25
-    static let constraintIterations = 70
-
+fileprivate struct RopeView: View {
+    let id: UUID
     let start: CGPoint
     let end: CGPoint
     let onEndUnhook: ((DragGesture.Value) -> ())?
@@ -19,14 +18,15 @@ fileprivate struct Rope: View {
     let fill: Gradient
 
     @ObservedObject var ropeSim: RopeVertletSimulation
+    @EnvironmentObject var simulationRunner: SimulationRunner
     
     var body: some View {
         ZStack {
             Path {
                 path in
-                self.ropeSim.startPosition = start
-                self.ropeSim.endPosition = end
-                self.ropeSim.draw(path: &path)
+                self.ropeSim.startPosition = vector_float2(start)
+                self.ropeSim.endPosition = vector_float2(end)
+                self.ropeSim.draw?(&path)
             }
             .stroke(style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round, miterLimit: 10))
             .fill(fill)
@@ -52,10 +52,14 @@ fileprivate struct Rope: View {
                 .position(start)
                 .allowsHitTesting(false)
         }
-            .task {
-                await self.ropeSim.setup(start: CGPoint(x: start.x, y: start.y), end: CGPoint(x: end.x,y: end.y), particleCount: Rope.particleCount, iterations: Rope.constraintIterations)
-                try? await self.ropeSim.loop()
-            }
+        .onAppear() {
+            self.ropeSim.setup(start: vector_float2(start), end: vector_float2(end))
+        }
+        .task {
+            await simulationRunner.addSimulation(id: id, sim: ropeSim)
+        }.onDisappear() {
+            simulationRunner.removeSimulation(id: id)
+        }
     }
 }
 
@@ -69,7 +73,7 @@ struct EdgeView: View {
     
     var body: some View {
         if !edge.isDeleted {
-            Rope(start: edge.startPosition, end: edge.endPosition, onEndUnhook: { value in
+            RopeView(id: edge.id, start: edge.startPosition, end: edge.endPosition, onEndUnhook: { value in
                 edge.setEndPosition(value.location)
             }, onEndUnhookEnd:  { value in
                 if edge.inputPort == nil {
