@@ -125,7 +125,12 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
     private var targetDistanceCell : DistanceCell = DistanceCell(distance: 20)
     private var gravity: vector_float2 = vector_float2(x: 0, y: 200)
     
-    @Published var draw: SimulationDrawable.DrawOperation? = nil
+    
+    private(set) var lastInteractionTime: SuspendingClock.Instant = .now
+    private(set) var lastPublishTime: SuspendingClock.Instant = .now
+
+    
+    var draw: SimulationDrawable.DrawOperation? = nil
 
     
     var targetDistance: Float {
@@ -135,6 +140,7 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
         
         set {
             targetDistanceCell.distance = newValue
+            lastInteractionTime = SuspendingClock.now
         }
     }
     
@@ -148,6 +154,7 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
         
         set {
             startPositionCell.position = newValue
+            lastInteractionTime = SuspendingClock.now
         }
     }
     
@@ -159,6 +166,7 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
         
         set {
             endPositionCell.position = newValue
+            lastInteractionTime = SuspendingClock.now
         }
     }
     
@@ -220,6 +228,10 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
     
     func sync(operation: @escaping DrawOperation) {
         draw = operation
+        if SuspendingClock.now - lastPublishTime > Duration.milliseconds(4) {
+            objectWillChange.send()
+            lastPublishTime = .now
+        }
     }
     
     

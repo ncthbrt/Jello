@@ -20,10 +20,11 @@ struct GraphView<AddNodeMenu: View> : View {
     
     @State private var showNodeMenu : Bool = false
     @State private var tapLocation: CGPoint = .zero
-    @State var scale : CGFloat = 1
-    @State var newEdge : JelloEdge? = nil
-    @State var simulationRunner: SimulationRunner = SimulationRunner()
-    
+    @State private var scale : CGFloat = 1
+    @State private var newEdge : JelloEdge? = nil
+    @State private var simulationRunner: SimulationRunner = SimulationRunner()
+    @State private var freeEdgesEnvironmentValue: [(edge: JelloEdge, dependencies: Set<UUID>)] = []
+    @State private var canvasTransform = CanvasTransform(scale: 1, position: .zero, viewPortSize: .zero)
     @State private var currentZoom = 0.0
     @State private var totalZoom = 1.0
     @State private var position: CGPoint = .zero
@@ -46,7 +47,6 @@ struct GraphView<AddNodeMenu: View> : View {
 
     var body: some View {
         GeometryReader { geometry in
-            let canvasTransform = CanvasTransform(scale: currentZoom+totalZoom, position: position + offset)
             JelloCanvasRepresentable(onPanZoomGesture: { gesture in
                 withAnimation(.easeInOut) {
                     let magnification = gesture.currentDistance / gesture.startDistance
@@ -70,7 +70,7 @@ struct GraphView<AddNodeMenu: View> : View {
                                 NodeView(node: node)
                             }
                         }
-                        .freeEdges(freeEdges.map({ return (edge: $0, $0.getDependencies()) }))
+                        .freeEdges(freeEdgesEnvironmentValue)
                         .boxSelection(selection)
                         ForEach(edges) { edge in
                             if !edge.isDeleted {
@@ -113,6 +113,18 @@ struct GraphView<AddNodeMenu: View> : View {
                 .popover(isPresented: $showNodeMenu, attachmentAnchor: .point(UnitPoint(x: tapLocation.x / geometry.size.width, y: tapLocation.y / geometry.size.height)), content: { onOpenAddNodeMenu(canvasTransform.transform(viewPosition: tapLocation)).frame(minWidth: 400, maxWidth: 400, idealHeight: 600) })
                 .onAppear() {  simulationRunner.start() }
                 .onDisappear() {  simulationRunner.stop() }
+                .onChange(of: freeEdges, initial: true, {
+                    freeEdgesEnvironmentValue = freeEdges.map({ return (edge: $0, $0.getDependencies()) })
+                })
+                .onChange(of: totalZoom, initial: true, {
+                    canvasTransform.scale = totalZoom + currentZoom
+                })
+                .onChange(of: currentZoom, initial: true, {
+                    canvasTransform.scale = totalZoom + currentZoom
+                })
+                .onChange(of: offset, initial: true, { canvasTransform.position = position + offset })
+                .onChange(of: position, initial: true, { canvasTransform.position = position + offset })
+                .onChange(of: geometry.size, initial: true, { canvasTransform.viewPortSize = geometry.size })
             }
         }
     }

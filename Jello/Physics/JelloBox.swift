@@ -151,13 +151,18 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
     private var isSetup: Bool = false
     private var vertlets: [VelocityVertlet] = []
     private var constraints: [Constraint] = []
-    @Published var draw: SimulationDrawable.DrawOperation? = nil
+    var draw: SimulationDrawable.DrawOperation? = nil
+    
+    private(set) var lastInteractionTime: SuspendingClock.Instant = .now
+    private var lastPublishTime: SuspendingClock.Instant = .now
+    
     
     var radius : Float = 5
     var dimensions : vector_float2 = .zero {
         didSet {
             if isSetup {
                 update()
+                lastInteractionTime = SuspendingClock.now
             }
         }
     }
@@ -180,13 +185,17 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
         get { topLeftCell.position}
         set {
             topLeftCell.position = newValue
+            lastInteractionTime = SuspendingClock.now
         }
     }
     
     var dragPositionCell: PositionCell = PositionCell()
     var dragPosition: vector_float2 {
         get { dragPositionCell.position }
-        set { dragPositionCell.position = newValue }
+        set {
+            dragPositionCell.position = newValue
+            lastInteractionTime = SuspendingClock.now
+        }
     }
     
     func setup(dimensions: vector_float2, topLeft: vector_float2, constraintIterations: Int, updateIterations: Int, radius: Float) {
@@ -388,6 +397,10 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
     
     func sync(operation: @escaping DrawOperation) {
         draw = operation
+        if SuspendingClock.now - lastPublishTime > Duration.milliseconds(4) {
+            objectWillChange.send()
+            lastPublishTime = .now
+        }
     }
    
 }

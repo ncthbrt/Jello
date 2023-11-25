@@ -57,8 +57,18 @@ extension CGPoint {
     init(_ point: vector_float2) {
         self.init(x: CGFloat(point.x), y: CGFloat(point.y))
     }
+    
+    init(_ size: CGSize){
+        self.init(x: size.width, y: size.height)
+    }
 }
 
+
+extension CGSize {
+    init (_ point: CGPoint){
+        self.init(width: point.x, height: point.y)
+    }
+}
 
 extension vector_float2 {
     

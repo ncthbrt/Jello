@@ -10,28 +10,39 @@ import OrderedCollections
 import SwiftData
 import simd
 
-struct NodeRendererView: View {
-    @Environment(\.modelContext) var modelContext
-    @State var lastTranslation: CGSize = .zero
-    @State var dragPosition: CGPoint = .zero
+fileprivate struct NodeBoxRendererView : View  {
     @ObservedObject var sim: JellyBoxVertletSimulation
-    @State var dragStarted: Bool = false
-    @State var nodeHeight: CGFloat = 50.0
-    @Environment(\.canvasTransform) var canvasTransform
-    @Environment(\.boxSelection) var boxSelection
-    @EnvironmentObject var simulationRunner: SimulationRunner
-    
-    var node : JelloNode
-    let inputPorts: [JelloInputPort]
-    let outputPorts: [JelloOutputPort]
-    
+
     var body: some View {
         ZStack {
             Path({ path in sim.draw?(&path) })
                 .fill(Gradient(colors: [.green, .blue]))
             Path({ path in sim.draw?(&path) })
                 .fill(.ultraThickMaterial)
-                .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3, antialiased: true)
+                .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3)
+      
+        }
+    }
+}
+
+fileprivate struct NodeRendererView: View {
+    @Environment(\.modelContext) var modelContext
+    @State var lastTranslation: CGSize = .zero
+    @State var dragPosition: CGPoint = .zero
+    @State var dragStarted: Bool = false
+    @State var nodeHeight: CGFloat = 50.0
+    @Environment(\.canvasTransform) var canvasTransform
+    @Environment(\.boxSelection) var boxSelection
+    @EnvironmentObject var simulationRunner: SimulationRunner
+    
+    var sim: JellyBoxVertletSimulation
+    var node : JelloNode
+    let inputPorts: [JelloInputPort]
+    let outputPorts: [JelloOutputPort]
+    
+    var body: some View {
+        ZStack {
+            NodeBoxRendererView(sim: sim)
             VStack {
                 Text(node.name ?? "Unknown").font(.title2).minimumScaleFactor(0.2)
                     .bold()
@@ -118,6 +129,7 @@ struct NodeRendererView: View {
             return newValue ? .start : .stop
         }
         .setSelection(node.id, select: (!boxSelection.selecting && boxSelection.selectedNodes.contains(node.id)) || boxSelection.intersects(position: node.position, width: JelloNode.nodeWidth, height: nodeHeight))
+        
     }
 }
 
@@ -126,6 +138,7 @@ struct NodeView : View {
 
     @Query var outputPorts: [JelloOutputPort]
     @Query var inputPorts: [JelloInputPort]
+    @Environment(\.canvasTransform) var canvasTransform
 
     let node: JelloNode
     let controller: JelloNodeController
@@ -146,9 +159,17 @@ struct NodeView : View {
     }
     
     var body: some View {
-        NodeRendererView(sim: sim, node: node, inputPorts: inputPorts, outputPorts: outputPorts)
-            .onAppear {
-                controller.setup(node: node)
+        if !node.isDeleted {
+            let dimensions = CGPoint(x: JelloNode.nodeWidth, y: JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count))
+            let thisRect = CGRect(origin: canvasTransform.transform(worldPosition: node.position - dimensions * 0.5), size: CGSize(canvasTransform.transform(worldSize: dimensions)))
+            let canvasRect = CGRect(origin: .zero, size: canvasTransform.viewPortSize)
+            if canvasRect.intersects(thisRect) {
+                
+                NodeRendererView(sim: sim, node: node, inputPorts: inputPorts, outputPorts: outputPorts)
+                    .onAppear {
+                        controller.setup(node: node)
+                    }
             }
+        }
     }
 }

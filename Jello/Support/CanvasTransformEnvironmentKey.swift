@@ -8,23 +8,37 @@
 import Foundation
 import SwiftUI
 
-struct CanvasTransform {
-    let scale: CGFloat
-    let position: CGPoint
+@Observable class CanvasTransform {
+    var scale: CGFloat
+    var position: CGPoint
+    var viewPortSize: CGSize
     
+    init(scale: CGFloat, position: CGPoint, viewPortSize: CGSize) {
+        self.scale = scale
+        self.position = position
+        self.viewPortSize = viewPortSize
+    }
     
     func transform(viewPosition: CGPoint) -> CGPoint {
         viewPosition / scale - position
     }
     
     func transform(worldPosition: CGPoint) -> CGPoint {
-        (worldPosition - position) * scale
+        (worldPosition + position) * scale
+    }
+    
+    func transform(viewSize: CGPoint) -> CGPoint {
+        viewSize / scale
+    }
+    
+    func transform(worldSize: CGPoint) -> CGPoint {
+        worldSize * scale
     }
 }
 
 
 private struct CanvasTransformEnvironmentKey: EnvironmentKey {
-    static let defaultValue: CanvasTransform = CanvasTransform(scale: 1, position: .zero)
+    static let defaultValue: CanvasTransform = CanvasTransform(scale: 1, position: .zero,  viewPortSize: CGSize(width: 0, height: 0))
 }
 
 

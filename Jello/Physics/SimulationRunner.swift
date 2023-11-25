@@ -10,12 +10,15 @@ import SwiftUI
 
 protocol SimulationDrawable {
     typealias DrawOperation = ((inout Path) -> Void)
+    var lastInteractionTime : SuspendingClock.Instant { get }
     func update(dt: Float, dt2: Float) -> DrawOperation
     func sync(operation: @escaping DrawOperation)
 }
 
 actor SimulationActor {
-    var simulations: Dictionary<UUID, any SimulationDrawable> = [:]
+    private var simulations: Dictionary<UUID, any SimulationDrawable> = [:]
+    private var clock : SuspendingClock = SuspendingClock()
+    
     
     func addSimulation(id: UUID, sim: any SimulationDrawable) {
         simulations[id] = sim
@@ -25,21 +28,25 @@ actor SimulationActor {
         simulations.removeValue(forKey: id)
     }
     
-    func update(deltaTime: Duration) {
+    func update(deltaTime: Duration, maxExecutionTime: Duration) {
         let dtDouble: Double = Double(deltaTime.components.attoseconds) * 1.0e-18
         let dt = Float(dtDouble)
         let dt2 = Float(dtDouble * dtDouble)
         var funcs: [UUID: SimulationDrawable.DrawOperation] = [:]
         
-        for sim in simulations {
+        let startTime = clock.now
+        for sim in simulations.sorted(by: {a, b in a.value.lastInteractionTime > b.value.lastInteractionTime}) {
             funcs[sim.key] = sim.value.update(dt: dt, dt2: dt2)
+            if clock.now - startTime > maxExecutionTime {
+                break
+            }
         }
         
         let sims = simulations
         let fs = funcs
         DispatchQueue.main.async {
-            for sim in sims {
-                sim.value.sync(operation: fs[sim.key]!)
+            for f in fs {
+                sims[f.key]!.sync(operation: f.value)
             }
         }
     }
@@ -60,7 +67,7 @@ class SimulationRunner: ObservableObject {
             let deltaTime = currentTime - previousTime
             previousTime = currentTime
 
-            await simulationActor.update(deltaTime: deltaTime)
+            await simulationActor.update(deltaTime: deltaTime, maxExecutionTime: Duration.milliseconds(2))
             try Task.checkCancellation()
             await Task.yield()
         }
