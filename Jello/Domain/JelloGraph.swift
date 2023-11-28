@@ -128,8 +128,8 @@ final class JelloNode  {
     fileprivate(set) var minY: Float
     fileprivate(set) var maxX: Float
     fileprivate(set) var maxY: Float
-    private var width: Float
-    private var height: Float
+    var width: Float
+    var height: Float
     
     fileprivate(set) var positionX: Float
     fileprivate(set) var positionY: Float
@@ -226,16 +226,21 @@ final class JelloEdge {
     var outputPort: JelloOutputPort?
     
     var inputPort: JelloInputPort?
+
     
+    fileprivate(set) var minX: Float
+    fileprivate(set) var minY: Float
+    fileprivate(set) var maxX: Float
+    fileprivate(set) var maxY: Float
     
     fileprivate(set) var startPositionX: Float
     fileprivate(set) var startPositionY: Float
     
-    var endPositionX: Float
-    var endPositionY: Float
+    fileprivate(set) var endPositionX: Float
+    fileprivate(set) var endPositionY: Float
     
-    var freeEndPositionX: Float
-    var freeEndPositionY: Float
+    fileprivate(set) var freeEndPositionX: Float
+    fileprivate(set) var freeEndPositionY: Float
     
     @Transient
     var endPosition: CGPoint {
@@ -277,6 +282,7 @@ final class JelloEdge {
             self.endPositionX = Float(newValue.x)
             self.endPositionY = Float(newValue.y)
             
+            
             if let port = closestPort {
                 self.inputPort = port
                 self.endPositionX = port.positionX
@@ -293,6 +299,11 @@ final class JelloEdge {
                     }
                 }
             }
+            
+            self.minX = min(startPositionX, endPositionX)
+            self.maxX = max(startPositionX, endPositionX)
+            self.minY = min(startPositionY, endPositionY)
+            self.maxY = max(startPositionY, endPositionY)
         }
     }
     
@@ -330,6 +341,10 @@ final class JelloEdge {
         self.startPositionY = startPositionY
         self.endPositionX = endPositionX
         self.endPositionY = endPositionY
+        self.minX = min(startPositionX, endPositionX)
+        self.maxX = max(startPositionX, endPositionX)
+        self.minY = min(startPositionY, endPositionY)
+        self.maxY = max(startPositionY, endPositionY)
     }
 }
 

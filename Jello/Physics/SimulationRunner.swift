@@ -69,7 +69,8 @@ class SimulationRunner: ObservableObject {
 
             await simulationActor.update(deltaTime: deltaTime, maxExecutionTime: Duration.milliseconds(2))
             try Task.checkCancellation()
-            await Task.yield()
+            
+            try? await Task.sleep(for: Duration.milliseconds(1))
         }
     }
     

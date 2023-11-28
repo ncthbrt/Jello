@@ -127,11 +127,19 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
     
     
     private(set) var lastInteractionTime: SuspendingClock.Instant = .now
-    private(set) var lastPublishTime: SuspendingClock.Instant = .now
+    private(set) var lastPublishTime: SuspendingClock.Instant = .now - Duration.seconds(1)
 
     
     var draw: SimulationDrawable.DrawOperation? = nil
 
+    func doDraw(path: inout Path) {
+        if (draw == nil) {
+            path.move(to: CGPoint(startPosition))
+            path.addLine(to: CGPoint(endPosition))
+        } else {
+            draw!(&path)
+        }
+    }
     
     var targetDistance: Float {
         get {
@@ -140,7 +148,6 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
         
         set {
             targetDistanceCell.distance = newValue
-            lastInteractionTime = SuspendingClock.now
         }
     }
     

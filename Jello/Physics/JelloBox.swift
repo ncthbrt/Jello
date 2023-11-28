@@ -173,7 +173,10 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
     var draggingCell: OnOffCell = OnOffCell()
     var dragging : Bool {
         get { draggingCell.on }
-        set { draggingCell.on = newValue }
+        set {
+            draggingCell.on = newValue
+            lastInteractionTime = SuspendingClock.now
+        }
     }
 
     var updateIterations: Int = 4
@@ -195,6 +198,14 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
         set {
             dragPositionCell.position = newValue
             lastInteractionTime = SuspendingClock.now
+        }
+    }
+    
+    func doDraw(path: inout Path) {
+        if (draw == nil) {
+            path.addRoundedRect(in: CGRect(origin: CGPoint(position), size: CGSize(width: CGFloat(dimensions.x), height: CGFloat(dimensions.y))), cornerSize: CGSize(width: CGFloat(radius), height: CGFloat(radius)))
+        } else {
+            draw!(&path)
         }
     }
     
@@ -280,7 +291,7 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
         }
         
         isSetup = true
-
+        lastInteractionTime = .now
     }
     
     func update() {
@@ -396,8 +407,9 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
     }
     
     func sync(operation: @escaping DrawOperation) {
+        let drawWasNil = draw == nil
         draw = operation
-        if SuspendingClock.now - lastPublishTime > Duration.milliseconds(4) {
+        if drawWasNil || SuspendingClock.now - lastPublishTime > Duration.milliseconds(4) {
             objectWillChange.send()
             lastPublishTime = .now
         }

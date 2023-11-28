@@ -17,7 +17,7 @@ fileprivate struct RopeRendererView: View {
     var body: some View {
         Path {
             path in
-            self.ropeSim.draw?(&path)
+            self.ropeSim.doDraw(path: &path)
         }
         .stroke(style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round, miterLimit: 10))
         .fill(fill)
@@ -66,9 +66,8 @@ fileprivate struct RopeView: View {
     @EnvironmentObject var simulationRunner: SimulationRunner
     @Environment(\.canvasTransform) var canvasTransform
     @Environment(\.modelContext) var modelContext
+    @State var uuid: UUID = UUID()
     
-    @State var uuid = UUID()
-
     private func onEndUnhook(value: DragGesture.Value) {
         if !edge.isDeleted {
             edge.endPosition = value.location
@@ -83,31 +82,26 @@ fileprivate struct RopeView: View {
     
     var body: some View {
         if !edge.isDeleted {
-            let size = (edge.startPosition - edge.endPosition)
             let startPosition = edge.startPosition
             let endPosition = edge.endPosition
-            let thisRect = CGRect(origin: canvasTransform.transform(worldPosition: CGPoint(x: min(startPosition.x, endPosition.x), y: min(startPosition.y, endPosition.y))), size: CGSize(canvasTransform.transform(worldSize: CGPoint(x: abs(size.x), y: abs(size.y)))))
-            let canvasRect = CGRect(origin: .zero, size: canvasTransform.viewPortSize)
-            if canvasRect.intersects(thisRect) {
-                ZStack {
-                    RopeRendererView(ropeSim: ropeSim, fill: fill)
-                    RopeEndView(fill: fill, endPosition: endPosition, onEndUnhook: onEndUnhook, onEndUnhookEnd: onEndUnhookEnd)
-                    RopeStartView(fill: fill, startPosition: startPosition)
-                }
-                .onAppear() {
-                    self.ropeSim.setup(start: vector_float2(startPosition), end: vector_float2(endPosition))
-                }
-                .onChange(of: startPosition, { _, curr in self.ropeSim.startPosition = vector_float2(curr) })
-                .onChange(of: endPosition, { _, curr in self.ropeSim.endPosition = vector_float2(curr) })
-                .task {
-                    await simulationRunner.addSimulation(id: uuid, sim: ropeSim)
-                    self.ropeSim.startPosition = vector_float2(startPosition)
-                    self.ropeSim.endPosition = vector_float2(endPosition)
-                }.onDisappear() {
-                    simulationRunner.removeSimulation(id: uuid)
-                }
-                .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
+            ZStack {
+                RopeRendererView(ropeSim: ropeSim, fill: fill)
+                RopeEndView(fill: fill, endPosition: endPosition, onEndUnhook: onEndUnhook, onEndUnhookEnd: onEndUnhookEnd)
+                RopeStartView(fill: fill, startPosition: startPosition)
             }
+            .onAppear() {
+                self.ropeSim.setup(start: vector_float2(startPosition), end: vector_float2(endPosition))
+            }
+            .onChange(of: startPosition, initial: true, { _, curr in self.ropeSim.startPosition = vector_float2(curr) })
+            .onChange(of: endPosition, initial: true, { _, curr in self.ropeSim.endPosition = vector_float2(curr) })
+            .task {
+                await simulationRunner.addSimulation(id: uuid, sim: ropeSim)
+                self.ropeSim.startPosition = vector_float2(startPosition)
+                self.ropeSim.endPosition = vector_float2(endPosition)
+            }.onDisappear() {
+                simulationRunner.removeSimulation(id: uuid)
+            }
+            .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
         }
     }
 }

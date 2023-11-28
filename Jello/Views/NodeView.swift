@@ -15,12 +15,11 @@ fileprivate struct NodeBoxRendererView : View  {
 
     var body: some View {
         ZStack {
-            Path({ path in sim.draw?(&path) })
+            Path({ path in sim.doDraw(path: &path) })
                 .fill(Gradient(colors: [.green, .blue]))
-            Path({ path in sim.draw?(&path) })
+            Path({ path in sim.doDraw(path: &path) })
                 .fill(.ultraThickMaterial)
                 .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3)
-      
         }
     }
 }
@@ -30,11 +29,11 @@ fileprivate struct NodeRendererView: View {
     @State var lastTranslation: CGSize = .zero
     @State var dragPosition: CGPoint = .zero
     @State var dragStarted: Bool = false
-    @State var nodeHeight: CGFloat = 50.0
     @Environment(\.canvasTransform) var canvasTransform
     @Environment(\.boxSelection) var boxSelection
     @EnvironmentObject var simulationRunner: SimulationRunner
     
+    @State var uuid: UUID = UUID()
     var sim: JellyBoxVertletSimulation
     var node : JelloNode
     let inputPorts: [JelloInputPort]
@@ -54,7 +53,6 @@ fileprivate struct NodeRendererView: View {
             NodeOutputPortsView(nodeId: node.uuid)
         }
         .shadow(color: boxSelection.selectedNodes.contains(node.uuid) ? Color.white : Color.clear, radius: 10)
-        .animation(.interactiveSpring(), value: node.position)
         .contextMenu {
             Button {
                 // Add this item to a list of favorites.
@@ -88,7 +86,7 @@ fileprivate struct NodeRendererView: View {
                 Label("Dissolve", systemImage: "wand.and.rays")
             }
         }
-        .frame(width: JelloNode.nodeWidth, height: nodeHeight, alignment: .center)
+        .frame(width: CGFloat(node.width), height: CGFloat(node.height), alignment: .center)
         .contentShape(Rectangle())
         .position(node.position)
         .gesture(DragGesture()
@@ -108,27 +106,25 @@ fileprivate struct NodeRendererView: View {
         )
         .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
         .onAppear() {
-            self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
-            self.sim.setup(dimensions:  vector_float2(x: Float(JelloNode.nodeWidth), y: Float(nodeHeight)), topLeft: vector_float2(node.position), constraintIterations: 4, updateIterations: 4, radius: Float(JelloNode.cornerRadius))
+            self.sim.setup(dimensions: vector_float2(x: Float(node.width), y: Float(node.height)), topLeft: vector_float2(node.position), constraintIterations: 4, updateIterations: 2, radius: Float(JelloNode.cornerRadius))
         }
         .onDisappear() {
-            self.simulationRunner.removeSimulation(id: node.uuid)
+            self.simulationRunner.removeSimulation(id: uuid)
         }
         .task {
-            await self.simulationRunner.addSimulation(id: node.uuid, sim: sim)
+            await self.simulationRunner.addSimulation(id: uuid, sim: sim)
+            sim.position = vector_float2(node.position)
         }
-        .onChange(of: inputPorts.count) { _, _ in
-            self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
-            self.sim.dimensions = vector_float2(x: Float(self.sim.dimensions.x), y: Float(nodeHeight))
+        .onChange(of: node.width) {
+            self.sim.dimensions = vector_float2(x: Float(node.width), y: Float(node.height))
         }
-        .onChange(of: outputPorts.count) { _, _ in
-            self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
-            self.sim.dimensions = vector_float2(x: Float(self.sim.dimensions.x), y: Float(nodeHeight))
+        .onChange(of: node.height) {
+            self.sim.dimensions = vector_float2(x: Float(node.width), y: Float(node.height))
         }
         .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
             return newValue ? .start : .stop
         }
-        .setSelection(node.uuid, select: (!boxSelection.selecting && boxSelection.selectedNodes.contains(node.uuid)) || boxSelection.intersects(position: node.position, width: JelloNode.nodeWidth, height: nodeHeight))
+        .setSelection(node.uuid, select: (!boxSelection.selecting && boxSelection.selectedNodes.contains(node.uuid)) || boxSelection.intersects(position: node.position, width: CGFloat(node.width), height: CGFloat(node.height)))
         
     }
 }
@@ -160,12 +156,7 @@ struct NodeView : View {
     
     var body: some View {
         if !node.isDeleted {
-            let dimensions = CGPoint(x: JelloNode.nodeWidth, y: JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count))
-            let thisRect = CGRect(origin: canvasTransform.transform(worldPosition: node.position - dimensions * 0.5), size: CGSize(canvasTransform.transform(worldSize: dimensions)))
-            let canvasRect = CGRect(origin: .zero, size: canvasTransform.viewPortSize)
-            if canvasRect.intersects(thisRect) {
-                NodeRendererView(sim: sim, node: node, inputPorts: inputPorts, outputPorts: outputPorts)
-            }
+            NodeRendererView(sim: sim, node: node, inputPorts: inputPorts, outputPorts: outputPorts)
         }
     }
 }

@@ -44,15 +44,14 @@ struct GraphView<AddNodeMenu: View> : View {
         let maxX = Float(viewBounds.maxX)
         let minY = Float(viewBounds.minY)
         let maxY = Float(viewBounds.maxY)
-        _nodes = Query(filter: #Predicate<JelloNode> { node in node.graph?.uuid == graphId && (minX <= node.maxX && node.minX <= maxX) && (minY <= node.maxY && node.minY <= maxY) })
-        _edges = Query(filter: #Predicate<JelloEdge> { edge in edge.graph?.uuid == graphId })
+        _nodes = Query(filter: #Predicate<JelloNode> { node in node.graph?.uuid == graphId && (node.minX <= maxX && minX <= node.maxX) && (node.minY <= maxY && minY <= node.maxY) })
+        _edges = Query(filter: #Predicate<JelloEdge> { edge in edge.graph?.uuid == graphId && (edge.minX <= maxX && minX <= edge.maxX) && (edge.minY <= maxY && minY <= edge.maxY) })
         _freeEdges = Query(filter: #Predicate<JelloEdge> { edge in edge.graph?.uuid == graphId && edge.inputPort == nil })
     }
     
-    func updateViewBounds(){
-        let transformedSize = canvasTransform.transform(viewSize: CGPoint(x: canvasTransform.viewPortSize.width, y: canvasTransform.viewPortSize.height))
-        let transformedPosition = canvasTransform.position
-        viewBounds = CGRect(origin: transformedPosition, size: CGSize(width: transformedSize.x, height: transformedSize.y))
+    private func updateViewBounds(){
+        let transformedSize = canvasTransform.transform(viewSize: CGPoint(canvasTransform.viewPortSize))
+        viewBounds = CGRect(origin: canvasTransform.transform(viewPosition: .zero), size: CGSize(transformedSize)).insetBy(dx: -0.5 * transformedSize.x, dy: -0.5 * transformedSize.y)
     }
 
 
@@ -152,21 +151,3 @@ struct GraphView<AddNodeMenu: View> : View {
     }
         
 }
-
-
-//struct GraphWrapperView<Menu: View> : View {
-//    let graphId: UUID
-//
-//    var onOpenAddNodeMenu: (CGPoint) -> Menu
-//    
-//    init(graphId: UUID, onOpenAddNodeMenu:  @escaping (CGPoint) -> Menu) {
-//        self.graphId = graphId
-//        self.onOpenAddNodeMenu = onOpenAddNodeMenu
-//    }
-//    
-//    
-//    var body: some View {
-//        GraphView<Menu>(graphId: graphId, onOpenAddNodeMenu: onOpenAddNodeMenu, viewBounds: $viewBounds)
-//    }
-//    
-//}
