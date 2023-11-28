@@ -18,9 +18,7 @@ enum JelloDocumentSearchTag: String, Identifiable, Hashable, CaseIterable, Codab
     var id: Self { self }
 }
 
-@Observable class ProjectNavigation {
-    var modelContainer : ModelContainer? = nil
-    
+@Observable class ProjectNavigation {    
     var searchText: String = ""
     var searchTag: JelloDocumentSearchTag = JelloDocumentSearchTag.all
     var navPath: [JelloDocumentReference] = []

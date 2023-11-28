@@ -10,7 +10,6 @@ import SwiftData
 
 @Model
 final class JelloMaterial {
-    var id: JelloNodeType { .material(uuid) }
     
     @Attribute(.unique) var uuid: UUID
     

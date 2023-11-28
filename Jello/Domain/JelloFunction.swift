@@ -12,8 +12,6 @@ import SwiftData
 final class JelloFunction {
     
     @Attribute(.unique) var uuid: UUID
-
-    var id: JelloNodeType { .userFunction(uuid) }
     
     
     @Relationship(deleteRule: .cascade, inverse: \JelloNode.function)

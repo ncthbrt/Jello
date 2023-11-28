@@ -16,7 +16,8 @@ struct ContentView: View {
         NavigationSplitView(
             sidebar: { ProjectSidebarView() },
             detail: { JelloDocumentNavigationStackView() })
-        .onOpenJelloProjectUrl()
+        .navigationSplitViewStyle(.balanced)
+        .toolbar(.hidden, for: .navigationBar)
     }
  
     

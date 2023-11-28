@@ -10,32 +10,14 @@ import SwiftData
 import UniformTypeIdentifiers
 
 
-struct AppContents : View {
-    @Environment(ProjectNavigation.self) private var navigation
-    
-    var body: some View {
-        ZStack {
-            if navigation.modelContainer == nil {
-                ProjectPickerView()
-                    .transition(.move(edge: .trailing))
-            } else {
-                ContentView()
-                    .modelContainer(navigation.modelContainer!)
-                    .transition(.move(edge: .leading))
-            }
-        }.frame(maxWidth: .infinity)
-    }
-}
-
 @main
 struct JelloApp: App {
     @State private var navigation: ProjectNavigation = ProjectNavigation()
     var body: some Scene {
-        WindowGroup {
-            AppContents()
+        DocumentGroup(editing: .jelloProject, migrationPlan: JelloMigrationPlan.self, editor: {
+            ContentView()
                 .environment(navigation)
-        }
-        .modelContainer(for: [JelloProjectReference.self], inMemory: false, isAutosaveEnabled: true)
+        })
     }
 }
 
