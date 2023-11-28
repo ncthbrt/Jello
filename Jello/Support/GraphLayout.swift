@@ -39,6 +39,11 @@ extension JelloNode {
         }
     }
     
+    func getRelativePortPosition() -> CGPoint {
+        -1 * self.position
+    }
+    
+    
     func getOutputPortWorldPosition(index: UInt8, inputPortCount: Int, outputPortCount: Int) -> CGPoint {
         return self.position - CGPoint(x: JelloNode.nodeWidth / 2, y: Self.computeNodeHeight(inputPortsCount: inputPortCount, outputPortsCount: outputPortCount) / 2) + Self.getOutputPortPositionOffset(index: index, relativeTo: .worldSpace) + CGPoint(x:  -(JelloNode.outputPortDiameter) / 2, y: -ceil(JelloNode.outputPortDiameter / 4))
     }
@@ -50,7 +55,19 @@ extension JelloNode {
 
 
 extension JelloEdge {
-    static let maxEdgeSnapDistance: CGFloat = 50.0
+    static let maxEdgeSnapDistance: Float = 50.0
+}
+
+extension JelloInputPort {
+    func getRelativePosition(nodePosition: CGPoint) -> CGPoint {
+        return self.position - nodePosition
+    }
+}
+
+extension JelloOutputPort {
+    func getRelativePosition(nodePosition: CGPoint) -> CGPoint {
+        return self.position - nodePosition
+    }
 }
 
 

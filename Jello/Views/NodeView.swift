@@ -50,10 +50,10 @@ fileprivate struct NodeRendererView: View {
                 Spacer()
             }
             .padding(.all, JelloNode.padding)
-            NodeInputPortsView(nodeId: node.id)
-            NodeOutputPortsView(nodeId: node.id)
+            NodeInputPortsView(nodeId: node.uuid)
+            NodeOutputPortsView(nodeId: node.uuid)
         }
-        .shadow(color: boxSelection.selectedNodes.contains(node.id) ? Color.white : Color.clear, radius: 10)
+        .shadow(color: boxSelection.selectedNodes.contains(node.uuid) ? Color.white : Color.clear, radius: 10)
         .animation(.interactiveSpring(), value: node.position)
         .contextMenu {
             Button {
@@ -62,18 +62,18 @@ fileprivate struct NodeRendererView: View {
                 Label("Pin Preview", systemImage: "eye")
             }
             Button(role: .destructive) {
-                let nodeId = node.id
+                let nodeId = node.uuid
                 try! modelContext.transaction {
-                    let inputPorts = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.id == nodeId }))
+                    let inputPorts = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.uuid == nodeId }))
                     for inputPort in inputPorts {
                         if let edge = inputPort.edge {
                             modelContext.delete(edge)
                         }
                     }
-                    let outputPorts = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.id == nodeId }))
+                    let outputPorts = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.uuid == nodeId }))
                     for outputPort in outputPorts {
-                        let outputPortId = outputPort.id
-                        let edges = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloEdge>{ $0.outputPort?.id == outputPortId }))
+                        let outputPortId = outputPort.uuid
+                        let edges = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloEdge>{ $0.outputPort?.uuid == outputPortId }))
                         for edge in edges {
                             modelContext.delete(edge)
                         }
@@ -112,10 +112,10 @@ fileprivate struct NodeRendererView: View {
             self.sim.setup(dimensions:  vector_float2(x: Float(JelloNode.nodeWidth), y: Float(nodeHeight)), topLeft: vector_float2(node.position), constraintIterations: 4, updateIterations: 4, radius: Float(JelloNode.cornerRadius))
         }
         .onDisappear() {
-            self.simulationRunner.removeSimulation(id: node.id)
+            self.simulationRunner.removeSimulation(id: node.uuid)
         }
         .task {
-            await self.simulationRunner.addSimulation(id: node.id, sim: sim)
+            await self.simulationRunner.addSimulation(id: node.uuid, sim: sim)
         }
         .onChange(of: inputPorts.count) { _, _ in
             self.nodeHeight = JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count)
@@ -128,7 +128,7 @@ fileprivate struct NodeRendererView: View {
         .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
             return newValue ? .start : .stop
         }
-        .setSelection(node.id, select: (!boxSelection.selecting && boxSelection.selectedNodes.contains(node.id)) || boxSelection.intersects(position: node.position, width: JelloNode.nodeWidth, height: nodeHeight))
+        .setSelection(node.uuid, select: (!boxSelection.selecting && boxSelection.selectedNodes.contains(node.uuid)) || boxSelection.intersects(position: node.position, width: JelloNode.nodeWidth, height: nodeHeight))
         
     }
 }
@@ -146,16 +146,16 @@ struct NodeView : View {
     init(node: JelloNode) {
         self.node = node
         self.controller = JelloNodeControllerFactory.getController(node)
-        _outputPorts = Query(FetchDescriptor(predicate: Self.outputPortPredicate(nodeId: node.id)))
-        _inputPorts = Query(FetchDescriptor(predicate: Self.inputPortPredicate(nodeId:node.id)))
+        _outputPorts = Query(FetchDescriptor(predicate: Self.outputPortPredicate(nodeId: node.uuid)))
+        _inputPorts = Query(FetchDescriptor(predicate: Self.inputPortPredicate(nodeId:node.uuid)))
     }
     
     static func outputPortPredicate(nodeId: UUID) -> Predicate<JelloOutputPort> {
-        return #Predicate { $0.node?.id == nodeId }
+        return #Predicate { $0.node?.uuid == nodeId }
     }
     
     static func inputPortPredicate(nodeId: UUID) -> Predicate<JelloInputPort> {
-        return #Predicate { $0.node?.id == nodeId }
+        return #Predicate { $0.node?.uuid == nodeId }
     }
     
     var body: some View {
@@ -164,11 +164,7 @@ struct NodeView : View {
             let thisRect = CGRect(origin: canvasTransform.transform(worldPosition: node.position - dimensions * 0.5), size: CGSize(canvasTransform.transform(worldSize: dimensions)))
             let canvasRect = CGRect(origin: .zero, size: canvasTransform.viewPortSize)
             if canvasRect.intersects(thisRect) {
-                
                 NodeRendererView(sim: sim, node: node, inputPorts: inputPorts, outputPorts: outputPorts)
-                    .onAppear {
-                        controller.setup(node: node)
-                    }
             }
         }
     }

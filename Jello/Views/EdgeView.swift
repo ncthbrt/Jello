@@ -39,12 +39,8 @@ fileprivate struct RopeEndView: View {
             .contentShape(Rectangle())
             .position(endPosition)
             .gesture(DragGesture()
-                .onChanged { change in
-                    self.onEndUnhook(change)
-                }
-                .onEnded { change in
-                    self.onEndUnhookEnd(change)
-                }
+                .onChanged(onEndUnhook)
+                .onEnded(onEndUnhookEnd)
             )
     }
 }
@@ -65,54 +61,17 @@ fileprivate struct RopeStartView: View {
 
 fileprivate struct RopeView: View {
     let edge: JelloEdge
-    let id: UUID
-    let onEndUnhook: ((DragGesture.Value) -> ())
-    let onEndUnhookEnd: ((DragGesture.Value) -> ())
     let fill: Gradient
     var ropeSim: RopeVertletSimulation
     @EnvironmentObject var simulationRunner: SimulationRunner
     @Environment(\.canvasTransform) var canvasTransform
-    
-    var body: some View {
-        if !edge.isDeleted {
-            let size = (edge.startPosition - edge.endPosition)
-            
-            let thisRect = CGRect(origin: canvasTransform.transform(worldPosition: CGPoint(x: min(edge.startPosition.x, edge.endPosition.x), y: min(edge.startPosition.y, edge.endPosition.y))), size: CGSize(canvasTransform.transform(worldSize: CGPoint(x: abs(size.x), y: abs(size.y)))))
-            let canvasRect = CGRect(origin: .zero, size: canvasTransform.viewPortSize)
-            if canvasRect.intersects(thisRect) {
-                ZStack {
-                    RopeRendererView(ropeSim: ropeSim, fill: fill)
-                    RopeEndView(fill: fill, endPosition: edge.endPosition, onEndUnhook: onEndUnhook, onEndUnhookEnd: onEndUnhookEnd)
-                    RopeStartView(fill: fill, startPosition: edge.startPosition)
-                }
-                .onAppear() {
-                    self.ropeSim.setup(start: vector_float2(edge.startPosition), end: vector_float2(edge.endPosition))
-                }
-                .onChange(of: edge.startPosition, { _, curr in self.ropeSim.startPosition = vector_float2(curr) })
-                .onChange(of: edge.endPosition, { _, curr in self.ropeSim.endPosition = vector_float2(curr) })
-                .task {
-                    await simulationRunner.addSimulation(id: edge.id, sim: ropeSim)
-                    self.ropeSim.startPosition = vector_float2(edge.startPosition)
-                    self.ropeSim.endPosition = vector_float2(edge.endPosition)
-                }.onDisappear() {
-                    simulationRunner.removeSimulation(id: id)
-                }
-                .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
-            }
-        }
-    }
-}
-
-
-struct EdgeView: View {
-    let edge: JelloEdge
     @Environment(\.modelContext) var modelContext
-    @State var ropeSim: RopeVertletSimulation = RopeVertletSimulation()
-
     
+    @State var uuid = UUID()
+
     private func onEndUnhook(value: DragGesture.Value) {
         if !edge.isDeleted {
-            edge.setEndPosition(value.location)
+            edge.endPosition = value.location
         }
     }
     
@@ -124,7 +83,46 @@ struct EdgeView: View {
     
     var body: some View {
         if !edge.isDeleted {
-            RopeView(edge: edge, id: edge.id, onEndUnhook: onEndUnhook, onEndUnhookEnd: onEndUnhookEnd, fill: edge.dataType.getTypeGradient(), ropeSim: ropeSim)
+            let size = (edge.startPosition - edge.endPosition)
+            let startPosition = edge.startPosition
+            let endPosition = edge.endPosition
+            let thisRect = CGRect(origin: canvasTransform.transform(worldPosition: CGPoint(x: min(startPosition.x, endPosition.x), y: min(startPosition.y, endPosition.y))), size: CGSize(canvasTransform.transform(worldSize: CGPoint(x: abs(size.x), y: abs(size.y)))))
+            let canvasRect = CGRect(origin: .zero, size: canvasTransform.viewPortSize)
+            if canvasRect.intersects(thisRect) {
+                ZStack {
+                    RopeRendererView(ropeSim: ropeSim, fill: fill)
+                    RopeEndView(fill: fill, endPosition: endPosition, onEndUnhook: onEndUnhook, onEndUnhookEnd: onEndUnhookEnd)
+                    RopeStartView(fill: fill, startPosition: startPosition)
+                }
+                .onAppear() {
+                    self.ropeSim.setup(start: vector_float2(startPosition), end: vector_float2(endPosition))
+                }
+                .onChange(of: startPosition, { _, curr in self.ropeSim.startPosition = vector_float2(curr) })
+                .onChange(of: endPosition, { _, curr in self.ropeSim.endPosition = vector_float2(curr) })
+                .task {
+                    await simulationRunner.addSimulation(id: uuid, sim: ropeSim)
+                    self.ropeSim.startPosition = vector_float2(startPosition)
+                    self.ropeSim.endPosition = vector_float2(endPosition)
+                }.onDisappear() {
+                    simulationRunner.removeSimulation(id: uuid)
+                }
+                .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
+            }
+        }
+    }
+}
+
+
+struct EdgeView: View {
+    let edge: JelloEdge
+    @State var ropeSim: RopeVertletSimulation = RopeVertletSimulation()
+
+    
+   
+    
+    var body: some View {
+        if !edge.isDeleted {
+            RopeView(edge: edge, fill: edge.dataType.getTypeGradient(), ropeSim: ropeSim)
         }
     }
 }

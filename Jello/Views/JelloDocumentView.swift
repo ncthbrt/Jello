@@ -10,20 +10,21 @@ import SwiftUI
 import SwiftData
 
 fileprivate struct JelloFunctionView: View {
-    let id : UUID
+    let uuid : UUID
     
     @Query var functions: [JelloFunction]
     @State var newEdge: JelloEdge?
     @Environment(\.modelContext) var modelContext
+    @State var viewBounds: CGRect = CGRect()
     
-    init(id: UUID) {
-        self.id = id
-        _functions = Query(filter: #Predicate<JelloFunction> { function in function.uuid == id })
+    init(uuid: UUID) {
+        self.uuid = uuid
+        _functions = Query(filter: #Predicate<JelloFunction> { function in function.uuid == uuid })
     }
     
     var body: some View {
         if let function = functions.first {
-            GraphView(graphId: function.graph.id, onOpenAddNodeMenu: { position in AddNewNodeMenuView(graph: function.graph, position: position, includeMaterials: false) })
+            GraphView(graphId: function.graph.uuid, onOpenAddNodeMenu: { position in AddNewNodeMenuView(graph: function.graph, position: position, includeMaterials: false) }, bounds: $viewBounds)
                 .toolbarTitleDisplayMode(.inline)
                 .navigationTitle(.init(get: { function.name }, set: {  function.name = $0 }))
                 .navigationViewStyle(.stack)
@@ -36,13 +37,13 @@ fileprivate struct JelloFunctionView: View {
 
 
 fileprivate struct JelloMaterialView: View {
-    let id : UUID
+    let uuid : UUID
     
     @Query var materials: [JelloMaterial]
     
-    init(id: UUID) {
-        self.id = id
-        _materials = Query(filter: #Predicate<JelloMaterial> { material in material.uuid == id })
+    init(uuid: UUID) {
+        self.uuid = uuid
+        _materials = Query(filter: #Predicate<JelloMaterial> { material in material.uuid == uuid })
     }
     
     var body: some View {
@@ -56,10 +57,10 @@ fileprivate struct JelloDocumentView : View {
     
     var body: some View {
         switch(reference){
-        case .function(let id):
-            JelloFunctionView(id: id)
-        case .material(let id):
-            JelloMaterialView(id: id)
+        case .function(let uuid):
+            JelloFunctionView(uuid: uuid)
+        case .material(let uuid):
+            JelloMaterialView(uuid: uuid)
         }
     }
 }

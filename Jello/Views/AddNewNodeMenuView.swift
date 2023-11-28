@@ -99,7 +99,10 @@ struct AddNewNodeMenuView: View {
             if let definiteSelection = $0 {
                 switch definiteSelection {
                 case .builtIn(let builtIn):
-                    modelContext.insert(JelloNode(builtIn: builtIn, graph: graph, position: position))
+                    let node = JelloNode(builtIn: builtIn, graph: graph, position: position)
+                    let controller = JelloNodeControllerFactory.getController(node)
+                    modelContext.insert(node)
+                    controller.setup(node: node)
                 case .material(let materialId):
                     let material = materials.first(where: { $0.uuid == materialId})!
                     modelContext.insert(JelloNode(material: material, graph: graph, position: position))

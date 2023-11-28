@@ -6,7 +6,7 @@ struct InputPortView : View {
     @Environment(\.freeEdges) var freeEdges: [(edge: JelloEdge, dependencies: Set<UUID>)]
     
     var body: some View {
-        let highlightPort = port.edge == nil && freeEdges.contains(where: { JelloGraphDataType.isPortTypeCompatible(edge: $0.edge.dataType, port: port.dataType) && !$0.dependencies.contains(port.node?.id ?? UUID()) })
+        let highlightPort = port.edge == nil && freeEdges.contains(where: { JelloGraphDataType.isPortTypeCompatible(edge: $0.edge.dataType, port: port.dataType) && !$0.dependencies.contains(port.node?.uuid ?? UUID()) })
 
         HStack {
             ZStack {
@@ -57,13 +57,13 @@ struct OutputPortView : View {
             .gesture(DragGesture().onChanged({ drag in
                 if newEdge == nil, let graph = port.node?.graph {
                     dragStarted = true
-                    let nEdge = JelloEdge(graph: graph, id: UUID(), dataType: port.dataType, outputPort: port, inputPort: nil)
+                    let nEdge = JelloEdge(graph: graph, uuid: UUID(), dataType: port.dataType, outputPort: port, inputPort: nil, startPositionX: port.positionX, startPositionY: port.positionY, endPositionX: port.positionX, endPositionY: port.positionY)
                     newEdge = nEdge
                     modelContext.insert(nEdge)
                 }
-                newEdge!.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
+                newEdge!.endPosition = (newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
             }).onEnded({ drag in
-                newEdge?.setEndPosition(newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
+                newEdge?.endPosition = (newEdge!.startPosition + CGPoint(x: drag.translation.width, y: drag.translation.height))
                 if let nEdge = newEdge, nEdge.inputPort == nil {
                     modelContext.delete(nEdge)
                 }
@@ -78,7 +78,7 @@ struct NodeOutputPortsView: View {
     @Query var outputPorts: [JelloOutputPort]
 
     init(nodeId: UUID) {
-        self._outputPorts = Query(FetchDescriptor(predicate: #Predicate { $0.node?.id == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
+        self._outputPorts = Query(FetchDescriptor(predicate: #Predicate { $0.node?.uuid == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
     }
     
     var body: some View  {
@@ -92,7 +92,7 @@ struct NodeInputPortsView: View {
     @Query var inputPorts: [JelloInputPort]
 
     init(nodeId: UUID) {
-        self._inputPorts = Query(FetchDescriptor(predicate: #Predicate { $0.node?.id == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
+        self._inputPorts = Query(FetchDescriptor(predicate: #Predicate { $0.node?.uuid == nodeId }, sortBy: [SortDescriptor(\.index)]), animation: .bouncy)
     }
     
     var body: some View  {
