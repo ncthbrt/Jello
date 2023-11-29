@@ -88,7 +88,7 @@ fileprivate struct NodeRendererView: View {
         }
         .frame(width: CGFloat(node.width), height: CGFloat(node.height), alignment: .center)
         .contentShape(Rectangle())
-        .position(node.position)
+        .position(node.position + CGPoint(x: CGFloat(node.width/2), y: CGFloat(node.height/2)))
         .gesture(DragGesture()
             .onChanged { dragGesture in
                 sim.dragging = true

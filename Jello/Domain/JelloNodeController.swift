@@ -10,6 +10,7 @@ import SwiftData
 
 protocol JelloNodeController {
     func setup(node: JelloNode)
+    func migrate(node: JelloNode)
     func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
     func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
     func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
@@ -25,6 +26,11 @@ private class JelloMaterialNodeController: JelloNodeController {
         
     }
     
+    
+    func migrate(node: JelloNode) {
+        
+    }
+
     func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
     {
         
@@ -54,6 +60,12 @@ fileprivate class JelloUserFunctionNodeController: JelloNodeController {
     {
         
     }
+    
+    
+    func migrate(node: JelloNode) {
+        
+    }
+
     
     func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
     {
@@ -94,30 +106,26 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
     
     func setup(node: JelloNode)
     {
-        let nodeId = node.uuid
-        let existingInputPorts = ((try? node.modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.uuid == nodeId }))) ?? [])
-        let existingOutputPorts = ((try? node.modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.uuid == nodeId }))) ?? [])
-
         for i in 0..<inputPorts.count {
             let port = inputPorts[i]
-
-            if !existingInputPorts.contains(where: { $0.name == port.name }) {
-                let position = node.getInputPortWorldPosition(index: UInt8(i), inputPortCount: inputPorts.count, outputPortCount: outputPorts.count)
-                let port = JelloInputPort(uuid: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, positionX: Float(position.x), positionY: Float(position.y))
-                node.modelContext?.insert(port)
-            }
+            
+            let offset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(i))
+            let portModel = JelloInputPort(uuid: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
+            node.modelContext?.insert(portModel)
         }
         
         for i in 0..<outputPorts.count {
             let port = outputPorts[i]
-            if !existingOutputPorts.contains(where: { $0.name == port.name }) {
-                let position = node.getOutputPortWorldPosition(index: UInt8(i), inputPortCount: inputPorts.count, outputPortCount: outputPorts.count)
-                let port = JelloOutputPort(uuid: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, edges: [], positionX: Float(position.x), positionY: Float(position.y))
-                node.modelContext?.insert(port)
-            }
+            let offset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(i))
+            let portModel = JelloOutputPort(uuid: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, edges: [], nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
+            node.modelContext?.insert(portModel)
         }
         
-        node.size = CGSize(width: JelloNode.nodeWidth, height: JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count))
+        node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.computeNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count))
+    }
+    
+    func migrate(node: JelloNode) {
+        
     }
     
     func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
@@ -140,10 +148,6 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
         
     }
 }
-
-
-
-
 
 
 struct JelloNodeControllerFactory {

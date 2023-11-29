@@ -28,8 +28,16 @@ final class JelloOutputPort {
     fileprivate(set) var positionX: Float
     fileprivate(set) var positionY: Float
     
+    
+    fileprivate(set) var nodeOffsetX: Float
+    fileprivate(set) var nodeOffsetY: Float
+    
+    var nodeOffset : CGPoint {
+        CGPoint(x: CGFloat(nodeOffsetX), y: CGFloat(nodeOffsetY))
+    }
+    
     @Transient
-    var position: CGPoint {
+    var worldPosition: CGPoint {
         get { CGPoint(x: CGFloat(positionX), y: CGFloat(positionY)) }
         set {
             positionX = Float(newValue.x)
@@ -44,15 +52,17 @@ final class JelloOutputPort {
         }
     }
 
-    init(uuid: UUID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, edges: [JelloEdge], positionX: Float, positionY: Float) {
+    init(uuid: UUID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, edges: [JelloEdge], nodePositionX: Float, nodePositionY: Float, nodeOffsetX: Float, nodeOffsetY: Float) {
         self.uuid = uuid
         self.name = name
         self.index = index
         self.dataType = dataType
         self.edges = []
         self.node = node
-        self.positionX = positionX
-        self.positionY = positionY
+        self.nodeOffsetX = nodeOffsetX
+        self.nodeOffsetY = nodeOffsetY
+        self.positionX = nodePositionX + nodeOffsetX
+        self.positionY = nodePositionY + nodeOffsetY
     }
 }
 
@@ -74,8 +84,15 @@ final class JelloInputPort {
     fileprivate(set) var positionX: Float
     fileprivate(set) var positionY: Float
     
+    fileprivate(set) var nodeOffsetX: Float
+    fileprivate(set) var nodeOffsetY: Float
+    
+    var nodeOffset : CGPoint {
+        CGPoint(x: CGFloat(nodeOffsetX), y: CGFloat(nodeOffsetY))
+    }
+    
     @Transient
-    var position: CGPoint {
+    var worldPosition: CGPoint {
         get { CGPoint(x: CGFloat(positionX), y: CGFloat(positionY)) }
         set {
             positionX = Float(newValue.x)
@@ -90,14 +107,16 @@ final class JelloInputPort {
         }
     }
     
-    init(uuid: UUID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, positionX: Float, positionY: Float) {
+    init(uuid: UUID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, nodePositionX: Float, nodePositionY: Float, nodeOffsetX: Float, nodeOffsetY: Float) {
         self.uuid = uuid
         self.index = index
         self.name = name
         self.dataType = dataType
         self.node = node
-        self.positionX = positionX
-        self.positionY = positionY
+        self.positionX = nodePositionX + nodeOffsetX
+        self.positionY = nodePositionY + nodeOffsetY
+        self.nodeOffsetX = nodeOffsetX
+        self.nodeOffsetY = nodeOffsetY
     }
     
 }
@@ -160,11 +179,12 @@ final class JelloNode  {
             if let context = modelContext {
                 let inputPorts = (try? context.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort> { $0.node?.uuid == uuid }, sortBy: [SortDescriptor(\.index)]))) ?? []
                 let outputPorts = (try? context.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort> { $0.node?.uuid == uuid }, sortBy: [SortDescriptor(\.index)]))) ?? []
+//                let halfSize = CGPoint(x: CGFloat(width/2), y: CGFloat(height/2))
                 for port in inputPorts {
-                    port.position = self.getInputPortWorldPosition(index: port.index, inputPortCount: inputPorts.count, outputPortCount: outputPorts.count)
+                    port.worldPosition = self.position + port.nodeOffset
                 }
                 for port in outputPorts {
-                    port.position = self.getOutputPortWorldPosition(index: port.index, inputPortCount: inputPorts.count, outputPortCount: outputPorts.count)
+                    port.worldPosition = self.position + port.nodeOffset
                 }
 
             }
@@ -267,7 +287,7 @@ final class JelloEdge {
             }
             for port in inputPorts {
                 if port.node?.graph?.uuid == graphId && JelloGraphDataType.isPortTypeCompatible(edge: dataType, port: port.dataType) && (port.edge == nil || port.edge == self) && !dependencies.contains(port.node?.uuid ?? UUID()) {
-                    let portPosition = port.position
+                    let portPosition = port.worldPosition
                     let dist = (newValue - portPosition).magnitude()
                     if dist < minDist {
                         minDist = dist

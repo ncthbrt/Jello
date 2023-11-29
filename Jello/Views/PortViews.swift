@@ -29,8 +29,9 @@ struct InputPortView : View {
             Text(port.name)
                 .italic()
                 .monospaced()
-        }.frame(width: JelloNode.nodeWidth / 2, height: JelloNode.portHeight, alignment: .topLeading)
-        .position(JelloNode.getInputPortPositionOffset(index: port.index, relativeTo: .nodeSpace))
+        }
+        .frame(height: JelloNode.portHeight, alignment: .topLeading)
+        .position(port.nodeOffset + CGPoint(x: JelloNode.outputPortDiameter/2, y: JelloNode.outputPortDiameter / 4))
     }
 }
 
@@ -49,8 +50,8 @@ struct OutputPortView : View {
                     .fill(port.dataType.getTypeGradient())
                     .frame(width: JelloNode.outputPortDiameter, height: JelloNode.outputPortDiameter, alignment: .center)
             }
-            .frame(width: JelloNode.nodeWidth / 2, height: JelloNode.portHeight, alignment: .topTrailing)
-            .position(JelloNode.getOutputPortPositionOffset(index: port.index, relativeTo: .nodeSpace))
+            .frame(height: JelloNode.portHeight, alignment: .topTrailing)
+            .position(port.nodeOffset + CGPoint(x: -JelloNode.outputPortDiameter/2, y: JelloNode.outputPortDiameter / 4))
             .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
                 return newValue ? .start : .stop
             }
@@ -84,7 +85,7 @@ struct NodeOutputPortsView: View {
     var body: some View  {
         ForEach(outputPorts) {
             output in OutputPortView(port: output)
-        }
+        }.frame(alignment: .topLeading)
     }
 }
 
@@ -98,6 +99,6 @@ struct NodeInputPortsView: View {
     var body: some View  {
         ForEach(inputPorts) {
             input in InputPortView(port: input)
-        }
+        }.frame(alignment: .topLeading)
     }
 }

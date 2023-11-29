@@ -2,16 +2,11 @@ import SwiftUI
 import OrderedCollections
 import Collections
 
-enum PortRelativeTo {
-    case nodeSpace
-    case worldSpace
-}
-
 extension JelloNode {
+    static let standardNodeWidth = 200.0
     static let headerHeight: CGFloat = 60.0
     static let portHeight: CGFloat = 30.0
-    static let nodeWidth: CGFloat = 200.0
-    static let padding: CGFloat = 15.0
+    static let padding: CGFloat = 20.0
     static let cornerRadius: CGFloat = 20.0
     static let outputPortDiameter : CGFloat = 20.0
     static let inputPortDiameter : CGFloat = 17.0
@@ -21,54 +16,24 @@ extension JelloNode {
         return Self.headerHeight + JelloNode.portHeight * CGFloat(max(inputPortsCount, inputPortsCount))
     }
     
-    static func getInputPortPositionOffset(index: UInt8, relativeTo: PortRelativeTo) -> CGPoint {
-        switch relativeTo {
-        case .nodeSpace:
-            return CGPoint(x: JelloNode.padding + JelloNode.nodeWidth / 4, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
-        case .worldSpace:
-            return CGPoint(x: JelloNode.padding, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
-        }
+    static func getStandardInputPortPositionOffset(index: UInt8) -> CGPoint {
+        return CGPoint(x: JelloNode.padding, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
     }
     
-    static func getOutputPortPositionOffset(index: UInt8, relativeTo: PortRelativeTo) -> CGPoint {
-        switch relativeTo {
-        case .nodeSpace:
-            return CGPoint(x: JelloNode.nodeWidth - JelloNode.padding - JelloNode.nodeWidth / 4, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
-        case .worldSpace:
-            return CGPoint(x: JelloNode.nodeWidth - JelloNode.padding, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
-        }
+    static func getStandardOutputPortPositionOffset(index: UInt8) -> CGPoint {
+        return CGPoint(x: JelloNode.standardNodeWidth - JelloNode.padding, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
     }
-    
-    func getRelativePortPosition() -> CGPoint {
-        -1 * self.position
-    }
-    
-    
-    func getOutputPortWorldPosition(index: UInt8, inputPortCount: Int, outputPortCount: Int) -> CGPoint {
-        return self.position - CGPoint(x: JelloNode.nodeWidth / 2, y: Self.computeNodeHeight(inputPortsCount: inputPortCount, outputPortsCount: outputPortCount) / 2) + Self.getOutputPortPositionOffset(index: index, relativeTo: .worldSpace) + CGPoint(x:  -(JelloNode.outputPortDiameter) / 2, y: -ceil(JelloNode.outputPortDiameter / 4))
-    }
-    
-    func getInputPortWorldPosition(index: UInt8, inputPortCount: Int, outputPortCount: Int) -> CGPoint {
-      return self.position - CGPoint(x: JelloNode.nodeWidth / 2, y: Self.computeNodeHeight(inputPortsCount: inputPortCount, outputPortsCount: outputPortCount) / 2) + Self.getInputPortPositionOffset(index: index, relativeTo: .worldSpace) + CGPoint(x: JelloNode.inputPortDiameter / 2, y: -ceil(JelloNode.inputPortDiameter / 4))
-    }
+        
+//    func getOutputPortWorldPosition(index: UInt8, inputPortCount: Int, outputPortCount: Int) -> CGPoint {
+//        return self.position - CGPoint(x: JelloNode.nodeWidth / 2, y: Self.computeNodeHeight(inputPortsCount: inputPortCount, outputPortsCount: outputPortCount) / 2) + Self.getOutputPortPositionOffset(index: index, relativeTo: .worldSpace) + CGPoint(x:  -(JelloNode.outputPortDiameter) / 2, y: -ceil(JelloNode.outputPortDiameter / 4))
+//    }
+//    
+//    func getInputPortWorldPosition(index: UInt8, inputPortCount: Int, outputPortCount: Int) -> CGPoint {
+//      return self.position - CGPoint(x: JelloNode.nodeWidth / 2, y: Self.computeNodeHeight(inputPortsCount: inputPortCount, outputPortsCount: outputPortCount) / 2) + Self.getInputPortPositionOffset(index: index, relativeTo: .worldSpace) + CGPoint(x: JelloNode.inputPortDiameter / 2, y: -ceil(JelloNode.inputPortDiameter / 4))
+//    }
 }
 
 
 extension JelloEdge {
     static let maxEdgeSnapDistance: Float = 50.0
 }
-
-extension JelloInputPort {
-    func getRelativePosition(nodePosition: CGPoint) -> CGPoint {
-        return self.position - nodePosition
-    }
-}
-
-extension JelloOutputPort {
-    func getRelativePosition(nodePosition: CGPoint) -> CGPoint {
-        return self.position - nodePosition
-    }
-}
-
-
-
