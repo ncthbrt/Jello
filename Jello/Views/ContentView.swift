@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @Environment(ProjectNavigation.self) private var navigation
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         NavigationSplitView(
@@ -18,6 +19,16 @@ struct ContentView: View {
             detail: { JelloDocumentNavigationStackView() })
         .navigationSplitViewStyle(.balanced)
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear() {
+            guard let nodes = try? modelContext.fetch(FetchDescriptor<JelloNode>()) else {
+                return
+            }
+            
+            for node in nodes {
+                let controller = JelloNodeControllerFactory.getController(node)
+                controller.migrate(node: node)
+            }
+        }
     }
  
     

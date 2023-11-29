@@ -215,6 +215,10 @@ struct ProjectSidebarView: View {
     private func addMaterial() {
         let material = JelloMaterial()
         modelContext.insert(material)
+        let outputNode = JelloNode(builtIn: .materialOutput, graph: material.graph, position: CGPoint(x: 0, y: 0))
+        modelContext.insert(outputNode)
+        let factory = JelloNodeControllerFactory.getController(outputNode)
+        factory.setup(node: outputNode)
         navigation.selectedItem = .material(material.uuid)
     }
     

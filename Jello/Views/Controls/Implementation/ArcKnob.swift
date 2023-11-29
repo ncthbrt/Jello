@@ -92,7 +92,7 @@ public struct ArcKnob<Foreground : ShapeStyle, Background: ShapeStyle> : View {
 
                 Text("\(isShowingValue ? "\(Int(value))" : text)")
                     .frame(width: dim(geo) * 0.8)
-                    .font(Font.system(size: dim(geo) * 0.2).monospaced().italic())
+                    .font(Font.system(size: dim(geo) * 0.2, weight: .bold).monospaced().italic())
                     .foregroundStyle(textColor)
             }
         }
@@ -102,7 +102,7 @@ public struct ArcKnob<Foreground : ShapeStyle, Background: ShapeStyle> : View {
 
 
 #Preview {
-    HStack {
+    GeometryReader { reader in
         ArcKnob("Knob", value: .constant(5), range: Float(0.0)...Float(20.0), origin: 0, foreground: Gradient(colors: [.green, .blue]), background: .ultraThinMaterial).squareFrame(100)
-    }.background(.black, in: .rect)
+    }.background(.black)
 }

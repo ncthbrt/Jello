@@ -8,30 +8,32 @@ struct InputPortView : View {
     var body: some View {
         let highlightPort = port.edge == nil && freeEdges.contains(where: { JelloGraphDataType.isPortTypeCompatible(edge: $0.edge.dataType, port: port.dataType) && !$0.dependencies.contains(port.node?.uuid ?? UUID()) })
 
-        HStack {
-            ZStack {
-                if highlightPort {
-                    Circle()
-                        .fill(RadialGradient(colors: [.green.opacity(0.8), .clear], center: UnitPoint(x: 0.5, y: 0.5), startRadius: 0, endRadius: JelloNode.inputPortDiameter * 0.3))
+        GeometryReader { geometry in
+            HStack {
+                ZStack {
+                    if highlightPort {
+                        Circle()
+                            .fill(RadialGradient(colors: [.green.opacity(0.8), .clear], center: UnitPoint(x: 0.5, y: 0.5), startRadius: 0, endRadius: JelloNode.inputPortDiameter * 0.3))
+                            .frame(width: JelloNode.inputPortDiameter, height: JelloNode.inputPortDiameter, alignment: .leading)
+                            .animation(.easeIn, value: highlightPort)
+                    }
+                    let portCircle = Circle()
+                        .stroke(lineWidth: JelloNode.inputPortStrokeWidth)
+                        .fill(port.dataType.getTypeGradient())
                         .frame(width: JelloNode.inputPortDiameter, height: JelloNode.inputPortDiameter, alignment: .leading)
-                        .animation(.easeIn, value: highlightPort)
-                }
-                let portCircle = Circle()
-                    .stroke(lineWidth: JelloNode.inputPortStrokeWidth)
-                    .fill(port.dataType.getTypeGradient())
-                    .frame(width: JelloNode.inputPortDiameter, height: JelloNode.inputPortDiameter, alignment: .leading)
-                if highlightPort {
-                    portCircle.shadow(color: .green, radius: 4)
-                } else {
-                    portCircle
-                }
-            }.animation(.easeIn.speed(2), value: highlightPort)
-            Text(port.name)
-                .italic()
-                .monospaced()
+                    if highlightPort {
+                        portCircle.shadow(color: .green, radius: 4)
+                    } else {
+                        portCircle
+                    }
+                }.animation(.easeIn.speed(2), value: highlightPort)
+                Text(port.name)
+                    .italic()
+                    .monospaced()
+            }
+            .frame(width: geometry.size.width, height: JelloNode.portHeight, alignment: .topLeading)
+            .position(port.nodeOffset + CGPoint(x: -JelloNode.outputPortDiameter/2, y: JelloNode.outputPortDiameter / 4) + CGPoint(x: geometry.size.width/2, y: 0))
         }
-        .frame(height: JelloNode.portHeight, alignment: .topLeading)
-        .position(port.nodeOffset + CGPoint(x: JelloNode.outputPortDiameter/2, y: JelloNode.outputPortDiameter / 4))
     }
 }
 
@@ -42,6 +44,7 @@ struct OutputPortView : View {
     @Environment(\.modelContext) var modelContext
     
     var body: some View {
+        GeometryReader { geometry in
             HStack {
                 Text(port.name)
                     .font(.body.monospaced())
@@ -50,8 +53,8 @@ struct OutputPortView : View {
                     .fill(port.dataType.getTypeGradient())
                     .frame(width: JelloNode.outputPortDiameter, height: JelloNode.outputPortDiameter, alignment: .center)
             }
-            .frame(height: JelloNode.portHeight, alignment: .topTrailing)
-            .position(port.nodeOffset + CGPoint(x: -JelloNode.outputPortDiameter/2, y: JelloNode.outputPortDiameter / 4))
+            .frame(width:geometry.size.width, height: JelloNode.portHeight, alignment: .topTrailing)
+            .position(port.nodeOffset + CGPoint(x: JelloNode.outputPortDiameter/2, y: JelloNode.outputPortDiameter / 4) - CGPoint(x: geometry.size.width/2, y: 0))
             .sensoryFeedback(trigger: dragStarted) { oldValue, newValue in
                 return newValue ? .start : .stop
             }
@@ -71,6 +74,7 @@ struct OutputPortView : View {
                 newEdge = nil
                 dragStarted = false
             }))
+        }
     }
 }
 

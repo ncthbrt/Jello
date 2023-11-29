@@ -10,20 +10,6 @@ import OrderedCollections
 import SwiftData
 import simd
 
-fileprivate struct NodeBoxRendererView : View  {
-    @ObservedObject var sim: JellyBoxVertletSimulation
-
-    var body: some View {
-        ZStack {
-            Path({ path in sim.doDraw(path: &path) })
-                .fill(Gradient(colors: [.green, .blue]))
-            Path({ path in sim.doDraw(path: &path) })
-                .fill(.ultraThickMaterial)
-                .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3)
-        }
-    }
-}
-
 fileprivate struct NodeRendererView: View {
     @Environment(\.modelContext) var modelContext
     @State var lastTranslation: CGSize = .zero
@@ -32,23 +18,21 @@ fileprivate struct NodeRendererView: View {
     @Environment(\.canvasTransform) var canvasTransform
     @Environment(\.boxSelection) var boxSelection
     @EnvironmentObject var simulationRunner: SimulationRunner
-    
     @State var uuid: UUID = UUID()
-    var sim: JellyBoxVertletSimulation
-    var node : JelloNode
-    let inputPorts: [JelloInputPort]
-    let outputPorts: [JelloOutputPort]
     
+    var node : JelloNode
+    @ObservedObject var sim: JellyBoxVertletSimulation
+    @ViewBuilder let innerBody: (@escaping (inout Path) -> ()) -> AnyView
+
     var body: some View {
         ZStack {
-            NodeBoxRendererView(sim: sim)
-            VStack {
-                Text(node.name ?? "Unknown").font(.title2).minimumScaleFactor(0.2)
-                    .bold()
-                    .monospaced()
-                Spacer()
-            }
-            .padding(.all, JelloNode.padding)
+            Path(sim.doDraw)
+                .fill(Gradient(colors: [.green, .blue]))
+            Path(sim.doDraw)
+                .fill(.ultraThickMaterial)
+            innerBody(sim.doDraw)
+            Path(sim.doDraw)
+                    .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3)
             NodeInputPortsView(nodeId: node.uuid)
             NodeOutputPortsView(nodeId: node.uuid)
         }
@@ -129,34 +113,29 @@ fileprivate struct NodeRendererView: View {
     }
 }
 
-struct NodeView : View {
-    @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
-
-    @Query var outputPorts: [JelloOutputPort]
-    @Query var inputPorts: [JelloInputPort]
-    @Environment(\.canvasTransform) var canvasTransform
-
+struct NodeView: View {
     let node: JelloNode
-    let controller: JelloNodeController
+    @ViewBuilder let innerBody: (@escaping (inout Path) -> ()) -> AnyView
+    
+    @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
+    var body: some View {
+        NodeRendererView(node: node, sim: sim, innerBody: innerBody)
+    }
+}
+
+struct NodeControllerView : View {
+    let node: JelloNode
+    let controller: any JelloNodeController
     
     init(node: JelloNode) {
         self.node = node
         self.controller = JelloNodeControllerFactory.getController(node)
-        _outputPorts = Query(FetchDescriptor(predicate: Self.outputPortPredicate(nodeId: node.uuid)))
-        _inputPorts = Query(FetchDescriptor(predicate: Self.inputPortPredicate(nodeId:node.uuid)))
     }
     
-    static func outputPortPredicate(nodeId: UUID) -> Predicate<JelloOutputPort> {
-        return #Predicate { $0.node?.uuid == nodeId }
-    }
-    
-    static func inputPortPredicate(nodeId: UUID) -> Predicate<JelloInputPort> {
-        return #Predicate { $0.node?.uuid == nodeId }
-    }
     
     var body: some View {
         if !node.isDeleted {
-            NodeRendererView(sim: sim, node: node, inputPorts: inputPorts, outputPorts: outputPorts)
+            NodeView(node: node, innerBody: { path in controller.body(node: node, drawBounds: path) })
         }
     }
 }

@@ -21,7 +21,7 @@ final class JelloMaterial {
     var userDescription: String
 
     @Relationship(deleteRule: .cascade)
-    private var graph: JelloGraph
+    var graph: JelloGraph
     
 
     init(uuid: UUID, name: String, userDescription: String, graph: JelloGraph, dependants: [JelloNode]) {

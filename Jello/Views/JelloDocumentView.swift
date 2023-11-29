@@ -40,14 +40,23 @@ fileprivate struct JelloMaterialView: View {
     let uuid : UUID
     
     @Query var materials: [JelloMaterial]
-    
+    @State var viewBounds: CGRect = CGRect()
+    @Environment(\.modelContext) var modelContext
+
     init(uuid: UUID) {
         self.uuid = uuid
         _materials = Query(filter: #Predicate<JelloMaterial> { material in material.uuid == uuid })
     }
     
     var body: some View {
-        Text("Material View")
+        if let material = materials.first {
+            GraphView(graphId: material.graph.uuid, onOpenAddNodeMenu: { position in AddNewNodeMenuView(graph: material.graph, position: position, includeMaterials: false) }, bounds: $viewBounds)
+                .toolbarTitleDisplayMode(.inline)
+                .navigationTitle(.init(get: { material.name }, set: { material.name = $0 }))
+                .navigationViewStyle(.stack)
+        } else {
+            NoSelectedItemView()
+        }
     }
 }
 

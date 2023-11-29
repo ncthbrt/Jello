@@ -9,8 +9,11 @@ import Foundation
 
 
 enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable {
+    
     case add = 0
     case subtract = 1
+    
+    case materialOutput = 100
     
     var name : String {
         return String(describing: self).capitalized
@@ -73,4 +76,5 @@ enum JelloGraphDataType: Int, Codable, CaseIterable {
     case texture1d = 9
     case texture2d = 10
     case texture3d = 11
+    case material = 12
 }

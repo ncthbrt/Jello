@@ -77,7 +77,7 @@ struct GraphView<AddNodeMenu: View> : View {
                     ZStack {
                         ForEach(nodes) { node in
                             if !node.isDeleted {
-                                NodeView(node: node)
+                                NodeControllerView(node: node)
                             }
                         }
                         .freeEdges(freeEdgesEnvironmentValue)

@@ -27,6 +27,8 @@ extension JelloGraphDataType {
             return Gradient(colors: [.green, .teal])
         case .anyTexture:
             return Gradient(colors: [.mint, .teal])
+        case .material:
+            return Gradient(colors: [.blue, .purple])
         }
     }
     
