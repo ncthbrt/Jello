@@ -23,16 +23,17 @@ fileprivate struct NodeRendererView: View {
     var node : JelloNode
     @ObservedObject var sim: JellyBoxVertletSimulation
     @ViewBuilder let innerBody: (@escaping (inout Path) -> ()) -> AnyView
+    let gradient: Gradient
 
     var body: some View {
         ZStack {
             Path(sim.doDraw)
-                .fill(Gradient(colors: [.green, .blue]))
+                .fill(gradient)
             Path(sim.doDraw)
                 .fill(.ultraThickMaterial)
             innerBody(sim.doDraw)
             Path(sim.doDraw)
-                    .stroke(Gradient(colors: [.green, .blue]), lineWidth: 3)
+                    .stroke(gradient, lineWidth: 3)
             NodeInputPortsView(nodeId: node.uuid)
             NodeOutputPortsView(nodeId: node.uuid)
         }
@@ -115,11 +116,13 @@ fileprivate struct NodeRendererView: View {
 
 struct NodeView: View {
     let node: JelloNode
-    @ViewBuilder let innerBody: (@escaping (inout Path) -> ()) -> AnyView
+    let gradient: Gradient
     
+    @ViewBuilder let innerBody: (@escaping (inout Path) -> ()) -> AnyView
+
     @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
     var body: some View {
-        NodeRendererView(node: node, sim: sim, innerBody: innerBody)
+        NodeRendererView(node: node, sim: sim, innerBody: innerBody, gradient: gradient)
     }
 }
 
@@ -135,7 +138,7 @@ struct NodeControllerView : View {
     
     var body: some View {
         if !node.isDeleted {
-            NodeView(node: node, innerBody: { path in controller.body(node: node, drawBounds: path) })
+            NodeView(node: node, gradient: controller.category.getCategoryGradient(), innerBody: { path in controller.body(node: node, drawBounds: path) })
         }
     }
 }

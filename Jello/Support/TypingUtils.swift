@@ -1,5 +1,21 @@
 import SwiftUI
 
+
+extension JelloNodeCategory {
+    func getCategoryGradient() -> Gradient {
+        switch self {
+        case .math:
+            return Gradient(colors: [.green, .blue])
+        case .other:
+            return Gradient(colors: [.yellow, .orange])
+        case .utility:
+            return Gradient(colors: [.blue, .orange])
+        case .material:
+            return Gradient(colors: [.blue, .purple])
+        }
+    }
+}
+
 extension JelloGraphDataType {
     func getTypeGradient() -> Gradient {
         switch self {
@@ -27,8 +43,10 @@ extension JelloGraphDataType {
             return Gradient(colors: [.green, .teal])
         case .anyTexture:
             return Gradient(colors: [.mint, .teal])
-        case .material:
+        case .anyMaterial:
             return Gradient(colors: [.blue, .purple])
+        case .slabMaterial:
+            return Gradient(colors: [.blue, .yellow])
         }
     }
     
@@ -76,6 +94,12 @@ extension JelloGraphDataType {
         case (_, .anyTexture):
             return false
         case (.anyTexture, _):
+            return false
+        case (.anyMaterial, .slabMaterial):
+            return true
+        case (.slabMaterial, .anyMaterial):
+            return true
+        case (.anyMaterial, _):
             return false
         case (_, _):
             print("\(edge), \(port), false")

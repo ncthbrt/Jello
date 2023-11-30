@@ -18,6 +18,7 @@ protocol JelloNodeController {
     func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
     func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
     func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
+    var category: JelloNodeCategory { get }
     @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView
 }
 
@@ -54,6 +55,8 @@ private class JelloMaterialNodeController: JelloNodeController {
     {
         
     }
+    
+    var category: JelloNodeCategory { .other }
     
     
     @ViewBuilder func body(node: JelloNode, drawBounds: (inout Path) -> ()) -> AnyView {
@@ -97,6 +100,8 @@ fileprivate class JelloUserFunctionNodeController: JelloNodeController {
         
     }
     
+    var category: JelloNodeCategory { .other }
+    
     func body(node: JelloNode, drawBounds: (inout Path) -> ()) -> AnyView {
         AnyView(EmptyView())
     }
@@ -112,12 +117,15 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
     let inputPorts: [PortDefinition]
     let outputPorts: [PortDefinition]
     
-    init(builtIn: JelloBuiltInNodeSubtype, inputPorts: [PortDefinition], outputPorts: [PortDefinition]){
+    init(builtIn: JelloBuiltInNodeSubtype, category: JelloNodeCategory, inputPorts: [PortDefinition], outputPorts: [PortDefinition]){
         self.builtIn = builtIn
         self.inputPorts = inputPorts
         self.outputPorts = outputPorts
+        self.category = category
     }
     
+    var category: JelloNodeCategory
+
     func setup(node: JelloNode)
     {
         for i in 0..<inputPorts.count {
@@ -162,6 +170,8 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
         
     }
     
+
+    
     @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             VStack {
@@ -180,11 +190,74 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
 fileprivate class JelloOutputNodeController: JelloNodeController {
     init(){}
     
+    var category: JelloNodeCategory { .material }
+    
     func setup(node: JelloNode)
     {
         let offset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
-        let portModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "OUT", dataType: .material, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
+        let portModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .anyMaterial, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
         node.modelContext?.insert(portModel)
+        node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
+    }
+    
+    func migrate(node: JelloNode) {
+        // TODO: Write migration script
+    }
+    
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
+    {
+        
+    }
+    
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
+    {
+        
+    }
+    
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
+    {
+        
+    }
+    
+    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
+    {
+        
+    }
+    
+    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
+        AnyView(
+            ZStack {
+                GeometryReader { geometry in
+                    Path(drawBounds).fill(ImagePaint(image: Image("FakeTestRender").resizable(), scale: geometry.size.width/1024))
+                }
+                Path(drawBounds).fill(Gradient(colors: [.black.opacity(0.3), .clear]))
+                VStack {
+                    Text("Preview").font(.title2).minimumScaleFactor(0.2)
+                        .bold()
+                        .monospaced()
+                    Spacer()
+                }.padding(.all, JelloNode.padding)
+            }
+        )
+    }
+}
+
+
+fileprivate class JelloPreviewNodeController: JelloNodeController {
+    init(){}
+    
+    var category: JelloNodeCategory { .utility }
+    
+    func setup(node: JelloNode)
+    {
+        let inputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
+        let inputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .any, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset.x), nodeOffsetY: Float(inputPortOffset.y))
+        node.modelContext?.insert(inputPortModel)
+        
+        let outputPortOffset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(0))
+        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .any, node: node, edges: [], nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
+        node.modelContext?.insert(outputPortModel)
+
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
@@ -236,8 +309,10 @@ struct JelloNodeControllerFactory {
     private static let userFunctionNodeController : any JelloNodeController = JelloUserFunctionNodeController()
     private static let builtinFunctionControllerMap: [JelloBuiltInNodeSubtype: any JelloNodeController] = [
         .materialOutput: JelloOutputNodeController(),
-        .add: JelloConstantFunctionNodeController(builtIn: .add, inputPorts: [PortDefinition(dataType: .anyFloat, name: "X"), PortDefinition(dataType: .anyFloat, name: "Y")], outputPorts: [PortDefinition(dataType: .anyFloat, name: "Z")]),
-        .subtract: JelloConstantFunctionNodeController(builtIn: .subtract, inputPorts: [PortDefinition(dataType: .anyFloat, name: "X"), PortDefinition(dataType: .anyFloat, name: "Y")], outputPorts: [PortDefinition(dataType: .anyFloat, name: "Z")]),
+        .preview: JelloPreviewNodeController(),
+        .slabShader: JelloConstantFunctionNodeController(builtIn: .slabShader, category: .material, inputPorts: [PortDefinition(dataType: .float3, name: "Albedo"), PortDefinition(dataType: .float, name: "F0"), PortDefinition(dataType: .float, name: "F90"), PortDefinition(dataType: .float, name: "Roughness"), PortDefinition(dataType: .float, name: "Anisotropy"), PortDefinition(dataType: .float3, name: "Normal"), PortDefinition(dataType: .float3, name: "Tangent"), PortDefinition(dataType: .float, name: "SSS MFP"), PortDefinition(dataType: .float, name: "SSS MFP Scale"), PortDefinition(dataType: .float, name: "SSS Phase Anisotropy"), PortDefinition(dataType: .float3, name: "Emissive Color"), PortDefinition(dataType: .float, name: "2nd Roughness"), PortDefinition(dataType: .float, name: "2nd Roughness Weight"), PortDefinition(dataType: .float, name: "Fuzz Roughness"), PortDefinition(dataType: .float3, name: "Fuzz Amount"), PortDefinition(dataType: .float3, name: "Fuzz Color"), PortDefinition(dataType: .float, name: "Glint Density"), PortDefinition(dataType: .float2, name: "Glint UVS")], outputPorts: [PortDefinition(dataType: .slabMaterial, name: "")]),
+        .add: JelloConstantFunctionNodeController(builtIn: .add, category: .math, inputPorts: [PortDefinition(dataType: .anyFloat, name: "X"), PortDefinition(dataType: .anyFloat, name: "Y")], outputPorts: [PortDefinition(dataType: .anyFloat, name: "Z")]),
+        .subtract: JelloConstantFunctionNodeController(builtIn: .subtract, category: .math, inputPorts: [PortDefinition(dataType: .anyFloat, name: "X"), PortDefinition(dataType: .anyFloat, name: "Y")], outputPorts: [PortDefinition(dataType: .anyFloat, name: "Z")]),
     ]
 
 

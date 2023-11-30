@@ -39,6 +39,12 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
         .math: [
             JelloBuiltInNodeMenuDefinition(description: "Adds values together", previewImage: "", category: .math, type: .add),
             JelloBuiltInNodeMenuDefinition(description: "Subtracts values from one another", previewImage: "", category: .math, type: .subtract)
+        ],
+        .material: [
+            JelloBuiltInNodeMenuDefinition(description: "Primary BSDF used to shade surfaces", previewImage: "", category: .material, type: .slabShader),
+        ],
+        .utility: [
+            JelloBuiltInNodeMenuDefinition(description: "Preview Arbitrary Values", previewImage: "", category: .utility, type: .preview),
         ]
     ]
 }
