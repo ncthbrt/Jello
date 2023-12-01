@@ -22,89 +22,34 @@ protocol JelloNodeController {
     @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView
 }
 
+extension JelloNodeController {
+    func setup(node: JelloNode) {}
+    func migrate(node: JelloNode) {}
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge) {}
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge) {}
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge) {}
+    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge) {}
+    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
+        AnyView(
+            VStack {
+                Text(node.name ?? "Unknown").font(.title2).minimumScaleFactor(0.2)
+                    .bold()
+                    .monospaced()
+                Spacer()
+            }
+                .padding(.all, JelloNode.padding)
+        )
+    }
+}
+
 
 private class JelloMaterialNodeController: JelloNodeController {
-    
-
-    func setup(node: JelloNode)
-    {
-        
-    }
-    
-    
-    func migrate(node: JelloNode) {
-        
-    }
-
-    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
     var category: JelloNodeCategory { .other }
-    
-    
-    @ViewBuilder func body(node: JelloNode, drawBounds: (inout Path) -> ()) -> AnyView {
-        AnyView(EmptyView())
-    }
-    
 }
 
 
 fileprivate class JelloUserFunctionNodeController: JelloNodeController {
-    init(){}
-    
-    func setup(node: JelloNode)
-    {
-        
-    }
-    
-    
-    func migrate(node: JelloNode) {
-        
-    }
-
-    
-    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
     var category: JelloNodeCategory { .other }
-    
-    func body(node: JelloNode, drawBounds: (inout Path) -> ()) -> AnyView {
-        AnyView(EmptyView())
-    }
 }
 
 struct PortDefinition {
@@ -116,7 +61,8 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
     let builtIn: JelloBuiltInNodeSubtype
     let inputPorts: [PortDefinition]
     let outputPorts: [PortDefinition]
-    
+    let category: JelloNodeCategory
+
     init(builtIn: JelloBuiltInNodeSubtype, category: JelloNodeCategory, inputPorts: [PortDefinition], outputPorts: [PortDefinition]){
         self.builtIn = builtIn
         self.inputPorts = inputPorts
@@ -124,7 +70,6 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
         self.category = category
     }
     
-    var category: JelloNodeCategory
 
     func setup(node: JelloNode)
     {
@@ -145,44 +90,6 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
         
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.getStandardNodeHeight(inputPortsCount: inputPorts.count, outputPortsCount: outputPorts.count))
     }
-    
-    func migrate(node: JelloNode) {
-        // TODO: Write migration script
-    }
-    
-    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-
-    
-    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
-        AnyView(
-            VStack {
-                Text(node.name ?? "Unknown").font(.title2).minimumScaleFactor(0.2)
-                    .bold()
-                    .monospaced()
-                Spacer()
-            }
-                .padding(.all, JelloNode.padding)
-        )
-    }
 }
 
 
@@ -200,30 +107,6 @@ fileprivate class JelloOutputNodeController: JelloNodeController {
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
-    func migrate(node: JelloNode) {
-        // TODO: Write migration script
-    }
-    
-    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
     @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             ZStack {
@@ -232,7 +115,7 @@ fileprivate class JelloOutputNodeController: JelloNodeController {
                 }
                 Path(drawBounds).fill(Gradient(colors: [.black.opacity(0.3), .clear]))
                 VStack {
-                    Text("Preview").font(.title2).minimumScaleFactor(0.2)
+                    Text("Output").font(.title2).minimumScaleFactor(0.2)
                         .bold()
                         .monospaced()
                     Spacer()
@@ -261,30 +144,6 @@ fileprivate class JelloPreviewNodeController: JelloNodeController {
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
-    func migrate(node: JelloNode) {
-        // TODO: Write migration script
-    }
-    
-    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
-    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    {
-        
-    }
-    
     @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             ZStack {
@@ -293,7 +152,7 @@ fileprivate class JelloPreviewNodeController: JelloNodeController {
                 }
                 Path(drawBounds).fill(Gradient(colors: [.black.opacity(0.3), .clear]))
                 VStack {
-                    Text("Output").font(.title2).minimumScaleFactor(0.2)
+                    Text("Preview").font(.title2).minimumScaleFactor(0.2)
                         .bold()
                         .monospaced()
                     Spacer()

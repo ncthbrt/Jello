@@ -348,7 +348,14 @@ final class JelloEdge {
         return dependencies
     }
 
-     
+    convenience init(graph: JelloGraph, outputPort: JelloOutputPort, inputPort: JelloInputPort) {
+        self.init(graph: graph, uuid: UUID(), dataType: JelloGraphDataType.getMostSpecificType(a: outputPort.dataType, b: inputPort.dataType), outputPort: outputPort, inputPort: inputPort, startPositionX: outputPort.positionX, startPositionY: outputPort.positionY, endPositionX: inputPort.positionX, endPositionY: inputPort.positionY)
+    }
+    
+    convenience init(graph: JelloGraph, outputPort: JelloOutputPort) {
+        self.init(graph: graph, uuid: UUID(), dataType: JelloGraphDataType.getMostSpecificType(a: outputPort.dataType, b: .any), outputPort: outputPort, inputPort: nil, startPositionX: outputPort.positionX, startPositionY: outputPort.positionY, endPositionX: outputPort.positionX, endPositionY: outputPort.positionY)
+    }
+    
     init(graph: JelloGraph, uuid: UUID, dataType: JelloGraphDataType, outputPort: JelloOutputPort, inputPort: JelloInputPort?, startPositionX: Float, startPositionY: Float, endPositionX: Float, endPositionY: Float) {
         self.graph = graph
         self.uuid = uuid

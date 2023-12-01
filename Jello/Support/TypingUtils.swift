@@ -102,7 +102,6 @@ extension JelloGraphDataType {
         case (.anyMaterial, _):
             return false
         case (_, _):
-            print("\(edge), \(port), false")
             return false
         }
     }
