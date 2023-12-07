@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "spirv-cross",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/KhronosGroup/SPIRV-Cross.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "9da5f7ce45f8642affec51168e3a4e61f7b13215"
+      }
+    },
+    {
       "identity" : "swift-collections",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections.git",

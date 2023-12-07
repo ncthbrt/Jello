@@ -36,7 +36,7 @@ final class JelloMaterial {
         self.init(uuid: UUID(), name: "Untitled Material", userDescription: "", graph: JelloGraph(), dependants: [])
     }
     
-    static func newMaterial(modelContext: ModelContext) -> JelloMaterial {
+    static func newMaterial(compiler: JelloCompiler, modelContext: ModelContext) -> JelloMaterial {
         let material = JelloMaterial()
         try! modelContext.transaction {
             modelContext.insert(material)
@@ -46,14 +46,14 @@ final class JelloMaterial {
             outputNode = (try! modelContext.fetch(FetchDescriptor<JelloNode>(predicate: #Predicate{ $0.uuid == outputNodeId }))).first!
 
             let outputNodeController = JelloNodeControllerFactory.getController(outputNode)
-            outputNodeController.setup(node: outputNode)
+            outputNodeController.setup(compiler: compiler, node: outputNode)
             
             var slabShaderNode = JelloNode(builtIn: .slabShader, graph: material.graph, position: CGPoint(x: JelloNode.standardNodeWidth, y: 0))
             modelContext.insert(slabShaderNode)
             let slabShaderNodeId = slabShaderNode.uuid
             slabShaderNode = (try! modelContext.fetch(FetchDescriptor<JelloNode>(predicate: #Predicate{ $0.uuid == slabShaderNodeId }))).first!
             let slabShaderNodeController = JelloNodeControllerFactory.getController(slabShaderNode)
-            slabShaderNodeController.setup(node: slabShaderNode)
+            slabShaderNodeController.setup(compiler: compiler, node: slabShaderNode)
             
 
             let outputPort = try! modelContext.fetch(FetchDescriptor<JelloOutputPort>(predicate: #Predicate{ $0.node?.uuid == slabShaderNodeId }))

@@ -12,24 +12,24 @@ import SwiftUI
 
 
 protocol JelloNodeController {
-    func setup(node: JelloNode)
-    func migrate(node: JelloNode)
-    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge)
-    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge)
-    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
-    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
+    func setup(compiler: JelloCompiler, node: JelloNode)
+    func migrate(compiler: JelloCompiler, node: JelloNode)
+    func onInputPortConnected(compiler: JelloCompiler, port: JelloInputPort, edge: JelloEdge)
+    func onOutputPortConnected(compiler: JelloCompiler, port: JelloOutputPort, edge: JelloEdge)
+    func onInputPortDisconnected(compiler: JelloCompiler, port: JelloInputPort, edge: JelloEdge)
+    func onOutputPortDisconnected(compiler: JelloCompiler, port: JelloInputPort, edge: JelloEdge)
     var category: JelloNodeCategory { get }
-    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView
+    @ViewBuilder func body(compiler: JelloCompiler, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView
 }
 
 extension JelloNodeController {
-    func setup(node: JelloNode) {}
-    func migrate(node: JelloNode) {}
-    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge) {}
-    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge) {}
-    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge) {}
-    func onOutputPortDisconnected(port: JelloInputPort, edge: JelloEdge) {}
-    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
+    func setup(compiler: JelloCompiler, node: JelloNode) {}
+    func migrate(compiler: JelloCompiler, node: JelloNode) {}
+    func onInputPortConnected(compiler: JelloCompiler, port: JelloInputPort, edge: JelloEdge) {}
+    func onOutputPortConnected(compiler: JelloCompiler, port: JelloOutputPort, edge: JelloEdge) {}
+    func onInputPortDisconnected(compiler: JelloCompiler, port: JelloInputPort, edge: JelloEdge) {}
+    func onOutputPortDisconnected(compiler: JelloCompiler, port: JelloInputPort, edge: JelloEdge) {}
+    @ViewBuilder func body(compiler: JelloCompiler, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             VStack {
                 Text(node.name ?? "Unknown").font(.title2).minimumScaleFactor(0.2)
@@ -71,7 +71,7 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
     }
     
 
-    func setup(node: JelloNode)
+    func setup(compiler: JelloCompiler, node: JelloNode)
     {
         for i in 0..<inputPorts.count {
             let port = inputPorts[i]
@@ -99,7 +99,7 @@ fileprivate class JelloOutputNodeController: JelloNodeController {
     
     var category: JelloNodeCategory { .material }
     
-    func setup(node: JelloNode)
+    func setup(compiler: JelloCompiler, node: JelloNode)
     {
         let offset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
         let portModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .anyMaterial, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
@@ -107,7 +107,7 @@ fileprivate class JelloOutputNodeController: JelloNodeController {
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
-    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
+    @ViewBuilder func body(compiler: JelloCompiler, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             ZStack {
                 GeometryReader { geometry in
@@ -131,7 +131,7 @@ fileprivate class JelloPreviewNodeController: JelloNodeController {
     
     var category: JelloNodeCategory { .utility }
     
-    func setup(node: JelloNode)
+    func setup(compiler: JelloCompiler, node: JelloNode)
     {
         let inputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
         let inputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .any, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset.x), nodeOffsetY: Float(inputPortOffset.y))
@@ -144,7 +144,7 @@ fileprivate class JelloPreviewNodeController: JelloNodeController {
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
-    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
+    @ViewBuilder func body(compiler: JelloCompiler, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             ZStack {
                 GeometryReader { geometry in

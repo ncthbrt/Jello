@@ -56,6 +56,8 @@
 		BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067552AF8B8C10066F8D4 /* JelloBox.swift */; };
 		BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */; };
 		BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE0675A2AF934820066F8D4 /* NodeView.swift */; };
+		BCEAFD172B205E9100D23E1F /* JelloCompiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEAFD162B205E9100D23E1F /* JelloCompiler.swift */; };
+		BCEAFD1B2B20D8DA00D23E1F /* SPIRV-Cross in Frameworks */ = {isa = PBXBuildFile; productRef = BCEAFD1A2B20D8DA00D23E1F /* SPIRV-Cross */; };
 		BCEE1C6F2AFE2DE40012F619 /* GraphLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C6E2AFE2DE40012F619 /* GraphLayout.swift */; };
 		BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C702AFE3F040012F619 /* PortViews.swift */; };
 		BCEE1C732AFE40180012F619 /* TypingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C722AFE40180012F619 /* TypingUtils.swift */; };
@@ -130,6 +132,8 @@
 		BCE067552AF8B8C10066F8D4 /* JelloBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloBox.swift; sourceTree = "<group>"; };
 		BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointExtensions.swift; sourceTree = "<group>"; };
 		BCE0675A2AF934820066F8D4 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
+		BCEAFD162B205E9100D23E1F /* JelloCompiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompiler.swift; sourceTree = "<group>"; };
+		BCEAFD1C2B21A36700D23E1F /* JelloBridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JelloBridgingHeader.h; sourceTree = "<group>"; };
 		BCEE1C6E2AFE2DE40012F619 /* GraphLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphLayout.swift; sourceTree = "<group>"; };
 		BCEE1C702AFE3F040012F619 /* PortViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortViews.swift; sourceTree = "<group>"; };
 		BCEE1C722AFE40180012F619 /* TypingUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingUtils.swift; sourceTree = "<group>"; };
@@ -144,6 +148,7 @@
 			files = (
 				BC9BBFE52AEFE93600FC068C /* Collections in Frameworks */,
 				BC9BBFE72AEFE93600FC068C /* DequeModule in Frameworks */,
+				BCEAFD1B2B20D8DA00D23E1F /* SPIRV-Cross in Frameworks */,
 				BC9BBFE92AEFE93600FC068C /* OrderedCollections in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -214,6 +219,7 @@
 		BC9BBFB42AEFDE3D00FC068C /* Jello */ = {
 			isa = PBXGroup;
 			children = (
+				BCEAFD182B20621E00D23E1F /* Compiler */,
 				BC7E22452AF4EE7900EC04E6 /* Support */,
 				BCE067592AF8B8F30066F8D4 /* Math */,
 				BC9BBFF22AF0073F00FC068C /* Physics */,
@@ -224,6 +230,7 @@
 				BC9BBFBD2AEFDE3E00FC068C /* Info.plist */,
 				BC9BBFBE2AEFDE3E00FC068C /* Jello.entitlements */,
 				BC9BBFBF2AEFDE3E00FC068C /* Preview Content */,
+				BCEAFD1C2B21A36700D23E1F /* JelloBridgingHeader.h */,
 			);
 			path = Jello;
 			sourceTree = "<group>";
@@ -322,6 +329,14 @@
 			path = Math;
 			sourceTree = "<group>";
 		};
+		BCEAFD182B20621E00D23E1F /* Compiler */ = {
+			isa = PBXGroup;
+			children = (
+				BCEAFD162B205E9100D23E1F /* JelloCompiler.swift */,
+			);
+			path = Compiler;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -342,6 +357,7 @@
 				BC9BBFE42AEFE93600FC068C /* Collections */,
 				BC9BBFE62AEFE93600FC068C /* DequeModule */,
 				BC9BBFE82AEFE93600FC068C /* OrderedCollections */,
+				BCEAFD1A2B20D8DA00D23E1F /* SPIRV-Cross */,
 			);
 			productName = Jello;
 			productReference = BC9BBFB22AEFDE3D00FC068C /* Jello.app */;
@@ -417,6 +433,7 @@
 			mainGroup = BC9BBFA92AEFDE3D00FC068C;
 			packageReferences = (
 				BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */,
+				BCEAFD192B20D8DA00D23E1F /* XCRemoteSwiftPackageReference "SPIRV-Cross" */,
 			);
 			productRefGroup = BC9BBFB32AEFDE3D00FC068C /* Products */;
 			projectDirPath = "";
@@ -469,6 +486,7 @@
 				BCCE16202B1724C4000370CB /* ModWheel.swift in Sources */,
 				BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */,
 				BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */,
+				BCEAFD172B205E9100D23E1F /* JelloCompiler.swift in Sources */,
 				BCCE161F2B1724C4000370CB /* ArcKnob.swift in Sources */,
 				BC31EB732B039291004401FC /* JelloTypes.swift in Sources */,
 				BCCE160C2B1723F3000370CB /* PlanarGeometry.swift in Sources */,
@@ -701,6 +719,7 @@
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = Jello/JelloBridgingHeader.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -748,6 +767,7 @@
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = Jello/JelloBridgingHeader.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -893,6 +913,14 @@
 				minimumVersion = 1.0.5;
 			};
 		};
+		BCEAFD192B20D8DA00D23E1F /* XCRemoteSwiftPackageReference "SPIRV-Cross" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/KhronosGroup/SPIRV-Cross.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -910,6 +938,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */;
 			productName = OrderedCollections;
+		};
+		BCEAFD1A2B20D8DA00D23E1F /* SPIRV-Cross */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BCEAFD192B20D8DA00D23E1F /* XCRemoteSwiftPackageReference "SPIRV-Cross" */;
+			productName = "SPIRV-Cross";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

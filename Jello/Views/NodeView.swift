@@ -129,7 +129,7 @@ struct NodeView: View {
 struct NodeControllerView : View {
     let node: JelloNode
     let controller: any JelloNodeController
-    
+    @Environment(JelloCompiler.self) private var compiler
     init(node: JelloNode) {
         self.node = node
         self.controller = JelloNodeControllerFactory.getController(node)
@@ -138,7 +138,7 @@ struct NodeControllerView : View {
     
     var body: some View {
         if !node.isDeleted {
-            NodeView(node: node, gradient: controller.category.getCategoryGradient(), innerBody: { path in controller.body(node: node, drawBounds: path) })
+            NodeView(node: node, gradient: controller.category.getCategoryGradient(), innerBody: { path in controller.body(compiler: compiler, node: node, drawBounds: path) })
         }
     }
 }

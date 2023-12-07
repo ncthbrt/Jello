@@ -10,6 +10,7 @@ import SwiftData
 import UniformTypeIdentifiers
 
 struct ContentView: View {
+    @State private var compiler = JelloCompiler()
     @Environment(ProjectNavigation.self) private var navigation
     @Environment(\.modelContext) var modelContext
     
@@ -20,15 +21,17 @@ struct ContentView: View {
         .navigationSplitViewStyle(.balanced)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear() {
+            compiler.initialize(modelContext: modelContext)
             guard let nodes = try? modelContext.fetch(FetchDescriptor<JelloNode>()) else {
                 return
             }
             
             for node in nodes {
                 let controller = JelloNodeControllerFactory.getController(node)
-                controller.migrate(node: node)
+                controller.migrate(compiler: compiler, node: node)
             }
         }
+        .environment(compiler)
     }
  
     

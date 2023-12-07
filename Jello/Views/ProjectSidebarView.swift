@@ -183,7 +183,8 @@ struct ProjectSidebarView: View {
     @Environment(ProjectNavigation.self) private var navigation: ProjectNavigation
     @State var isSearching: Bool = false
     @Environment(\.modelContext) private var modelContext
-
+    @Environment(JelloCompiler.self) private var compiler
+    
     var body: some View {
         ProjectSidebarViewResultsList(navigation: navigation, isSearching: isSearching)
             .navigationBarBackButtonHidden()
@@ -213,7 +214,7 @@ struct ProjectSidebarView: View {
     
     
     private func addMaterial() {
-        let material = JelloMaterial.newMaterial(modelContext: modelContext)
+        let material = JelloMaterial.newMaterial(compiler: compiler, modelContext: modelContext)
         navigation.selectedItem = .material(material.uuid)
     }
     

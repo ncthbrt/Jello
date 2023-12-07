@@ -83,3 +83,11 @@ enum JelloGraphDataType: Int, Codable, CaseIterable {
     case anyMaterial = 12
     case slabMaterial = 13
 }
+
+
+enum JelloGraphDomainType: Int, Codable, CaseIterable {
+    case constant = 0
+    case modelDependant = 1
+    case variable = 2
+    case timeVarying = 3
+}
