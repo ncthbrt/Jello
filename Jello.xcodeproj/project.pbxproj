@@ -28,7 +28,7 @@
 		BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB92AEFDE3D00FC068C /* JelloMaterial.swift */; };
 		BC9BBFBC2AEFDE3E00FC068C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC9BBFBB2AEFDE3E00FC068C /* Assets.xcassets */; };
 		BC9BBFC12AEFDE3E00FC068C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC9BBFC02AEFDE3E00FC068C /* Preview Assets.xcassets */; };
-		BC9BBFCB2AEFDE3E00FC068C /* JelloTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFCA2AEFDE3E00FC068C /* JelloTests.swift */; };
+		BC9BBFCB2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFCA2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift */; };
 		BC9BBFD52AEFDE3E00FC068C /* JelloUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFD42AEFDE3E00FC068C /* JelloUITests.swift */; };
 		BC9BBFD72AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFD62AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift */; };
 		BC9BBFE52AEFE93600FC068C /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = BC9BBFE42AEFE93600FC068C /* Collections */; };
@@ -134,7 +134,7 @@
 		BC9BBFBE2AEFDE3E00FC068C /* Jello.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Jello.entitlements; sourceTree = "<group>"; };
 		BC9BBFC02AEFDE3E00FC068C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		BC9BBFC62AEFDE3E00FC068C /* JelloTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JelloTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		BC9BBFCA2AEFDE3E00FC068C /* JelloTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloTests.swift; sourceTree = "<group>"; };
+		BC9BBFCA2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloGoodBadSpirvFileGeneratorTest.swift; sourceTree = "<group>"; };
 		BC9BBFD02AEFDE3E00FC068C /* JelloUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JelloUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC9BBFD42AEFDE3E00FC068C /* JelloUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloUITests.swift; sourceTree = "<group>"; };
 		BC9BBFD62AEFDE3E00FC068C /* JelloUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloUITestsLaunchTests.swift; sourceTree = "<group>"; };
@@ -293,7 +293,7 @@
 		BC9BBFC92AEFDE3E00FC068C /* JelloTests */ = {
 			isa = PBXGroup;
 			children = (
-				BC9BBFCA2AEFDE3E00FC068C /* JelloTests.swift */,
+				BC9BBFCA2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift */,
 			);
 			path = JelloTests;
 			sourceTree = "<group>";
@@ -642,7 +642,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BC9BBFCB2AEFDE3E00FC068C /* JelloTests.swift in Sources */,
+				BC9BBFCB2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

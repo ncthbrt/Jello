@@ -11,21 +11,14 @@ import simd
 
 
 
-func bridge<T : AnyObject>(obj : T) -> UnsafeRawPointer {
-    return UnsafeRawPointer(Unmanaged.passUnretained(obj).toOpaque())
+enum SpirvCompilationError: Error {
+    case compilationError(String)
 }
 
-func bridge<T : AnyObject>(ptr : UnsafeRawPointer) -> T {
-    return Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue()
+class SpirvCompilationErrorContext {
+    var errorValue: String? = nil
 }
 
-func bridgeRetained<T : AnyObject>(obj : T) -> UnsafeRawPointer {
-    return UnsafeRawPointer(Unmanaged.passRetained(obj).toOpaque())
-}
-
-func bridgeTransfer<T : AnyObject>(ptr : UnsafeRawPointer) -> T {
-    return Unmanaged<T>.fromOpaque(ptr).takeRetainedValue()
-}
 
 fileprivate let spirvMagicNumber: UInt32 = 0x07230203
 fileprivate let generatorMagicNumber: UInt32 = 0x0
@@ -116,40 +109,72 @@ public func buildOutput(instructions: [Instruction], bounds: UInt32) -> [UInt32]
 }
 
 
-public func compileMSLShader(spirv: [UInt32]) -> String {
+public func compileMSLShader(spirv: [UInt32]) throws -> String  {
     var context : spvc_context? = nil
     var ir: spvc_parsed_ir? = nil
     var compiler_msl : spvc_compiler? = nil
-    var resources: spvc_resources? = nil
-    var list: UnsafePointer<spvc_reflected_resource>? = nil
     var result: UnsafePointer<CChar>? = nil
-    var count = 0
     var options: spvc_compiler_options? = nil
     
     
     var spirvData = spirv
     spvc_context_create(&context)
-    spvc_context_set_error_callback(context, { a,b in print("\(String(cString: b!))") }, nil)
-    spvc_context_parse_spirv(context, &spirvData, spirvData.count, &ir)
-    spvc_context_create_compiler(context, SPVC_BACKEND_MSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_msl)
-    
-    spvc_compiler_create_shader_resources(compiler_msl, &resources)
-    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count)
-    
-    for i in 0..<count {
-        print("ID: \(list?[i].id), BaseTypeID: \(list?[i].base_type_id), TypeID: \(list?[i].type_id), Name: \(list?[i].name)");
-        print("Set: \(spvc_compiler_get_decoration(compiler_msl, list![i].id, SpvDecorationDescriptorSet)), Binding: \(spvc_compiler_get_decoration(compiler_msl, list![i].id, SpvDecorationBinding))")
+    defer {
+        // Frees all memory we allocated so far.
+        spvc_context_destroy(context);
     }
     
+    var errorContext: SpirvCompilationErrorContext = .init()
+    let errorContextPointer = Unmanaged.passRetained(errorContext).toOpaque()
+
+    spvc_context_set_error_callback(context, { errorContext, message in
+        if let errorContext = errorContext, let message = message {
+            let ctx = Unmanaged<SpirvCompilationErrorContext>.fromOpaque(errorContext).takeRetainedValue()
+            ctx.errorValue = String(cString: message)
+        }
+        }, errorContextPointer
+    )
+    
+    spvc_context_parse_spirv(context, &spirvData, spirvData.count, &ir)
+    if let errValue = errorContext.errorValue {
+        throw SpirvCompilationError.compilationError(errValue)
+    }
+    
+    spvc_context_create_compiler(context, SPVC_BACKEND_MSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_msl)
+    if let errValue = errorContext.errorValue {
+        throw SpirvCompilationError.compilationError(errValue)
+    }
+    //    var count = 0
+    //    var resources: spvc_resources? = nil
+    //    var list: UnsafePointer<spvc_reflected_resource>? = nil
+
+    //    spvc_compiler_create_shader_resources(compiler_msl, &resources)
+    //    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count)
+    
+    //    for i in 0..<count {
+    //        print("ID: \(list?[i].id), BaseTypeID: \(list?[i].base_type_id), TypeID: \(list?[i].type_id), Name: \(list?[i].name)");
+    //        print("Set: \(spvc_compiler_get_decoration(compiler_msl, list![i].id, SpvDecorationDescriptorSet)), Binding: \(spvc_compiler_get_decoration(compiler_msl, list![i].id, SpvDecorationBinding))")
+    //    }
+    
     // Modify options.
-    spvc_compiler_create_compiler_options(compiler_msl, &options);
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, 20000);
-    spvc_compiler_install_compiler_options(compiler_msl, options);
-    spvc_compiler_compile(compiler_msl, &result);
+    spvc_compiler_create_compiler_options(compiler_msl, &options)
+    if let errValue = errorContext.errorValue {
+        throw SpirvCompilationError.compilationError(errValue)
+    }
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, 20000)
+    if let errValue = errorContext.errorValue {
+        throw SpirvCompilationError.compilationError(errValue)
+    }
+    spvc_compiler_install_compiler_options(compiler_msl, options)
+    if let errValue = errorContext.errorValue {
+        throw SpirvCompilationError.compilationError(errValue)
+    }
+    spvc_compiler_compile(compiler_msl, &result)
+    if let errValue = errorContext.errorValue {
+        throw SpirvCompilationError.compilationError(errValue)
+    }
     let str = String(cString: result!)
     
-    // Frees all memory we allocated so far.
-    spvc_context_destroy(context);
     return str
 }
 
