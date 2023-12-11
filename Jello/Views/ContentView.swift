@@ -10,7 +10,7 @@ import SwiftData
 import UniformTypeIdentifiers
 
 struct ContentView: View {
-    @State private var compiler = JelloCompiler()
+    @State private var compiler = JelloCompilerService()
     @Environment(ProjectNavigation.self) private var navigation
     @Environment(\.modelContext) var modelContext
     

@@ -183,7 +183,7 @@ struct ProjectSidebarView: View {
     @Environment(ProjectNavigation.self) private var navigation: ProjectNavigation
     @State var isSearching: Bool = false
     @Environment(\.modelContext) private var modelContext
-    @Environment(JelloCompiler.self) private var compiler
+    @Environment(JelloCompilerService.self) private var compiler
     
     var body: some View {
         ProjectSidebarViewResultsList(navigation: navigation, isSearching: isSearching)

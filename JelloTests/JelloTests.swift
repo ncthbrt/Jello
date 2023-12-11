@@ -1,35 +1,56 @@
 //
-//  JelloTests.swift
-//  JelloTests
+//  JelloCompilerTests.swift
+//  JelloCompilerTests
 //
-//  Created by Natalie Cuthbert on 2023/10/30.
+//  Created by Natalie Cuthbert on 2023/12/08.
 //
 
 import XCTest
+import SPIRV_Cross
+import JelloCompiler
 
-final class JelloTests: XCTestCase {
 
+final class JelloSpirvGeneratorTest: XCTestCase {
+    private var spirvFile: [UInt32] = []
+    
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        var entryPoint = Instruction(opCode: SpvOpEntryPoint, operands: [SpvExecutionModelVertex.rawValue, 3])
+        entryPoint.appendOperand(string: "main")
+        
+        let instructions = [
+            Instruction(opCode: SpvOpCapability, operands: [SpvCapabilityShader.rawValue]),
+            Instruction(opCode: SpvOpMemoryModel, operands: [SpvAddressingModelLogical.rawValue, SpvMemoryModelGLSL450.rawValue]),
+            entryPoint,
+            Instruction(opCode: SpvOpTypeVoid, resultId: 1),
+            Instruction(opCode: SpvOpTypeFunction, resultId: 2, operands: [1]),
+            Instruction(opCode: SpvOpFunction, id: 1, resultId: 3, operands: [0, 2]),
+            Instruction(opCode: SpvOpLabel, resultId: 4),
+            Instruction(opCode: SpvOpReturn),
+            Instruction(opCode: SpvOpFunctionEnd),
+         ]
+        
+        spirvFile = buildOutput(instructions: instructions, bounds: 5)
     }
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
+    func testCompilingSpirvFileShouldProduceExpectedResult() throws {
+        let result = compileMSLShader(spirv: spirvFile)
+        let expectedResult = """
+#include <metal_stdlib>
+#include <simd/simd.h>
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        measure {
-            // Put the code you want to measure the time of here.
-        }
+using namespace metal;
+
+vertex void main0()
+{
+}
+
+
+"""
+        XCTAssertEqual(result, expectedResult)
     }
 
 }

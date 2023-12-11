@@ -3,10 +3,10 @@
     {
       "identity" : "spirv-cross",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/KhronosGroup/SPIRV-Cross.git",
+      "location" : "https://github.com/ncthbrt/Spirv-cross",
       "state" : {
         "branch" : "main",
-        "revision" : "9da5f7ce45f8642affec51168e3a4e61f7b13215"
+        "revision" : "d7bc8283ac01960f66f904613dd2de92f47b9f52"
       }
     },
     {

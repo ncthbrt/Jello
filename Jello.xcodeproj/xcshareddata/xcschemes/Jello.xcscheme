@@ -51,6 +51,17 @@
                ReferencedContainer = "container:Jello.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BCDA24462B233A8E002DCFCB"
+               BuildableName = "JelloCompilerTests.xctest"
+               BlueprintName = "JelloCompilerTests"
+               ReferencedContainer = "container:Jello.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

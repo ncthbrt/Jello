@@ -8,7 +8,5 @@
 #ifndef JelloSharedHeader_h
 #define JelloSharedHeader_h
 
-#include <spriv_msl.hpp>
-
 
 #endif /* JelloSharedHeader_h */

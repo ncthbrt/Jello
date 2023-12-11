@@ -36,7 +36,7 @@ final class JelloMaterial {
         self.init(uuid: UUID(), name: "Untitled Material", userDescription: "", graph: JelloGraph(), dependants: [])
     }
     
-    static func newMaterial(compiler: JelloCompiler, modelContext: ModelContext) -> JelloMaterial {
+    static func newMaterial(compiler: JelloCompilerService, modelContext: ModelContext) -> JelloMaterial {
         let material = JelloMaterial()
         try! modelContext.transaction {
             modelContext.insert(material)

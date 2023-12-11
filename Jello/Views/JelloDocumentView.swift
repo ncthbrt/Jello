@@ -15,7 +15,7 @@ fileprivate struct JelloFunctionView: View {
     @Query var functions: [JelloFunction]
     @State var newEdge: JelloEdge?
     @Environment(\.modelContext) var modelContext
-    @State var viewBounds: CGRect = CGRect()
+    @State var viewBounds: CGRect = CGRect(origin: .zero, size: .zero)
     
     init(uuid: UUID) {
         self.uuid = uuid
@@ -40,7 +40,7 @@ fileprivate struct JelloMaterialView: View {
     let uuid : UUID
     
     @Query var materials: [JelloMaterial]
-    @State var viewBounds: CGRect = CGRect()
+    @State var viewBounds: CGRect = CGRect(origin: .zero, size: .zero)
     @Environment(\.modelContext) var modelContext
 
     init(uuid: UUID) {

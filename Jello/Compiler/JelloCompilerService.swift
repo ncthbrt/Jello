@@ -10,7 +10,7 @@ import SwiftUI
 import SwiftData
 import SPIRV_Cross
 
-@Observable class JelloCompiler {
+@Observable class JelloCompilerService {
     @ObservationIgnored private var modelContext: ModelContext?
     
     func initialize(modelContext: ModelContext){
@@ -40,7 +40,9 @@ import SPIRV_Cross
             guard let edges = try? someModelContext.fetch(FetchDescriptor<JelloEdge>(predicate: #Predicate{ $0.graph?.uuid == graphId })) else {
                 return
             }
-            
+
+
+
         }
     }
     
