@@ -6,29 +6,28 @@
 //
 
 import XCTest
-import SPIRV_Cross
 import JelloCompiler
+import SpirvMacros
+import SpirvMacrosShared
+import SPIRV_Headers_Swift
 
 final class JelloGoodSpirvFileGeneratorTest: XCTestCase {
     private var spirvFile: [UInt32] = []
     
     override func setUpWithError() throws {
-        var entryPoint = Instruction(opCode: SpvOpEntryPoint, operands: [SpvExecutionModelVertex.rawValue, 3])
-        entryPoint.appendOperand(string: "main")
-        
-        let instructions = [
-            Instruction(opCode: SpvOpCapability, operands: [SpvCapabilityShader.rawValue]),
-            Instruction(opCode: SpvOpMemoryModel, operands: [SpvAddressingModelLogical.rawValue, SpvMemoryModelGLSL450.rawValue]),
-            entryPoint,
-            Instruction(opCode: SpvOpTypeVoid, resultId: 1),
-            Instruction(opCode: SpvOpTypeFunction, resultId: 2, operands: [1]),
-            Instruction(opCode: SpvOpFunction, id: 1, resultId: 3, operands: [0, 2]),
-            Instruction(opCode: SpvOpLabel, resultId: 4),
-            Instruction(opCode: SpvOpReturn),
-            Instruction(opCode: SpvOpFunctionEnd),
-         ]
-        
-        spirvFile = buildOutput(instructions: instructions, bounds: 5)
+        spirvFile = #document ({
+            #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
+            #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
+            let entryPoint = #id
+            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue, entryPoint],  #stringLiteral("main"))
+            let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
+            let entryPointFuncType = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
+            #functionHead(opCode: SpirvOpFunction, [typeVoid, entryPoint, 0, entryPointFuncType])
+            #functionHead(opCode: SpirvOpLabel, [#id])
+            #functionBody(opCode: SpirvOpReturn)
+            #functionBody(opCode: SpirvOpFunctionEnd)
+            SpirvFunction.instance.writeFunction()
+        })
     }
 
     override func tearDownWithError() throws {
@@ -59,29 +58,25 @@ final class JelloBadSpirvFileGeneratorTest: XCTestCase {
     private var spirvFile: [UInt32] = []
     
     override func setUpWithError() throws {
-        var entryPoint = Instruction(opCode: SpvOpEntryPoint, operands: [SpvExecutionModelVertex.rawValue, 3])
-        entryPoint.appendOperand(string: "main")
-        
-        let instructions = [
-            Instruction(opCode: SpvOpCapability, operands: [SpvCapabilityShader.rawValue]),
-            Instruction(opCode: SpvOpMemoryModel, operands: [SpvAddressingModelLogical.rawValue, SpvMemoryModelGLSL450.rawValue]),
-            entryPoint,
-            Instruction(opCode: SpvOpTypeVoid, resultId: 1),
-            Instruction(opCode: SpvOpTypeFunction, resultId: 1, operands: [1]),
-            Instruction(opCode: SpvOpFunction, id: 1, resultId: 3, operands: [0, 2]),
-            Instruction(opCode: SpvOpLabel, resultId: 4),
-            Instruction(opCode: SpvOpReturn),
-            Instruction(opCode: SpvOpFunctionEnd),
-         ]
-        
-        spirvFile = buildOutput(instructions: instructions, bounds: 5)
+        spirvFile = #document ({
+            #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
+            #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
+            let entryPoint = #id
+            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue, entryPoint],  #stringLiteral("main"))
+            let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
+            let entryPointFuncType = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
+            #functionHead(opCode: SpirvOpFunction, [typeVoid, entryPoint, 0, entryPointFuncType])
+            #functionHead(opCode: SpirvOpLabel, [#id])
+            #functionBody(opCode: SpirvOpReturn)
+            SpirvFunction.instance.writeFunction()
+        })
     }
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testCompilingSpirvFileToMSLShouldThrow() throws {
+    func testCompilingSpirvFileToMSLShouldProduceExpectedResult() throws {
         XCTAssertThrowsError(try compileMSLShader(spirv: self.spirvFile))
     }
 

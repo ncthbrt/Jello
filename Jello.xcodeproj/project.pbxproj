@@ -38,6 +38,7 @@
 		BC9BBFEE2AEFF02100FC068C /* JelloGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFED2AEFF02100FC068C /* JelloGraph.swift */; };
 		BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFF32AF00C2400FC068C /* ProjectSidebarView.swift */; };
 		BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */; };
+		BCC73FE42B31B54C00955212 /* SpirvMacros in Frameworks */ = {isa = PBXBuildFile; productRef = BCC73FE32B31B54C00955212 /* SpirvMacros */; };
 		BCCE16062B172394000370CB /* Control.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16052B172394000370CB /* Control.swift */; };
 		BCCE16082B1723A8000370CB /* ControlGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16072B1723A8000370CB /* ControlGeometry.swift */; };
 		BCCE160A2B1723D5000370CB /* ControlHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16092B1723D5000370CB /* ControlHelpers.swift */; };
@@ -205,6 +206,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BCDA243E2B2219F0002DCFCB /* Collections in Frameworks */,
+				BCC73FE42B31B54C00955212 /* SpirvMacros in Frameworks */,
 				BCDA24422B2219F0002DCFCB /* OrderedCollections in Frameworks */,
 				BC4861BD2B25BF5E005B3766 /* SPIRV-Cross in Frameworks */,
 				BCDA24402B2219F0002DCFCB /* DequeModule in Frameworks */,
@@ -494,6 +496,7 @@
 				BCDA243F2B2219F0002DCFCB /* DequeModule */,
 				BCDA24412B2219F0002DCFCB /* OrderedCollections */,
 				BC4861BC2B25BF5E005B3766 /* SPIRV-Cross */,
+				BCC73FE32B31B54C00955212 /* SpirvMacros */,
 			);
 			productName = JelloCompiler;
 			productReference = BCDA242B2B2207BF002DCFCB /* JelloCompiler.framework */;
@@ -507,7 +510,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1510;
 				TargetAttributes = {
 					BC9BBFB12AEFDE3D00FC068C = {
 						CreatedOnToolsVersion = 15.0.1;
@@ -538,6 +541,7 @@
 			packageReferences = (
 				BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */,
 				BC491CD02B25BE5300F6BE28 /* XCRemoteSwiftPackageReference "Spirv-cross" */,
+				BCC73FE22B31B54C00955212 /* XCRemoteSwiftPackageReference "SwiftSpirvMacros" */,
 			);
 			productRefGroup = BC9BBFB32AEFDE3D00FC068C /* Products */;
 			projectDirPath = "";
@@ -719,6 +723,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -783,6 +788,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -850,6 +856,7 @@
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = Jello/JelloBridgingHeader.h;
 				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
@@ -902,6 +909,7 @@
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = Jello/JelloBridgingHeader.h;
 				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
@@ -916,6 +924,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = DPXLR65392;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -926,6 +935,8 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jello.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Jello";
@@ -939,6 +950,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = DPXLR65392;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -949,6 +961,8 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jello.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Jello";
@@ -961,6 +975,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = DPXLR65392;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -983,6 +998,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = DPXLR65392;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1003,6 +1019,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1027,6 +1044,7 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1039,6 +1057,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1063,6 +1082,7 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -1138,6 +1158,14 @@
 				minimumVersion = 1.0.5;
 			};
 		};
+		BCC73FE22B31B54C00955212 /* XCRemoteSwiftPackageReference "SwiftSpirvMacros" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ncthbrt/SwiftSpirvMacros.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1160,6 +1188,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */;
 			productName = OrderedCollections;
+		};
+		BCC73FE32B31B54C00955212 /* SpirvMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BCC73FE22B31B54C00955212 /* XCRemoteSwiftPackageReference "SwiftSpirvMacros" */;
+			productName = SpirvMacros;
 		};
 		BCDA243D2B2219F0002DCFCB /* Collections */ = {
 			isa = XCSwiftPackageProductDependency;
