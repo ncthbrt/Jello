@@ -40,10 +40,9 @@ class JelloCompilerInput {
 class VertexOutput: Node {
     var id: UUID
     var inputPorts: [InputPort]
-    var outputPorts: [InputPort] = []
+    var outputPorts: [OutputPort] = []
     static func install() {}
     var branchTags: Set<UUID>
-
     init(id: UUID, inputPorts: [InputPort]) {
         self.id = id
         self.inputPorts = inputPorts
@@ -57,10 +56,9 @@ class VertexOutput: Node {
 class MaterialOutput: Node {
     var id: UUID
     var inputPorts: [InputPort]
-    var outputPorts: [InputPort] = []
+    var outputPorts: [OutputPort] = []
     static func install() {}
     var branchTags: Set<UUID>
-    
     init(id: UUID, inputPorts: [InputPort]) {
         self.id = id
         self.inputPorts = inputPorts
@@ -74,10 +72,9 @@ class MaterialOutput: Node {
 class PreviewOutput: Node {
     var id: UUID
     var inputPorts: [InputPort]
-    var outputPorts: [InputPort] = []
+    var outputPorts: [OutputPort] = []
     static func install() {}
     var branchTags: Set<UUID>
-    
     init(id: UUID, inputPorts: [InputPort]) {
         self.id = id
         self.inputPorts = inputPorts
@@ -92,9 +89,14 @@ protocol Node {
     var id: UUID { get }
     static func install()
     var inputPorts: [InputPort] { get }
-    var outputPorts: [InputPort] { get }
-    
+    var outputPorts: [OutputPort] { get }
     var branchTags: Set<UUID> { get set }
+}
+
+
+protocol BranchNode {
+    var subNodes: [UUID: [Node]] {get set}
+    var branches: [UUID] {get}
 }
 
 
@@ -152,14 +154,12 @@ class Edge {
 
 class Graph {
     var nodes: [Node]
-    var edges: [Edge]
     
-    init(nodes: [Node], edges: [Edge]) {
+    init(nodes: [Node]) {
         self.nodes = nodes
-        self.edges = edges
     }
     
     convenience init() {
-        self.init(nodes: [], edges: [])
+        self.init(nodes: [])
     }
 }

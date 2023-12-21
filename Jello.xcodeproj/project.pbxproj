@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BC0403792B348F460036057D /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = BC0403782B348F460036057D /* Algorithms */; };
 		BC07D1092AFF674E00EFA199 /* AddNewNodeMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */; };
 		BC07D10A2AFFCB7500EFA199 /* GraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C742AFE43D90012F619 /* GraphView.swift */; };
 		BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5712B0763ED008F75C2 /* Rope.swift */; };
@@ -207,6 +208,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC0403792B348F460036057D /* Algorithms in Frameworks */,
 				BCDA243E2B2219F0002DCFCB /* Collections in Frameworks */,
 				BCC73FE42B31B54C00955212 /* SpirvMacros in Frameworks */,
 				BCDA24422B2219F0002DCFCB /* OrderedCollections in Frameworks */,
@@ -500,6 +502,7 @@
 				BCDA24412B2219F0002DCFCB /* OrderedCollections */,
 				BC4861BC2B25BF5E005B3766 /* SPIRV-Cross */,
 				BCC73FE32B31B54C00955212 /* SpirvMacros */,
+				BC0403782B348F460036057D /* Algorithms */,
 			);
 			productName = JelloCompiler;
 			productReference = BCDA242B2B2207BF002DCFCB /* JelloCompiler.framework */;
@@ -545,6 +548,7 @@
 				BC9BBFE32AEFE93600FC068C /* XCRemoteSwiftPackageReference "swift-collections" */,
 				BC491CD02B25BE5300F6BE28 /* XCRemoteSwiftPackageReference "Spirv-cross" */,
 				BCC73FE22B31B54C00955212 /* XCRemoteSwiftPackageReference "SwiftSpirvMacros" */,
+				BC0403772B348F460036057D /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 			);
 			productRefGroup = BC9BBFB32AEFDE3D00FC068C /* Products */;
 			projectDirPath = "";
@@ -1146,6 +1150,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		BC0403772B348F460036057D /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
 		BC491CD02B25BE5300F6BE28 /* XCRemoteSwiftPackageReference "Spirv-cross" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ncthbrt/Spirv-cross";
@@ -1173,6 +1185,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		BC0403782B348F460036057D /* Algorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BC0403772B348F460036057D /* XCRemoteSwiftPackageReference "swift-algorithms" */;
+			productName = Algorithms;
+		};
 		BC4861BC2B25BF5E005B3766 /* SPIRV-Cross */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = BC491CD02B25BE5300F6BE28 /* XCRemoteSwiftPackageReference "Spirv-cross" */;
