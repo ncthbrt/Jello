@@ -1,5 +1,5 @@
 import SwiftUI
-
+import JelloCompilerStatic
 
 extension JelloNodeCategory {
     func getCategoryGradient() -> Gradient {

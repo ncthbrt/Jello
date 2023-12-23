@@ -10,14 +10,14 @@ import XCTest
 @testable import JelloCompilerStatic
 
 
-class GenericTestNode : Node {
+class GenericTestNode : CompilerNode {
     public var id: UUID
-    public var inputPorts: [InputPort]
-    public var outputPorts: [OutputPort]
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
     public static func install() {}
     public var branchTags: Set<UUID>
     
-    public init(id: UUID, inputPorts: [InputPort], outputPorts: [OutputPort]) {
+    public init(id: UUID, inputPorts: [InputCompilerPort], outputPorts: [OutputCompilerPort]) {
         self.id = id
         self.inputPorts = inputPorts
         self.outputPorts = outputPorts
@@ -39,15 +39,15 @@ final class JelloLabelBranchesTest: XCTestCase {
     var e: GenericTestNode? = nil
     var f: GenericTestNode? = nil
     var g: GenericTestNode? = nil
-    var outputNode: PreviewOutput? = nil
-    var ifElseNode: IfElseNode? = nil
+    var outputNode: PreviewOutputCompilerNode? = nil
+    var ifElseNode: IfElseCompilerNode? = nil
     var lonely1: GenericTestNode? = nil
     var lonely2: GenericTestNode? = nil
     
     override func setUpWithError() throws {
-        var graph = Graph()
-        var outputInPort = InputPort()
-        outputNode = PreviewOutput(id: UUID(), inputPort: outputInPort)
+        var graph = CompilerGraph()
+        var outputInPort = InputCompilerPort()
+        outputNode = PreviewOutputCompilerNode(id: UUID(), inputPort: outputInPort)
         var output = JelloCompilerInput.Output.previewOutput(outputNode!)
 
         
@@ -65,106 +65,106 @@ final class JelloLabelBranchesTest: XCTestCase {
         lonely1 = GenericTestNode()
         lonely2 = GenericTestNode()
         
-        var condInputPort = InputPort()
-        var ifTrueInputPort = InputPort()
-        var ifFalseInputPort = InputPort()
-        var ifElseOutputPort = OutputPort()
-        ifElseNode = IfElseNode(id: UUID(), condition: condInputPort, ifTrue: ifTrueInputPort, ifFalse: ifFalseInputPort, outputPort: ifElseOutputPort)
+        var condInputPort = InputCompilerPort()
+        var ifTrueInputPort = InputCompilerPort()
+        var ifFalseInputPort = InputCompilerPort()
+        var ifElseOutputPort = OutputCompilerPort()
+        ifElseNode = IfElseCompilerNode(id: UUID(), condition: condInputPort, ifTrue: ifTrueInputPort, ifFalse: ifFalseInputPort, outputPort: ifElseOutputPort)
         condInputPort.node = ifElseNode
         ifTrueInputPort.node = ifElseNode
         ifFalseInputPort.node = ifElseNode
         ifElseOutputPort.node = ifElseNode
        
         
-        var commonInPort1 = InputPort()
-        var commonInPort2 = InputPort()
+        var commonInPort1 = InputCompilerPort()
+        var commonInPort2 = InputCompilerPort()
         commonInPort1.node = common
         commonInPort2.node = common
-        var commonOutPort = OutputPort()
+        var commonOutPort = OutputCompilerPort()
         commonOutPort.node = common
         common!.inputPorts = [commonInPort1, commonInPort2]
         common!.outputPorts = [commonOutPort]
         
-        var aInPort = InputPort()
+        var aInPort = InputCompilerPort()
         aInPort.node = a
-        var aOutPort = OutputPort()
+        var aOutPort = OutputCompilerPort()
         aOutPort.node = a
         a!.inputPorts = [aInPort]
         a!.outputPorts = [aOutPort]
         
-        var bInPort = InputPort()
+        var bInPort = InputCompilerPort()
         bInPort.node = b
-        var bOutPort = OutputPort()
+        var bOutPort = OutputCompilerPort()
         bOutPort.node = b
         b!.inputPorts = [bInPort]
         b!.outputPorts = [bOutPort]
         
-        var cInPort = InputPort()
+        var cInPort = InputCompilerPort()
         cInPort.node = c
-        var cOutPort = OutputPort()
+        var cOutPort = OutputCompilerPort()
         cOutPort.node = c
         c!.inputPorts = [cInPort]
         c!.outputPorts = [cOutPort]
         
-        var dInPort = InputPort()
+        var dInPort = InputCompilerPort()
         dInPort.node = d
-        var dOutPort = OutputPort()
+        var dOutPort = OutputCompilerPort()
         dOutPort.node = d
         d!.inputPorts = [dInPort]
         d!.outputPorts = [dOutPort]
         
-        var eInPort = InputPort()
+        var eInPort = InputCompilerPort()
         eInPort.node = e
-        var eOutPort = OutputPort()
+        var eOutPort = OutputCompilerPort()
         eOutPort.node = e
         e!.inputPorts = [eInPort]
         e!.outputPorts = [eOutPort]
         
-        var fInPort = InputPort()
+        var fInPort = InputCompilerPort()
         fInPort.node = f
-        var fOutPort = OutputPort()
+        var fOutPort = OutputCompilerPort()
         fOutPort.node = f
         f!.inputPorts = [fInPort]
         f!.outputPorts = [fOutPort]
         
-        var gInPort = InputPort()
+        var gInPort = InputCompilerPort()
         gInPort.node = g
-        var gOutPort = OutputPort()
+        var gOutPort = OutputCompilerPort()
         gOutPort.node = g
         g!.inputPorts = [gInPort]
         g!.outputPorts = [gOutPort]
         
-        var lonely1InPort = InputPort()
+        var lonely1InPort = InputCompilerPort()
         lonely1InPort.node = lonely1
-        var lonely1OutPort = OutputPort()
+        var lonely1OutPort = OutputCompilerPort()
         lonely1OutPort.node = lonely1
         lonely1!.inputPorts = [lonely1InPort]
         lonely1!.outputPorts = [lonely1OutPort]
         
-        var lonely2InPort = InputPort()
+        var lonely2InPort = InputCompilerPort()
         lonely2InPort.node = lonely2
-        var lonely2OutPort = OutputPort()
+        var lonely2OutPort = OutputCompilerPort()
         lonely2OutPort.node = lonely2
         lonely2!.inputPorts = [lonely2InPort]
         lonely2!.outputPorts = [lonely2OutPort]
         
-        var nodes: [Node] = [a!, b!, c!, d!, e!, f!, g!, outputNode!, ifElseNode!, common!, lonely1!, lonely2!]
+        var nodes: [CompilerNode] = [a!, b!, c!, d!, e!, f!, g!, outputNode!, ifElseNode!, common!, lonely1!, lonely2!]
         graph.nodes = nodes
         
         
         // Finally connect up the graph
-        let aCommonEdge = Edge(inputPort: commonInPort1, outputPort: aOutPort)
-        let faEdge = Edge(inputPort: aInPort, outputPort: fOutPort)
-        let feEdge = Edge(inputPort: fInPort, outputPort: eOutPort)
-        let geEdge = Edge(inputPort: eInPort, outputPort: gOutPort)
-        let ebEdge = Edge(inputPort: bInPort, outputPort: eOutPort)
-        let bTrueEdge = Edge(inputPort: ifTrueInputPort, outputPort: bOutPort)
-        let cFalseEdge = Edge(inputPort: ifFalseInputPort, outputPort: cOutPort)
-        let dcEdge = Edge(inputPort: cInPort, outputPort: dOutPort)
-        let ifCommonEdge = Edge(inputPort: commonInPort2, outputPort: ifElseOutputPort)
-        let commonOutEdge = Edge(inputPort: outputInPort, outputPort: commonOutPort)
-        let lonely1lonely2Edge = Edge(inputPort: lonely2InPort, outputPort: lonely1OutPort)
-        let eLonely1Edge = Edge(inputPort: lonely1InPort, outputPort: eOutPort)
+        let aCommonEdge = CompilerEdge(inputPort: commonInPort1, outputPort: aOutPort)
+        let faEdge = CompilerEdge(inputPort: aInPort, outputPort: fOutPort)
+        let feEdge = CompilerEdge(inputPort: fInPort, outputPort: eOutPort)
+        let geEdge = CompilerEdge(inputPort: eInPort, outputPort: gOutPort)
+        let ebEdge = CompilerEdge(inputPort: bInPort, outputPort: eOutPort)
+        let bTrueEdge = CompilerEdge(inputPort: ifTrueInputPort, outputPort: bOutPort)
+        let cFalseEdge = CompilerEdge(inputPort: ifFalseInputPort, outputPort: cOutPort)
+        let dcEdge = CompilerEdge(inputPort: cInPort, outputPort: dOutPort)
+        let ifCommonEdge = CompilerEdge(inputPort: commonInPort2, outputPort: ifElseOutputPort)
+        let commonOutEdge = CompilerEdge(inputPort: outputInPort, outputPort: commonOutPort)
+        let lonely1lonely2Edge = CompilerEdge(inputPort: lonely2InPort, outputPort: lonely1OutPort)
+        let eLonely1Edge = CompilerEdge(inputPort: lonely1InPort, outputPort: eOutPort)
         
         input = JelloCompilerInput(output: output, graph: graph)
     }
@@ -201,15 +201,15 @@ final class JelloPruneGraphTest: XCTestCase {
     var e: GenericTestNode? = nil
     var f: GenericTestNode? = nil
     var g: GenericTestNode? = nil
-    var outputNode: PreviewOutput? = nil
-    var ifElseNode: IfElseNode? = nil
+    var outputNode: PreviewOutputCompilerNode? = nil
+    var ifElseNode: IfElseCompilerNode? = nil
     var lonely1: GenericTestNode? = nil
     var lonely2: GenericTestNode? = nil
     
     override func setUpWithError() throws {
-        var graph = Graph()
-        var outputInPort = InputPort()
-        outputNode = PreviewOutput(id: UUID(), inputPort: outputInPort)
+        var graph = CompilerGraph()
+        var outputInPort = InputCompilerPort()
+        outputNode = PreviewOutputCompilerNode(id: UUID(), inputPort: outputInPort)
         var output = JelloCompilerInput.Output.previewOutput(outputNode!)
 
         
@@ -227,106 +227,106 @@ final class JelloPruneGraphTest: XCTestCase {
         lonely1 = GenericTestNode()
         lonely2 = GenericTestNode()
         
-        var condInputPort = InputPort()
-        var ifTrueInputPort = InputPort()
-        var ifFalseInputPort = InputPort()
-        var ifElseOutputPort = OutputPort()
-        ifElseNode = IfElseNode(id: UUID(), condition: condInputPort, ifTrue: ifTrueInputPort, ifFalse: ifFalseInputPort, outputPort: ifElseOutputPort)
+        var condInputPort = InputCompilerPort()
+        var ifTrueInputPort = InputCompilerPort()
+        var ifFalseInputPort = InputCompilerPort()
+        var ifElseOutputPort = OutputCompilerPort()
+        ifElseNode = IfElseCompilerNode(id: UUID(), condition: condInputPort, ifTrue: ifTrueInputPort, ifFalse: ifFalseInputPort, outputPort: ifElseOutputPort)
         condInputPort.node = ifElseNode
         ifTrueInputPort.node = ifElseNode
         ifFalseInputPort.node = ifElseNode
         ifElseOutputPort.node = ifElseNode
        
         
-        var commonInPort1 = InputPort()
-        var commonInPort2 = InputPort()
+        var commonInPort1 = InputCompilerPort()
+        var commonInPort2 = InputCompilerPort()
         commonInPort1.node = common
         commonInPort2.node = common
-        var commonOutPort = OutputPort()
+        var commonOutPort = OutputCompilerPort()
         commonOutPort.node = common
         common!.inputPorts = [commonInPort1, commonInPort2]
         common!.outputPorts = [commonOutPort]
         
-        var aInPort = InputPort()
+        var aInPort = InputCompilerPort()
         aInPort.node = a
-        var aOutPort = OutputPort()
+        var aOutPort = OutputCompilerPort()
         aOutPort.node = a
         a!.inputPorts = [aInPort]
         a!.outputPorts = [aOutPort]
         
-        var bInPort = InputPort()
+        var bInPort = InputCompilerPort()
         bInPort.node = b
-        var bOutPort = OutputPort()
+        var bOutPort = OutputCompilerPort()
         bOutPort.node = b
         b!.inputPorts = [bInPort]
         b!.outputPorts = [bOutPort]
         
-        var cInPort = InputPort()
+        var cInPort = InputCompilerPort()
         cInPort.node = c
-        var cOutPort = OutputPort()
+        var cOutPort = OutputCompilerPort()
         cOutPort.node = c
         c!.inputPorts = [cInPort]
         c!.outputPorts = [cOutPort]
         
-        var dInPort = InputPort()
+        var dInPort = InputCompilerPort()
         dInPort.node = d
-        var dOutPort = OutputPort()
+        var dOutPort = OutputCompilerPort()
         dOutPort.node = d
         d!.inputPorts = [dInPort]
         d!.outputPorts = [dOutPort]
         
-        var eInPort = InputPort()
+        var eInPort = InputCompilerPort()
         eInPort.node = e
-        var eOutPort = OutputPort()
+        var eOutPort = OutputCompilerPort()
         eOutPort.node = e
         e!.inputPorts = [eInPort]
         e!.outputPorts = [eOutPort]
         
-        var fInPort = InputPort()
+        var fInPort = InputCompilerPort()
         fInPort.node = f
-        var fOutPort = OutputPort()
+        var fOutPort = OutputCompilerPort()
         fOutPort.node = f
         f!.inputPorts = [fInPort]
         f!.outputPorts = [fOutPort]
         
-        var gInPort = InputPort()
+        var gInPort = InputCompilerPort()
         gInPort.node = g
-        var gOutPort = OutputPort()
+        var gOutPort = OutputCompilerPort()
         gOutPort.node = g
         g!.inputPorts = [gInPort]
         g!.outputPorts = [gOutPort]
         
-        var lonely1InPort = InputPort()
+        var lonely1InPort = InputCompilerPort()
         lonely1InPort.node = lonely1
-        var lonely1OutPort = OutputPort()
+        var lonely1OutPort = OutputCompilerPort()
         lonely1OutPort.node = lonely1
         lonely1!.inputPorts = [lonely1InPort]
         lonely1!.outputPorts = [lonely1OutPort]
         
-        var lonely2InPort = InputPort()
+        var lonely2InPort = InputCompilerPort()
         lonely2InPort.node = lonely2
-        var lonely2OutPort = OutputPort()
+        var lonely2OutPort = OutputCompilerPort()
         lonely2OutPort.node = lonely2
         lonely2!.inputPorts = [lonely2InPort]
         lonely2!.outputPorts = [lonely2OutPort]
         
-        var nodes: [Node] = [a!, b!, c!, d!, e!, f!, g!, outputNode!, ifElseNode!, common!, lonely1!, lonely2!]
+        var nodes: [CompilerNode] = [a!, b!, c!, d!, e!, f!, g!, outputNode!, ifElseNode!, common!, lonely1!, lonely2!]
         graph.nodes = nodes
         
         
         // Finally connect up the graph
-        let aCommonEdge = Edge(inputPort: commonInPort1, outputPort: aOutPort)
-        let faEdge = Edge(inputPort: aInPort, outputPort: fOutPort)
-        let feEdge = Edge(inputPort: fInPort, outputPort: eOutPort)
-        let geEdge = Edge(inputPort: eInPort, outputPort: gOutPort)
-        let ebEdge = Edge(inputPort: bInPort, outputPort: eOutPort)
-        let bTrueEdge = Edge(inputPort: ifTrueInputPort, outputPort: bOutPort)
-        let cFalseEdge = Edge(inputPort: ifFalseInputPort, outputPort: cOutPort)
-        let dcEdge = Edge(inputPort: cInPort, outputPort: dOutPort)
-        let ifCommonEdge = Edge(inputPort: commonInPort2, outputPort: ifElseOutputPort)
-        let commonOutEdge = Edge(inputPort: outputInPort, outputPort: commonOutPort)
-        let lonely1lonely2Edge = Edge(inputPort: lonely2InPort, outputPort: lonely1OutPort)
-        let eLonely1Edge = Edge(inputPort: lonely1InPort, outputPort: eOutPort)
+        let aCommonEdge = CompilerEdge(inputPort: commonInPort1, outputPort: aOutPort)
+        let faEdge = CompilerEdge(inputPort: aInPort, outputPort: fOutPort)
+        let feEdge = CompilerEdge(inputPort: fInPort, outputPort: eOutPort)
+        let geEdge = CompilerEdge(inputPort: eInPort, outputPort: gOutPort)
+        let ebEdge = CompilerEdge(inputPort: bInPort, outputPort: eOutPort)
+        let bTrueEdge = CompilerEdge(inputPort: ifTrueInputPort, outputPort: bOutPort)
+        let cFalseEdge = CompilerEdge(inputPort: ifFalseInputPort, outputPort: cOutPort)
+        let dcEdge = CompilerEdge(inputPort: cInPort, outputPort: dOutPort)
+        let ifCommonEdge = CompilerEdge(inputPort: commonInPort2, outputPort: ifElseOutputPort)
+        let commonOutEdge = CompilerEdge(inputPort: outputInPort, outputPort: commonOutPort)
+        let lonely1lonely2Edge = CompilerEdge(inputPort: lonely2InPort, outputPort: lonely1OutPort)
+        let eLonely1Edge = CompilerEdge(inputPort: lonely1InPort, outputPort: eOutPort)
         
         input = JelloCompilerInput(output: output, graph: graph)
     }
@@ -364,15 +364,15 @@ final class JelloTopologicallyOrderGraphTest: XCTestCase {
     var e: GenericTestNode? = nil
     var f: GenericTestNode? = nil
     var g: GenericTestNode? = nil
-    var outputNode: PreviewOutput? = nil
-    var ifElseNode: IfElseNode? = nil
+    var outputNode: PreviewOutputCompilerNode? = nil
+    var ifElseNode: IfElseCompilerNode? = nil
     var lonely1: GenericTestNode? = nil
     var lonely2: GenericTestNode? = nil
     
     override func setUpWithError() throws {
-        var graph = Graph()
-        var outputInPort = InputPort()
-        outputNode = PreviewOutput(id: UUID(), inputPort: outputInPort)
+        var graph = CompilerGraph()
+        var outputInPort = InputCompilerPort()
+        outputNode = PreviewOutputCompilerNode(id: UUID(), inputPort: outputInPort)
         var output = JelloCompilerInput.Output.previewOutput(outputNode!)
 
         
@@ -390,106 +390,106 @@ final class JelloTopologicallyOrderGraphTest: XCTestCase {
         lonely1 = GenericTestNode()
         lonely2 = GenericTestNode()
         
-        var condInputPort = InputPort()
-        var ifTrueInputPort = InputPort()
-        var ifFalseInputPort = InputPort()
-        var ifElseOutputPort = OutputPort()
-        ifElseNode = IfElseNode(id: UUID(), condition: condInputPort, ifTrue: ifTrueInputPort, ifFalse: ifFalseInputPort, outputPort: ifElseOutputPort)
+        var condInputPort = InputCompilerPort()
+        var ifTrueInputPort = InputCompilerPort()
+        var ifFalseInputPort = InputCompilerPort()
+        var ifElseOutputPort = OutputCompilerPort()
+        ifElseNode = IfElseCompilerNode(id: UUID(), condition: condInputPort, ifTrue: ifTrueInputPort, ifFalse: ifFalseInputPort, outputPort: ifElseOutputPort)
         condInputPort.node = ifElseNode
         ifTrueInputPort.node = ifElseNode
         ifFalseInputPort.node = ifElseNode
         ifElseOutputPort.node = ifElseNode
        
         
-        var commonInPort1 = InputPort()
-        var commonInPort2 = InputPort()
+        var commonInPort1 = InputCompilerPort()
+        var commonInPort2 = InputCompilerPort()
         commonInPort1.node = common
         commonInPort2.node = common
-        var commonOutPort = OutputPort()
+        var commonOutPort = OutputCompilerPort()
         commonOutPort.node = common
         common!.inputPorts = [commonInPort1, commonInPort2]
         common!.outputPorts = [commonOutPort]
         
-        var aInPort = InputPort()
+        var aInPort = InputCompilerPort()
         aInPort.node = a
-        var aOutPort = OutputPort()
+        var aOutPort = OutputCompilerPort()
         aOutPort.node = a
         a!.inputPorts = [aInPort]
         a!.outputPorts = [aOutPort]
         
-        var bInPort = InputPort()
+        var bInPort = InputCompilerPort()
         bInPort.node = b
-        var bOutPort = OutputPort()
+        var bOutPort = OutputCompilerPort()
         bOutPort.node = b
         b!.inputPorts = [bInPort]
         b!.outputPorts = [bOutPort]
         
-        var cInPort = InputPort()
+        var cInPort = InputCompilerPort()
         cInPort.node = c
-        var cOutPort = OutputPort()
+        var cOutPort = OutputCompilerPort()
         cOutPort.node = c
         c!.inputPorts = [cInPort]
         c!.outputPorts = [cOutPort]
         
-        var dInPort = InputPort()
+        var dInPort = InputCompilerPort()
         dInPort.node = d
-        var dOutPort = OutputPort()
+        var dOutPort = OutputCompilerPort()
         dOutPort.node = d
         d!.inputPorts = [dInPort]
         d!.outputPorts = [dOutPort]
         
-        var eInPort = InputPort()
+        var eInPort = InputCompilerPort()
         eInPort.node = e
-        var eOutPort = OutputPort()
+        var eOutPort = OutputCompilerPort()
         eOutPort.node = e
         e!.inputPorts = [eInPort]
         e!.outputPorts = [eOutPort]
         
-        var fInPort = InputPort()
+        var fInPort = InputCompilerPort()
         fInPort.node = f
-        var fOutPort = OutputPort()
+        var fOutPort = OutputCompilerPort()
         fOutPort.node = f
         f!.inputPorts = [fInPort]
         f!.outputPorts = [fOutPort]
         
-        var gInPort = InputPort()
+        var gInPort = InputCompilerPort()
         gInPort.node = g
-        var gOutPort = OutputPort()
+        var gOutPort = OutputCompilerPort()
         gOutPort.node = g
         g!.inputPorts = [gInPort]
         g!.outputPorts = [gOutPort]
         
-        var lonely1InPort = InputPort()
+        var lonely1InPort = InputCompilerPort()
         lonely1InPort.node = lonely1
-        var lonely1OutPort = OutputPort()
+        var lonely1OutPort = OutputCompilerPort()
         lonely1OutPort.node = lonely1
         lonely1!.inputPorts = [lonely1InPort]
         lonely1!.outputPorts = [lonely1OutPort]
         
-        var lonely2InPort = InputPort()
+        var lonely2InPort = InputCompilerPort()
         lonely2InPort.node = lonely2
-        var lonely2OutPort = OutputPort()
+        var lonely2OutPort = OutputCompilerPort()
         lonely2OutPort.node = lonely2
         lonely2!.inputPorts = [lonely2InPort]
         lonely2!.outputPorts = [lonely2OutPort]
         
-        var nodes: [Node] = [a!, b!, c!, d!, e!, f!, g!, outputNode!, ifElseNode!, common!, lonely1!, lonely2!]
+        var nodes: [CompilerNode] = [a!, b!, c!, d!, e!, f!, g!, outputNode!, ifElseNode!, common!, lonely1!, lonely2!]
         graph.nodes = nodes
         
         
         // Finally connect up the graph
-        let aCommonEdge = Edge(inputPort: commonInPort1, outputPort: aOutPort)
-        let faEdge = Edge(inputPort: aInPort, outputPort: fOutPort)
-        let feEdge = Edge(inputPort: fInPort, outputPort: eOutPort)
-        let geEdge = Edge(inputPort: eInPort, outputPort: gOutPort)
-        let ebEdge = Edge(inputPort: bInPort, outputPort: eOutPort)
-        let bTrueEdge = Edge(inputPort: ifTrueInputPort, outputPort: bOutPort)
-        let cFalseEdge = Edge(inputPort: ifFalseInputPort, outputPort: cOutPort)
-        let dcEdge = Edge(inputPort: cInPort, outputPort: dOutPort)
-        let ifCommonEdge = Edge(inputPort: commonInPort2, outputPort: ifElseOutputPort)
-        let commonOutEdge = Edge(inputPort: outputInPort, outputPort: commonOutPort)
-        let lonely1lonely2Edge = Edge(inputPort: lonely2InPort, outputPort: lonely1OutPort)
-        let eLonely1Edge = Edge(inputPort: lonely1InPort, outputPort: eOutPort)
+        let aCommonEdge = CompilerEdge(inputPort: commonInPort1, outputPort: aOutPort)
+        let faEdge = CompilerEdge(inputPort: aInPort, outputPort: fOutPort)
+        let feEdge = CompilerEdge(inputPort: fInPort, outputPort: eOutPort)
+        let geEdge = CompilerEdge(inputPort: eInPort, outputPort: gOutPort)
+        let ebEdge = CompilerEdge(inputPort: bInPort, outputPort: eOutPort)
+        let bTrueEdge = CompilerEdge(inputPort: ifTrueInputPort, outputPort: bOutPort)
+        let cFalseEdge = CompilerEdge(inputPort: ifFalseInputPort, outputPort: cOutPort)
+        let dcEdge = CompilerEdge(inputPort: cInPort, outputPort: dOutPort)
+        let ifCommonEdge = CompilerEdge(inputPort: commonInPort2, outputPort: ifElseOutputPort)
+        let commonOutEdge = CompilerEdge(inputPort: outputInPort, outputPort: commonOutPort)
+        let lonely1lonely2Edge = CompilerEdge(inputPort: lonely2InPort, outputPort: lonely1OutPort)
+        let eLonely1Edge = CompilerEdge(inputPort: lonely1InPort, outputPort: eOutPort)
         
         input = JelloCompilerInput(output: output, graph: graph)
     }
@@ -538,15 +538,15 @@ final class JelloDecomposeGraphTest: XCTestCase {
     var e: GenericTestNode? = nil
     var f: GenericTestNode? = nil
     var g: GenericTestNode? = nil
-    var outputNode: PreviewOutput? = nil
-    var ifElseNode: IfElseNode? = nil
+    var outputNode: PreviewOutputCompilerNode? = nil
+    var ifElseNode: IfElseCompilerNode? = nil
     var lonely1: GenericTestNode? = nil
     var lonely2: GenericTestNode? = nil
     
     override func setUpWithError() throws {
-        var graph = Graph()
-        var outputInPort = InputPort()
-        outputNode = PreviewOutput(id: UUID(), inputPort: outputInPort)
+        var graph = CompilerGraph()
+        var outputInPort = InputCompilerPort()
+        outputNode = PreviewOutputCompilerNode(id: UUID(), inputPort: outputInPort)
         var output = JelloCompilerInput.Output.previewOutput(outputNode!)
 
         
@@ -564,106 +564,106 @@ final class JelloDecomposeGraphTest: XCTestCase {
         lonely1 = GenericTestNode()
         lonely2 = GenericTestNode()
         
-        var condInputPort = InputPort()
-        var ifTrueInputPort = InputPort()
-        var ifFalseInputPort = InputPort()
-        var ifElseOutputPort = OutputPort()
-        ifElseNode = IfElseNode(id: UUID(), condition: condInputPort, ifTrue: ifTrueInputPort, ifFalse: ifFalseInputPort, outputPort: ifElseOutputPort)
+        var condInputPort = InputCompilerPort()
+        var ifTrueInputPort = InputCompilerPort()
+        var ifFalseInputPort = InputCompilerPort()
+        var ifElseOutputPort = OutputCompilerPort()
+        ifElseNode = IfElseCompilerNode(id: UUID(), condition: condInputPort, ifTrue: ifTrueInputPort, ifFalse: ifFalseInputPort, outputPort: ifElseOutputPort)
         condInputPort.node = ifElseNode
         ifTrueInputPort.node = ifElseNode
         ifFalseInputPort.node = ifElseNode
         ifElseOutputPort.node = ifElseNode
        
         
-        var commonInPort1 = InputPort()
-        var commonInPort2 = InputPort()
+        var commonInPort1 = InputCompilerPort()
+        var commonInPort2 = InputCompilerPort()
         commonInPort1.node = common
         commonInPort2.node = common
-        var commonOutPort = OutputPort()
+        var commonOutPort = OutputCompilerPort()
         commonOutPort.node = common
         common!.inputPorts = [commonInPort1, commonInPort2]
         common!.outputPorts = [commonOutPort]
         
-        var aInPort = InputPort()
+        var aInPort = InputCompilerPort()
         aInPort.node = a
-        var aOutPort = OutputPort()
+        var aOutPort = OutputCompilerPort()
         aOutPort.node = a
         a!.inputPorts = [aInPort]
         a!.outputPorts = [aOutPort]
         
-        var bInPort = InputPort()
+        var bInPort = InputCompilerPort()
         bInPort.node = b
-        var bOutPort = OutputPort()
+        var bOutPort = OutputCompilerPort()
         bOutPort.node = b
         b!.inputPorts = [bInPort]
         b!.outputPorts = [bOutPort]
         
-        var cInPort = InputPort()
+        var cInPort = InputCompilerPort()
         cInPort.node = c
-        var cOutPort = OutputPort()
+        var cOutPort = OutputCompilerPort()
         cOutPort.node = c
         c!.inputPorts = [cInPort]
         c!.outputPorts = [cOutPort]
         
-        var dInPort = InputPort()
+        var dInPort = InputCompilerPort()
         dInPort.node = d
-        var dOutPort = OutputPort()
+        var dOutPort = OutputCompilerPort()
         dOutPort.node = d
         d!.inputPorts = [dInPort]
         d!.outputPorts = [dOutPort]
         
-        var eInPort = InputPort()
+        var eInPort = InputCompilerPort()
         eInPort.node = e
-        var eOutPort = OutputPort()
+        var eOutPort = OutputCompilerPort()
         eOutPort.node = e
         e!.inputPorts = [eInPort]
         e!.outputPorts = [eOutPort]
         
-        var fInPort = InputPort()
+        var fInPort = InputCompilerPort()
         fInPort.node = f
-        var fOutPort = OutputPort()
+        var fOutPort = OutputCompilerPort()
         fOutPort.node = f
         f!.inputPorts = [fInPort]
         f!.outputPorts = [fOutPort]
         
-        var gInPort = InputPort()
+        var gInPort = InputCompilerPort()
         gInPort.node = g
-        var gOutPort = OutputPort()
+        var gOutPort = OutputCompilerPort()
         gOutPort.node = g
         g!.inputPorts = [gInPort]
         g!.outputPorts = [gOutPort]
         
-        var lonely1InPort = InputPort()
+        var lonely1InPort = InputCompilerPort()
         lonely1InPort.node = lonely1
-        var lonely1OutPort = OutputPort()
+        var lonely1OutPort = OutputCompilerPort()
         lonely1OutPort.node = lonely1
         lonely1!.inputPorts = [lonely1InPort]
         lonely1!.outputPorts = [lonely1OutPort]
         
-        var lonely2InPort = InputPort()
+        var lonely2InPort = InputCompilerPort()
         lonely2InPort.node = lonely2
-        var lonely2OutPort = OutputPort()
+        var lonely2OutPort = OutputCompilerPort()
         lonely2OutPort.node = lonely2
         lonely2!.inputPorts = [lonely2InPort]
         lonely2!.outputPorts = [lonely2OutPort]
         
-        var nodes: [Node] = [a!, b!, c!, d!, e!, f!, g!, outputNode!, ifElseNode!, common!, lonely1!, lonely2!]
+        var nodes: [CompilerNode] = [a!, b!, c!, d!, e!, f!, g!, outputNode!, ifElseNode!, common!, lonely1!, lonely2!]
         graph.nodes = nodes
         
         
         // Finally connect up the graph
-        let aCommonEdge = Edge(inputPort: commonInPort1, outputPort: aOutPort)
-        let faEdge = Edge(inputPort: aInPort, outputPort: fOutPort)
-        let feEdge = Edge(inputPort: fInPort, outputPort: eOutPort)
-        let geEdge = Edge(inputPort: eInPort, outputPort: gOutPort)
-        let ebEdge = Edge(inputPort: bInPort, outputPort: eOutPort)
-        let bTrueEdge = Edge(inputPort: ifTrueInputPort, outputPort: bOutPort)
-        let cFalseEdge = Edge(inputPort: ifFalseInputPort, outputPort: cOutPort)
-        let dcEdge = Edge(inputPort: cInPort, outputPort: dOutPort)
-        let ifCommonEdge = Edge(inputPort: commonInPort2, outputPort: ifElseOutputPort)
-        let commonOutEdge = Edge(inputPort: outputInPort, outputPort: commonOutPort)
-        let lonely1lonely2Edge = Edge(inputPort: lonely2InPort, outputPort: lonely1OutPort)
-        let eLonely1Edge = Edge(inputPort: lonely1InPort, outputPort: eOutPort)
+        let aCommonEdge = CompilerEdge(inputPort: commonInPort1, outputPort: aOutPort)
+        let faEdge = CompilerEdge(inputPort: aInPort, outputPort: fOutPort)
+        let feEdge = CompilerEdge(inputPort: fInPort, outputPort: eOutPort)
+        let geEdge = CompilerEdge(inputPort: eInPort, outputPort: gOutPort)
+        let ebEdge = CompilerEdge(inputPort: bInPort, outputPort: eOutPort)
+        let bTrueEdge = CompilerEdge(inputPort: ifTrueInputPort, outputPort: bOutPort)
+        let cFalseEdge = CompilerEdge(inputPort: ifFalseInputPort, outputPort: cOutPort)
+        let dcEdge = CompilerEdge(inputPort: cInPort, outputPort: dOutPort)
+        let ifCommonEdge = CompilerEdge(inputPort: commonInPort2, outputPort: ifElseOutputPort)
+        let commonOutEdge = CompilerEdge(inputPort: outputInPort, outputPort: commonOutPort)
+        let lonely1lonely2Edge = CompilerEdge(inputPort: lonely2InPort, outputPort: lonely1OutPort)
+        let eLonely1Edge = CompilerEdge(inputPort: lonely1InPort, outputPort: eOutPort)
         
         input = JelloCompilerInput(output: output, graph: graph)
     }

@@ -76,6 +76,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		BC1A443A2B36F80C00AFA078 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BC9BBFAA2AEFDE3D00FC068C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BC3DD00A2B35795800F27E8D;
+			remoteInfo = JelloCompilerStatic;
+		};
 		BC9F96E42B35B7670041FCCE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BC9BBFAA2AEFDE3D00FC068C /* Project object */;
@@ -465,6 +472,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BC1A443B2B36F80C00AFA078 /* PBXTargetDependency */,
 				BCEBEF472B35BE6900C10617 /* PBXTargetDependency */,
 			);
 			name = JelloCompilerTests;
@@ -619,6 +627,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		BC1A443B2B36F80C00AFA078 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BC3DD00A2B35795800F27E8D /* JelloCompilerStatic */;
+			targetProxy = BC1A443A2B36F80C00AFA078 /* PBXContainerItemProxy */;
+		};
 		BC9F96E52B35B7670041FCCE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BC3DD00A2B35795800F27E8D /* JelloCompilerStatic */;

@@ -31,13 +31,13 @@ public func pruneGraph(input: JelloCompilerInput){
 }
 
 
-func getInputEdgeCount(node: Node) -> UInt {
+func getInputEdgeCount(node: CompilerNode) -> UInt {
     UInt(node.inputPorts.filter({$0.incomingEdge != nil}).count)
 }
 
 public func topologicallyOrderGraph(input: JelloCompilerInput){
     var visitedNodes: Set<UUID> = []
-    func hasNoDependencies(node: Node) -> Bool {
+    func hasNoDependencies(node: CompilerNode) -> Bool {
         return node.inputPorts.filter({ port in
             if let incomingEdge = port.incomingEdge {
                 return !visitedNodes.contains(incomingEdge.outputPort.node!.id)
@@ -46,7 +46,7 @@ public func topologicallyOrderGraph(input: JelloCompilerInput){
         }).isEmpty
     }
 
-    var results: [Node] = input.graph.nodes.filter({hasNoDependencies(node: $0)})
+    var results: [CompilerNode] = input.graph.nodes.filter({hasNoDependencies(node: $0)})
     var i = 0
     while i < results.count {
         let item = results[i]
@@ -63,11 +63,11 @@ public func topologicallyOrderGraph(input: JelloCompilerInput){
 
 
 public func decomposeGraph(input: JelloCompilerInput) {
-    for node in input.graph.nodes.filter({$0 is BranchNode}) {
-        var branchNode = node as! BranchNode
+    for node in input.graph.nodes.filter({$0 is BranchCompilerNode}) {
+        var branchNode = node as! BranchCompilerNode
         for branch in branchNode.branches {
             let start = input.graph.nodes.stablePartition(by:({$0.branchTags.count == 1 && $0.branchTags.contains(branch)}))
-            var branchNodes: [Node] = []
+            var branchNodes: [CompilerNode] = []
             for i in (start..<input.graph.nodes.count).reversed() {
                 let node = input.graph.nodes[i]
                 input.graph.nodes.remove(at: i)

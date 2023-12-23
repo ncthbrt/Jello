@@ -67,22 +67,7 @@ enum JelloNodeCategory: Int, Codable, CaseIterable, Identifiable {
     var id: Int { self.rawValue }
 }
 
-enum JelloGraphDataType: Int, Codable, CaseIterable {
-    case any = 0
-    case anyFloat = 1
-    case float4 = 2
-    case float3 = 3
-    case float2 = 4
-    case float = 5
-    case int = 6
-    case bool = 7
-    case anyTexture = 8
-    case texture1d = 9
-    case texture2d = 10
-    case texture3d = 11
-    case anyMaterial = 12
-    case slabMaterial = 13
-}
+
 
 
 enum JelloGraphDomainType: Int, Codable, CaseIterable {

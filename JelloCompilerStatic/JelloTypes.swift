@@ -9,58 +9,55 @@ import Foundation
 import SpirvMacrosShared
 import SpirvMacros
 
+public enum JelloGraphDataType: Int, Codable, CaseIterable {
+    case any = 0
+    case anyFloat = 1
+    case float4 = 2
+    case float3 = 3
+    case float2 = 4
+    case float = 5
+    case int = 6
+    case bool = 7
+    case anyTexture = 8
+    case texture1d = 9
+    case texture2d = 10
+    case texture3d = 11
+    case anyMaterial = 12
+    case slabMaterial = 13
+}
+
 public class JelloCompilerInput {
     public var output: Output
-    public var graph: Graph
+    public var graph: CompilerGraph
     
-    public init(output: Output, graph: Graph) {
+    public init(output: Output, graph: CompilerGraph) {
         self.output = output
         self.graph = graph
     }
     
     public enum Output {
-        case materialOutput(MaterialOutput)
-        case vertexOutput(VertexOutput)
-        case previewOutput(PreviewOutput)
+        case materialOutput(MaterialOutputCompilerNode)
+        case previewOutput(PreviewOutputCompilerNode)
         
-        public var node: Node {
+        public var node: CompilerNode {
             switch self {
             case .materialOutput(let mo):
                 return mo
             case .previewOutput(let po):
                 return po
-            case .vertexOutput(let vo):
-                return vo
             }
         }
     }
 }
 
 
-public class VertexOutput: Node {
+public class MaterialOutputCompilerNode: CompilerNode {
     public var id: UUID
-    public var inputPorts: [InputPort]
-    public var outputPorts: [OutputPort] = []
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
     public static func install() {}
     public var branchTags: Set<UUID>
-    
-    public init(id: UUID, inputPorts: [InputPort]) {
-        self.id = id
-        self.inputPorts = inputPorts
-        self.branchTags = Set([self.id])
-        for p in inputPorts {
-            p.newBranchId = self.id
-        }
-    }
-}
-
-public class MaterialOutput: Node {
-    public var id: UUID
-    public var inputPorts: [InputPort]
-    public var outputPorts: [OutputPort] = []
-    public static func install() {}
-    public var branchTags: Set<UUID>
-    public init(id: UUID, inputPort: InputPort) {
+    public init(id: UUID, inputPort: InputCompilerPort) {
         self.id = id
         self.inputPorts = [inputPort]
         self.branchTags = Set([self.id])
@@ -70,14 +67,14 @@ public class MaterialOutput: Node {
     }
 }
 
-public class PreviewOutput: Node {
+public class PreviewOutputCompilerNode: CompilerNode {
     public var id: UUID
-    public var inputPorts: [InputPort]
-    public var outputPorts: [OutputPort] = []
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
     public static func install() {}
     public var branchTags: Set<UUID>
     
-    public init(id: UUID, inputPort: InputPort) {
+    public init(id: UUID, inputPort: InputCompilerPort) {
         self.id = id
         self.inputPorts = [inputPort]
         self.branchTags = Set([self.id])
@@ -88,33 +85,33 @@ public class PreviewOutput: Node {
     }
 }
 
-public protocol Node {
+public protocol CompilerNode {
     var id: UUID { get }
     static func install()
-    var inputPorts: [InputPort] { get }
-    var outputPorts: [OutputPort] { get }
+    var inputPorts: [InputCompilerPort] { get }
+    var outputPorts: [OutputCompilerPort] { get }
     var branchTags: Set<UUID> { get set }
 }
 
 
-public protocol BranchNode {
-    var subNodes: [UUID: [Node]] {get set}
+public protocol BranchCompilerNode {
+    var subNodes: [UUID: [CompilerNode]] {get set}
     var branches: [UUID] {get}
 }
 
 
-public class IfElseNode : Node, BranchNode {
+public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
     public var id: UUID
-    public var inputPorts: [InputPort]
-    public var outputPorts: [OutputPort] = []
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
     public static func install() {}
     public var branchTags: Set<UUID> = []
-    public var subNodes: [UUID: [Node]] = [:]
+    public var subNodes: [UUID: [CompilerNode]] = [:]
     public var branches: [UUID]
     public var trueBranchTag: UUID
     public var falseBranchTag: UUID
     
-    public init(id: UUID, condition: InputPort, ifTrue: InputPort, ifFalse: InputPort, outputPort: OutputPort) {
+    public init(id: UUID, condition: InputCompilerPort, ifTrue: InputCompilerPort, ifFalse: InputCompilerPort, outputPort: OutputCompilerPort) {
         self.id = id
         self.inputPorts =  [condition, ifTrue, ifFalse]
         self.outputPorts = [outputPort]
@@ -126,9 +123,9 @@ public class IfElseNode : Node, BranchNode {
     }
 }
 
-public class InputPort {
-    public var node: Node?
-    public var incomingEdge: Edge?
+public class InputCompilerPort {
+    public var node: CompilerNode?
+    public var incomingEdge: CompilerEdge?
     private var reservedSpirvId: UInt32? = nil;
     
     /// Starts a new branch
@@ -153,9 +150,9 @@ public class InputPort {
 
 }
 
-public class OutputPort {
-    public var node: Node? = nil
-    public var outgoingEdges: [Edge] = []
+public class OutputCompilerPort {
+    public var node: CompilerNode? = nil
+    public var outgoingEdges: [CompilerEdge] = []
     private(set) public var reservedSpirvId: UInt32? = nil
     
     public init() {
@@ -171,11 +168,11 @@ public class OutputPort {
     }
 }
 
-public class Edge {
-    public var inputPort: InputPort
-    public var outputPort: OutputPort
+public class CompilerEdge {
+    public var inputPort: InputCompilerPort
+    public var outputPort: OutputCompilerPort
     
-    public init(inputPort: InputPort, outputPort: OutputPort) {
+    public init(inputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
         self.inputPort = inputPort
         self.outputPort = outputPort
         self.inputPort.incomingEdge = self
@@ -184,10 +181,10 @@ public class Edge {
 }
 
 
-public class Graph {
-    public var nodes: [Node]
+public class CompilerGraph {
+    public var nodes: [CompilerNode]
     
-    public init(nodes: [Node]) {
+    public init(nodes: [CompilerNode]) {
         self.nodes = nodes
     }
     

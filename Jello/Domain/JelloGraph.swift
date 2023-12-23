@@ -10,6 +10,7 @@ import SwiftData
 import OrderedCollections
 import Collections
 import SwiftUI
+import JelloCompilerStatic
 
 @Model
 final class JelloOutputPort {
@@ -179,7 +180,6 @@ final class JelloNode  {
             if let context = modelContext {
                 let inputPorts = (try? context.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort> { $0.node?.uuid == uuid }, sortBy: [SortDescriptor(\.index)]))) ?? []
                 let outputPorts = (try? context.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort> { $0.node?.uuid == uuid }, sortBy: [SortDescriptor(\.index)]))) ?? []
-//                let halfSize = CGPoint(x: CGFloat(width/2), y: CGFloat(height/2))
                 for port in inputPorts {
                     port.worldPosition = self.position + port.nodeOffset
                 }

@@ -45,5 +45,4 @@ import JelloCompilerStatic
 
         }
     }
-    
 }
