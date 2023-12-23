@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
-import SPIRV_Cross
+import JelloCompilerStatic
 
 @Observable class JelloCompilerService {
     @ObservationIgnored private var modelContext: ModelContext?

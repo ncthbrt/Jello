@@ -6,7 +6,7 @@
 //
 
 import XCTest
-import JelloCompiler
+import JelloCompilerStatic
 import SpirvMacros
 import SpirvMacrosShared
 import SPIRV_Headers_Swift

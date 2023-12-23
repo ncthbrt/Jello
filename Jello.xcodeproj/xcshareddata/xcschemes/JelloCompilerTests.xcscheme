@@ -18,7 +18,7 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BCDA24462B233A8E002DCFCB"
+               BlueprintIdentifier = "BCEBEF412B35BE6900C10617"
                BuildableName = "JelloCompilerTests.xctest"
                BlueprintName = "JelloCompilerTests"
                ReferencedContainer = "container:Jello.xcodeproj">

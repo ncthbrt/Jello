@@ -84,6 +84,7 @@ public class PreviewOutput: Node {
         for p in inputPorts {
             p.newBranchId = self.id
         }
+        inputPort.node = self
     }
 }
 
@@ -110,23 +111,23 @@ public class IfElseNode : Node, BranchNode {
     public var branchTags: Set<UUID> = []
     public var subNodes: [UUID: [Node]] = [:]
     public var branches: [UUID]
-    private var trueBranchTag: UUID
-    private var falseBranchTag: UUID
+    public var trueBranchTag: UUID
+    public var falseBranchTag: UUID
     
     public init(id: UUID, condition: InputPort, ifTrue: InputPort, ifFalse: InputPort, outputPort: OutputPort) {
         self.id = id
         self.inputPorts =  [condition, ifTrue, ifFalse]
         self.outputPorts = [outputPort]
-        trueBranchTag = UUID()
-        falseBranchTag = UUID()
-        branches = [trueBranchTag, falseBranchTag]
+        self.trueBranchTag = UUID()
+        self.falseBranchTag = UUID()
+        self.branches = [trueBranchTag, falseBranchTag]
         ifTrue.newBranchId = trueBranchTag
         ifFalse.newBranchId = falseBranchTag
     }
 }
 
 public class InputPort {
-    public var node: Node
+    public var node: Node?
     public var incomingEdge: Edge?
     private var reservedSpirvId: UInt32? = nil;
     
@@ -137,12 +138,15 @@ public class InputPort {
         reservedSpirvId ?? incomingEdge?.outputPort.reservedSpirvId
     }
     
-    public init(node: Node, incomingEdge: Edge? = nil) {
-        self.node = node
-        self.incomingEdge = incomingEdge
+    public init() {
+        self.node = nil
+        self.incomingEdge = nil
     }
     
-    public func reserveId() -> UInt32 {
+    public func getOrReserveId() -> UInt32 {
+        if let id = reservedSpirvId {
+            return id
+        }
         reservedSpirvId = #id
         return reservedSpirvId!
     }
@@ -150,17 +154,18 @@ public class InputPort {
 }
 
 public class OutputPort {
-    public var node: Node
-    public var outgoingEdges: [Edge]
-    private(set) public var reservedSpirvId: UInt32?
+    public var node: Node? = nil
+    public var outgoingEdges: [Edge] = []
+    private(set) public var reservedSpirvId: UInt32? = nil
     
-    init(node: Node, outgoingEdges: [Edge]) {
-        self.node = node
-        self.outgoingEdges = outgoingEdges
-        self.reservedSpirvId = nil
+    public init() {
     }
     
-    public func reserveId() -> UInt32 {
+    
+    public func getOrReserveId() -> UInt32 {
+        if let id = reservedSpirvId {
+            return id
+        }
         reservedSpirvId = #id
         return reservedSpirvId!
     }
@@ -173,6 +178,8 @@ public class Edge {
     public init(inputPort: InputPort, outputPort: OutputPort) {
         self.inputPort = inputPort
         self.outputPort = outputPort
+        self.inputPort.incomingEdge = self
+        self.outputPort.outgoingEdges.append(self)
     }
 }
 

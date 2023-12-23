@@ -1,0 +1,28 @@
+{
+  "configurations" : [
+    {
+      "id" : "0DCAD2C5-1F6C-4365-BD2D-76F109E0A95F",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Jello.xcodeproj",
+      "identifier" : "BC9BBFB12AEFDE3D00FC068C",
+      "name" : "Jello"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Jello.xcodeproj",
+        "identifier" : "BCEBEF412B35BE6900C10617",
+        "name" : "JelloCompilerTests"
+      }
+    }
+  ],
+  "version" : 1
+}
