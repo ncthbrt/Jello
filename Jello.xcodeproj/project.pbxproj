@@ -13,6 +13,7 @@
 		BC1A44362B35E5B000AFA078 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A44352B35E5B000AFA078 /* SPIRV-Headers-Swift */; };
 		BC1A44372B35E62900AFA078 /* libJelloCompilerStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */; };
 		BC1A44392B35E6C100AFA078 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A44382B35E6C100AFA078 /* SPIRV-Headers-Swift */; };
+		BC1A443E2B3833A200AFA078 /* SwiftCSP in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A443D2B3833A200AFA078 /* SwiftCSP */; };
 		BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5712B0763ED008F75C2 /* Rope.swift */; };
 		BC2AE5742B0764FA008F75C2 /* VertletShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5732B0764FA008F75C2 /* VertletShared.swift */; };
 		BC2AE5762B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */; };
@@ -24,8 +25,8 @@
 		BC31EB732B039291004401FC /* JelloTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB722B039291004401FC /* JelloTypes.swift */; };
 		BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */; };
 		BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB7A2B049428004401FC /* EdgeView.swift */; };
-		BC3DD0122B35796700F27E8D /* JelloTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDA24392B221367002DCFCB /* JelloTypes.swift */; };
-		BC3DD0132B35796700F27E8D /* JelloFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC3ED8EF2B341BCC00303257 /* JelloFunctions.swift */; };
+		BC3DD0122B35796700F27E8D /* JelloCompilerTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */; };
+		BC3DD0132B35796700F27E8D /* JelloCompilerFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */; };
 		BC3DD0142B35796700F27E8D /* SpirvGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDA24372B220851002DCFCB /* SpirvGenerator.swift */; };
 		BC3DD0162B35799C00F27E8D /* SPIRV-Cross in Frameworks */ = {isa = PBXBuildFile; productRef = BC3DD0152B35799C00F27E8D /* SPIRV-Cross */; };
 		BC3DD0182B3579A000F27E8D /* SpirvMacros in Frameworks */ = {isa = PBXBuildFile; productRef = BC3DD0172B3579A000F27E8D /* SpirvMacros */; };
@@ -136,7 +137,7 @@
 		BC31EB7A2B049428004401FC /* EdgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeView.swift; sourceTree = "<group>"; };
 		BC3DD0042B356C7D00F27E8D /* JelloGraphProcessingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloGraphProcessingTests.swift; sourceTree = "<group>"; };
 		BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libJelloCompilerStatic.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		BC3ED8EF2B341BCC00303257 /* JelloFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloFunctions.swift; sourceTree = "<group>"; };
+		BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerFunctions.swift; sourceTree = "<group>"; };
 		BC57B8AC2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoxSelectionEnvironmentKey+PreferenceKey.swift"; sourceTree = "<group>"; };
 		BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxSelectionView.swift; sourceTree = "<group>"; };
 		BC9BBFB22AEFDE3D00FC068C /* Jello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jello.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -169,7 +170,7 @@
 		BCCE16192B1724C4000370CB /* SmallKnob.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmallKnob.swift; sourceTree = "<group>"; };
 		BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloProjectReference.swift; sourceTree = "<group>"; };
 		BCDA24372B220851002DCFCB /* SpirvGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpirvGenerator.swift; sourceTree = "<group>"; };
-		BCDA24392B221367002DCFCB /* JelloTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloTypes.swift; sourceTree = "<group>"; };
+		BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerTypes.swift; sourceTree = "<group>"; };
 		BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationRunner.swift; sourceTree = "<group>"; };
 		BCE067552AF8B8C10066F8D4 /* JelloBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloBox.swift; sourceTree = "<group>"; };
 		BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointExtensions.swift; sourceTree = "<group>"; };
@@ -192,6 +193,7 @@
 				BC3DD01A2B3579AB00F27E8D /* Algorithms in Frameworks */,
 				BC3DD0182B3579A000F27E8D /* SpirvMacros in Frameworks */,
 				BC3DD01F2B357A1400F27E8D /* Collections in Frameworks */,
+				BC1A443E2B3833A200AFA078 /* SwiftCSP in Frameworks */,
 				BC3DD0162B35799C00F27E8D /* SPIRV-Cross in Frameworks */,
 				BC1A44362B35E5B000AFA078 /* SPIRV-Headers-Swift in Frameworks */,
 				BC3DD0232B357A1400F27E8D /* OrderedCollections in Frameworks */,
@@ -240,8 +242,8 @@
 			isa = PBXGroup;
 			children = (
 				BCDA24372B220851002DCFCB /* SpirvGenerator.swift */,
-				BCDA24392B221367002DCFCB /* JelloTypes.swift */,
-				BC3ED8EF2B341BCC00303257 /* JelloFunctions.swift */,
+				BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */,
+				BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */,
 			);
 			path = JelloCompilerStatic;
 			sourceTree = "<group>";
@@ -432,6 +434,7 @@
 				BC3DD0202B357A1400F27E8D /* DequeModule */,
 				BC3DD0222B357A1400F27E8D /* OrderedCollections */,
 				BC1A44352B35E5B000AFA078 /* SPIRV-Headers-Swift */,
+				BC1A443D2B3833A200AFA078 /* SwiftCSP */,
 			);
 			productName = JelloCompilerStatic;
 			productReference = BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */;
@@ -520,6 +523,7 @@
 				BCC73FE22B31B54C00955212 /* XCRemoteSwiftPackageReference "SwiftSpirvMacros" */,
 				BC0403772B348F460036057D /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				BC3DD01B2B3579FC00F27E8D /* XCRemoteSwiftPackageReference "SPIRV-Headers-Swift" */,
+				BC1A443C2B3833A200AFA078 /* XCRemoteSwiftPackageReference "SwiftCSP" */,
 			);
 			productRefGroup = BC9BBFB32AEFDE3D00FC068C /* Products */;
 			projectDirPath = "";
@@ -556,8 +560,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BC3DD0132B35796700F27E8D /* JelloFunctions.swift in Sources */,
-				BC3DD0122B35796700F27E8D /* JelloTypes.swift in Sources */,
+				BC3DD0132B35796700F27E8D /* JelloCompilerFunctions.swift in Sources */,
+				BC3DD0122B35796700F27E8D /* JelloCompilerTypes.swift in Sources */,
 				BC3DD0142B35796700F27E8D /* SpirvGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1007,6 +1011,14 @@
 				minimumVersion = 1.2.0;
 			};
 		};
+		BC1A443C2B3833A200AFA078 /* XCRemoteSwiftPackageReference "SwiftCSP" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/davecom/SwiftCSP";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.9;
+			};
+		};
 		BC3DD01B2B3579FC00F27E8D /* XCRemoteSwiftPackageReference "SPIRV-Headers-Swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ncthbrt/SPIRV-Headers-Swift";
@@ -1051,6 +1063,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BC3DD01B2B3579FC00F27E8D /* XCRemoteSwiftPackageReference "SPIRV-Headers-Swift" */;
 			productName = "SPIRV-Headers-Swift";
+		};
+		BC1A443D2B3833A200AFA078 /* SwiftCSP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BC1A443C2B3833A200AFA078 /* XCRemoteSwiftPackageReference "SwiftCSP" */;
+			productName = SwiftCSP;
 		};
 		BC3DD0152B35799C00F27E8D /* SPIRV-Cross */ = {
 			isa = XCSwiftPackageProductDependency;

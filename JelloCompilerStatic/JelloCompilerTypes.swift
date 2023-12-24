@@ -8,6 +8,20 @@
 import Foundation
 import SpirvMacrosShared
 import SpirvMacros
+import SwiftCSP
+
+public enum JelloConcreteDataType: Int, Codable, CaseIterable {
+    case float4 = 1
+    case float3 = 2
+    case float2 = 3
+    case float = 4
+    case int = 5
+    case bool = 6
+    case texture1d = 7
+    case texture2d = 8
+    case texture3d = 9
+    case slabMaterial = 10
+}
 
 public enum JelloGraphDataType: Int, Codable, CaseIterable {
     case any = 0
@@ -24,6 +38,39 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable {
     case texture3d = 11
     case anyMaterial = 12
     case slabMaterial = 13
+}
+
+public func getDomain(input: JelloGraphDataType) -> [JelloConcreteDataType] {
+    switch input {
+    case .any:
+        return JelloConcreteDataType.allCases
+    case .anyFloat:
+        return [.float, .float2, .float3, .float4]
+    case .anyMaterial:
+        return [.slabMaterial]
+    case .anyTexture:
+        return [.texture1d, .texture2d, .texture3d]
+    case .float:
+        return [.float]
+    case .float2:
+        return [.float2]
+    case .float3:
+        return [.float3]
+    case .float4:
+        return [.float4]
+    case .texture1d:
+        return [.texture1d]
+    case .texture2d:
+        return [.texture2d]
+    case .texture3d:
+        return [.texture3d]
+    case .int:
+        return [.int]
+    case .bool:
+        return [.bool]
+    case .slabMaterial:
+        return [.slabMaterial]
+    }
 }
 
 public class JelloCompilerInput {
@@ -57,6 +104,7 @@ public class MaterialOutputCompilerNode: CompilerNode {
     public var outputPorts: [OutputCompilerPort] = []
     public static func install() {}
     public var branchTags: Set<UUID>
+    public var constraints: [Constraint<UUID, JelloConcreteDataType>] { [] }
     public init(id: UUID, inputPort: InputCompilerPort) {
         self.id = id
         self.inputPorts = [inputPort]
@@ -73,6 +121,7 @@ public class PreviewOutputCompilerNode: CompilerNode {
     public var outputPorts: [OutputCompilerPort] = []
     public static func install() {}
     public var branchTags: Set<UUID>
+    public var constraints: [Constraint<UUID, JelloConcreteDataType>] { [] }
     
     public init(id: UUID, inputPort: InputCompilerPort) {
         self.id = id
@@ -91,6 +140,7 @@ public protocol CompilerNode {
     var inputPorts: [InputCompilerPort] { get }
     var outputPorts: [OutputCompilerPort] { get }
     var branchTags: Set<UUID> { get set }
+    var constraints: [Constraint<UUID, JelloConcreteDataType>] { get }
 }
 
 
@@ -110,6 +160,11 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
     public var branches: [UUID]
     public var trueBranchTag: UUID
     public var falseBranchTag: UUID
+    public var constraints: [Constraint<UUID, JelloConcreteDataType>] {
+        var variables = inputPorts.dropFirst().map({$0.id})
+        variables.append(contentsOf: outputPorts.map({$0.id}))
+        return [SameTypesConstraint(variables: variables)]
+    }
     
     public init(id: UUID, condition: InputCompilerPort, ifTrue: InputCompilerPort, ifFalse: InputCompilerPort, outputPort: OutputCompilerPort) {
         self.id = id
@@ -120,24 +175,30 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         self.branches = [trueBranchTag, falseBranchTag]
         ifTrue.newBranchId = trueBranchTag
         ifFalse.newBranchId = falseBranchTag
+        condition.dataType = .bool
     }
 }
 
-public class InputCompilerPort {
+
+public class InputCompilerPort: Hashable, Identifiable {
+    public var id: UUID
     public var node: CompilerNode?
     public var incomingEdge: CompilerEdge?
     private var reservedSpirvId: UInt32? = nil;
     
     /// Starts a new branch
     public var newBranchId: UUID?
-    
+    public var dataType: JelloGraphDataType
+
     public var inputSpirvId: UInt32? {
         reservedSpirvId ?? incomingEdge?.outputPort.reservedSpirvId
     }
     
-    public init() {
+    public init(id: UUID = UUID(), dataType: JelloGraphDataType = .any) {
         self.node = nil
+        self.id = id
         self.incomingEdge = nil
+        self.dataType = dataType
     }
     
     public func getOrReserveId() -> UInt32 {
@@ -146,18 +207,29 @@ public class InputCompilerPort {
         }
         reservedSpirvId = #id
         return reservedSpirvId!
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    public static func == (lhs: InputCompilerPort, rhs: InputCompilerPort) -> Bool {
+        lhs.id == rhs.id
     }
 
 }
 
-public class OutputCompilerPort {
+public class OutputCompilerPort: Hashable, Identifiable {
+    public var id: UUID
     public var node: CompilerNode? = nil
     public var outgoingEdges: [CompilerEdge] = []
     private(set) public var reservedSpirvId: UInt32? = nil
-    
-    public init() {
+    public var dataType: JelloGraphDataType
+
+    public init(id: UUID = UUID(), dataType: JelloGraphDataType = .any) {
+        self.dataType = dataType
+        self.id = id
     }
-    
     
     public func getOrReserveId() -> UInt32 {
         if let id = reservedSpirvId {
@@ -166,15 +238,26 @@ public class OutputCompilerPort {
         reservedSpirvId = #id
         return reservedSpirvId!
     }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    public static func == (lhs: OutputCompilerPort, rhs: OutputCompilerPort) -> Bool {
+        lhs.id == rhs.id
+    }
+
 }
 
 public class CompilerEdge {
     public var inputPort: InputCompilerPort
     public var outputPort: OutputCompilerPort
-    
-    public init(inputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
+    public var dataType: JelloGraphDataType
+
+    public init(dataType: JelloGraphDataType = .any, inputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
         self.inputPort = inputPort
         self.outputPort = outputPort
+        self.dataType = dataType
         self.inputPort.incomingEdge = self
         self.outputPort.outgoingEdges.append(self)
     }
