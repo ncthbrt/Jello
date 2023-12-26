@@ -8,7 +8,52 @@
 import Foundation
 import SpirvMacrosShared
 import SpirvMacros
-import SwiftCSP
+
+
+public enum ConstraintApplicationResult {
+    case dirty([UUID])
+    case unchanged
+    case contradiction
+}
+
+public protocol PortConstraint {
+    var ports: Set<UUID> {get}
+    func apply(assignments: inout [UUID: JelloConcreteDataType], domains: [UUID: [JelloConcreteDataType]], port: UUID, type: JelloConcreteDataType) -> ConstraintApplicationResult
+}
+
+
+
+public class SameTypesConstraint: PortConstraint {
+    private(set) public var ports: Set<UUID>
+    public init(ports: Set<UUID>) {
+        self.ports = ports
+    }
+    
+    public func apply(assignments: inout [UUID: JelloConcreteDataType], domains: [UUID: [JelloConcreteDataType]], port: UUID, type: JelloConcreteDataType) -> ConstraintApplicationResult {
+        var changed: [UUID] = []
+        for p in ports {
+            let a = assignments[p]
+            if a == nil {
+                let domain = domains[p] ?? []
+                if !domain.contains(where: {$0 == type}) {
+                    return .contradiction
+                }
+                changed.append(port)
+                assignments[p] = type
+            }
+            else if a != type {
+                return .contradiction
+            }
+          
+            
+        }
+        if !changed.isEmpty {
+            return .dirty(changed)
+        }
+        return .unchanged
+    }
+}
+
 
 public enum JelloConcreteDataType: Int, Codable, CaseIterable {
     case float4 = 1
@@ -104,7 +149,7 @@ public class MaterialOutputCompilerNode: CompilerNode {
     public var outputPorts: [OutputCompilerPort] = []
     public static func install() {}
     public var branchTags: Set<UUID>
-    public var constraints: [Constraint<UUID, JelloConcreteDataType>] { [] }
+    public var constraints: [PortConstraint] { [] }
     public init(id: UUID, inputPort: InputCompilerPort) {
         self.id = id
         self.inputPorts = [inputPort]
@@ -121,8 +166,7 @@ public class PreviewOutputCompilerNode: CompilerNode {
     public var outputPorts: [OutputCompilerPort] = []
     public static func install() {}
     public var branchTags: Set<UUID>
-    public var constraints: [Constraint<UUID, JelloConcreteDataType>] { [] }
-    
+    public var constraints: [PortConstraint] {[]}
     public init(id: UUID, inputPort: InputCompilerPort) {
         self.id = id
         self.inputPorts = [inputPort]
@@ -140,7 +184,7 @@ public protocol CompilerNode {
     var inputPorts: [InputCompilerPort] { get }
     var outputPorts: [OutputCompilerPort] { get }
     var branchTags: Set<UUID> { get set }
-    var constraints: [Constraint<UUID, JelloConcreteDataType>] { get }
+    var constraints: [PortConstraint] { get }
 }
 
 
@@ -160,10 +204,10 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
     public var branches: [UUID]
     public var trueBranchTag: UUID
     public var falseBranchTag: UUID
-    public var constraints: [Constraint<UUID, JelloConcreteDataType>] {
-        var variables = inputPorts.dropFirst().map({$0.id})
-        variables.append(contentsOf: outputPorts.map({$0.id}))
-        return [SameTypesConstraint(variables: variables)]
+    public var constraints: [PortConstraint] {
+        var ports = inputPorts.dropFirst().map({$0.id})
+        ports.append(contentsOf: outputPorts.map({$0.id}))
+        return [SameTypesConstraint(ports: Set(ports))]
     }
     
     public init(id: UUID, condition: InputCompilerPort, ifTrue: InputCompilerPort, ifFalse: InputCompilerPort, outputPort: OutputCompilerPort) {
@@ -189,7 +233,9 @@ public class InputCompilerPort: Hashable, Identifiable {
     /// Starts a new branch
     public var newBranchId: UUID?
     public var dataType: JelloGraphDataType
+    public var concreteDataType: JelloConcreteDataType? = nil
 
+    
     public var inputSpirvId: UInt32? {
         reservedSpirvId ?? incomingEdge?.outputPort.reservedSpirvId
     }
@@ -225,7 +271,8 @@ public class OutputCompilerPort: Hashable, Identifiable {
     public var outgoingEdges: [CompilerEdge] = []
     private(set) public var reservedSpirvId: UInt32? = nil
     public var dataType: JelloGraphDataType
-
+    public var concreteDataType: JelloConcreteDataType? = nil
+    
     public init(id: UUID = UUID(), dataType: JelloGraphDataType = .any) {
         self.dataType = dataType
         self.id = id
@@ -252,12 +299,10 @@ public class OutputCompilerPort: Hashable, Identifiable {
 public class CompilerEdge {
     public var inputPort: InputCompilerPort
     public var outputPort: OutputCompilerPort
-    public var dataType: JelloGraphDataType
 
-    public init(dataType: JelloGraphDataType = .any, inputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
+    public init(inputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
         self.inputPort = inputPort
         self.outputPort = outputPort
-        self.dataType = dataType
         self.inputPort.incomingEdge = self
         self.outputPort.outgoingEdges.append(self)
     }

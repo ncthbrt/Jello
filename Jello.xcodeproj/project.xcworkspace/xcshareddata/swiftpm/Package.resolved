@@ -63,15 +63,6 @@
       }
     },
     {
-      "identity" : "swiftcsp",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/davecom/SwiftCSP",
-      "state" : {
-        "revision" : "831d15ba639d36a103a59992c654b1df129e06c7",
-        "version" : "0.9.9"
-      }
-    },
-    {
       "identity" : "swiftspirvmacros",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ncthbrt/SwiftSpirvMacros.git",

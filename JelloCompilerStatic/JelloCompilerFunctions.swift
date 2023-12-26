@@ -8,7 +8,6 @@
 import Foundation
 import Collections
 import Algorithms
-import SwiftCSP
 
 public func labelBranches(input: JelloCompilerInput){
     let startNode = input.output.node
@@ -63,46 +62,141 @@ public func topologicallyOrderGraph(input: JelloCompilerInput){
 }
 
 
-public class SameTypeConstraint: BinaryConstraint<UUID, JelloConcreteDataType>  {
-    public override func isSatisfied(assignment: Dictionary<UUID, JelloConcreteDataType>) -> Bool {
-        assignment[variable1] == assignment[variable2]
-    }
+
+enum CouldNotConcretiseTypesError: Error {
+    case couldNotConcretiseTypesError
 }
 
-public class SameTypesConstraint: ListConstraint<UUID, JelloConcreteDataType> {
-    public override func isSatisfied(assignment: Dictionary<UUID, JelloConcreteDataType>) -> Bool {
-        var fst = assignment.first?.value
-        return assignment.values.allSatisfy({ $0 == fst })
+func propagateConstraintsFromCurrentPort(port start: UUID, assignments: inout [UUID: JelloConcreteDataType], domains: [UUID: [JelloConcreteDataType]], constraints: [UUID:[PortConstraint]]) -> Bool {
+    var queue = Deque<UUID>([start])
+    var type: JelloConcreteDataType = assignments[start]!
+    while !queue.isEmpty {
+        let currentPort = queue.popFirst()!
+        let constraintsForCurrentPort = constraints[currentPort] ?? []
+        type = assignments[currentPort]!
+        for constraint in constraintsForCurrentPort {
+            switch constraint.apply(assignments: &assignments, domains: domains, port: currentPort, type: type) {
+            case .contradiction:
+                return false
+            case .dirty(let dirtyPorts):
+                queue.append(contentsOf: dirtyPorts)
+                break
+            case .unchanged:
+                break
+            }
+        }
     }
+    return true
 }
 
-public func concretiseTypesInGraph(input: JelloCompilerInput) -> [UUID: JelloConcreteDataType]? {
-    var outputPorts = input.graph.nodes.flatMap({$0.outputPorts})
-    var inputPorts = input.graph.nodes.flatMap({$0.inputPorts})
-    var variables: [UUID] = outputPorts.map({$0.id})
-    variables.append(contentsOf: inputPorts.map({$0.id}))
-    var domains: [UUID: [JelloConcreteDataType]] = [:]
+func concretiseTypesInGraphImpl(remainingPorts: ArraySlice<UUID>, domains: [UUID: [JelloConcreteDataType]], assignments: [UUID: JelloConcreteDataType], constraints: [UUID:[PortConstraint]]) -> [UUID: JelloConcreteDataType]? {
+    if remainingPorts.count == 0 {
+        return assignments
+    }
+        
+    let currentPort = remainingPorts.first!
+    guard let domain = domains[currentPort] else {
+        return nil
+    }
     
+    if assignments[currentPort] != nil {
+        let nextRemainingPorts = remainingPorts.dropFirst()
+        var nextAssignments = assignments
+        if !propagateConstraintsFromCurrentPort(port: currentPort, assignments: &nextAssignments, domains: domains, constraints: constraints) {
+            return nil
+        }
+        if let result = concretiseTypesInGraphImpl(remainingPorts: nextRemainingPorts, domains: domains, assignments: assignments, constraints: constraints) {
+            return result
+        }
+        return nil
+    }
+    
+    for value in domain {
+        var nextAssignments = assignments
+        nextAssignments[currentPort] = value
+        if !propagateConstraintsFromCurrentPort(port: currentPort, assignments: &nextAssignments, domains: domains, constraints: constraints) {
+            continue
+        }
+        let nextRemainingPorts = remainingPorts.dropFirst()
+        if let result = concretiseTypesInGraphImpl(remainingPorts: nextRemainingPorts, domains: domains, assignments: nextAssignments, constraints: constraints) {
+            return result
+        }
+    }
+    
+    return nil
+}
+
+public func concretiseTypesInGraph(input: JelloCompilerInput) throws {
+    let inputPorts = input.graph.nodes.flatMap({$0.inputPorts})
+    let outputPorts = input.graph.nodes.flatMap({$0.outputPorts})
+    
+    var domains : [UUID: [JelloConcreteDataType]] = [:]
     for port in inputPorts {
         domains[port.id] = getDomain(input: port.dataType)
     }
     for port in outputPorts {
         domains[port.id] = getDomain(input: port.dataType)
     }
-    
-    var csp = CSP<UUID, JelloConcreteDataType>(variables: variables, domains: domains)
-    
-    var edges = inputPorts.filter({$0.incomingEdge != nil}).map({$0.incomingEdge!})
-    for edge in edges {
-        csp.addConstraint(constraint: SameTypeConstraint(variable1: edge.inputPort.id, variable2: edge.outputPort.id))
-    }
+
+    // Create a topologically ordered set of ports
+    var ports: [UUID] = []
     for node in input.graph.nodes {
-        for constraint in node.constraints {
-            csp.addConstraint(constraint: constraint)
+        ports.append(contentsOf: node.inputPorts.map({$0.id}))
+        ports.append(contentsOf: node.outputPorts.map({$0.id}))
+    }
+    
+    var assignments: [UUID: JelloConcreteDataType] = [:]
+    
+  
+    // Set up constraints
+    var constraints: [PortConstraint] = []
+    
+    // Edge constraints
+    
+    let edges = inputPorts.filter({$0.incomingEdge != nil}).map({$0.incomingEdge!})
+    for edge in edges {
+        constraints.append(SameTypesConstraint(ports: [edge.inputPort.id, edge.outputPort.id]))
+    }
+    
+    // Node constraints
+    for node in input.graph.nodes {
+        constraints.append(contentsOf: node.constraints)
+    }
+    
+    // Create a lookup so that we can conveniently find the set of constraints for a given node
+    var constraintsMapped: [UUID: [PortConstraint]] = [:]
+    for constraint in constraints {
+        for constraintPort in constraint.ports {
+            var constrainForPort = constraintsMapped[constraintPort] ?? []
+            constrainForPort.append(constraint)
+            constraintsMapped[constraintPort] = constrainForPort
         }
     }
-    return backtrackingSearch(csp: csp, mrv: true)
+    
+    // Optimization. Assign types that only have one value in the domain first
+    for port in ports {
+        if let d = domains[port], d.count == 1, let type = d.first {
+            assignments[port] = type
+            if !propagateConstraintsFromCurrentPort(port: port, assignments: &assignments, domains: domains, constraints: constraintsMapped) {
+                throw CouldNotConcretiseTypesError.couldNotConcretiseTypesError // We cannot unify this graph, as these constraints *have* to hold
+            }
+        }
+    }
+    
+    
+    guard let result: [UUID: JelloConcreteDataType] = concretiseTypesInGraphImpl(remainingPorts: ArraySlice(ports), domains: domains, assignments: assignments, constraints: constraintsMapped) else {
+        throw CouldNotConcretiseTypesError.couldNotConcretiseTypesError
+    }
+    
+    for port in inputPorts {
+        port.concreteDataType = result[port.id]
+    }
+    for port in outputPorts {
+        port.concreteDataType = result[port.id]
+    }
 }
+
+
 
 public func decomposeGraph(input: JelloCompilerInput) {
     for node in input.graph.nodes.filter({$0 is BranchCompilerNode}) {
@@ -122,3 +216,6 @@ public func decomposeGraph(input: JelloCompilerInput) {
 }
 
 
+public func compile(input: JelloCompilerInput) {
+    
+}
