@@ -52,22 +52,52 @@ final class JelloIfElseBranchesTest: XCTestCase {
 
     
     public func testThatCompilingGraphProducesExpectedResult() throws {
-        let spirvFile = try compileToSpirv(input: input!)
-        print(spirvFile)
-        let result = try compileMSLShader(spirv: spirvFile)
-        let expectedResult = """
+        let (vertex:vertexSpirv, fragment: fragmentSpirv) = try compileToSpirv(input: input!)
+        let vertexResult = try compileMSLShader(spirv: vertexSpirv)
+        let fragmentResult = try compileMSLShader(spirv: fragmentSpirv)
+        let expectedFragmentResult = """
 #include <metal_stdlib>
 #include <simd/simd.h>
 
 using namespace metal;
 
-vertex void main0()
+struct fragmentMain_out
+{
+    float4 frag_out [[color(0)]];
+};
+
+fragment fragmentMain_out fragmentMain()
+{
+    fragmentMain_out out = {};
+    float4 _24;
+    if (true)
+    {
+        _24 = float4(1.0, 0.0, 0.0, 1.0);
+    }
+    else
+    {
+        _24 = float4(0.0, 0.0, 1.0, 1.0);
+    }
+    out.frag_out = _24;
+    return out;
+}
+
+
+"""
+        
+        let expectedVertexResult = """
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+vertex void vertexMain()
 {
 }
 
 
 """
-        XCTAssertEqual(result, expectedResult)
-        
+        XCTAssertEqual(fragmentResult, expectedFragmentResult)
+        XCTAssertEqual(vertexResult, expectedVertexResult)
     }
 }

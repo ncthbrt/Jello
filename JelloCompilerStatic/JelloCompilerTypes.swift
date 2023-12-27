@@ -194,31 +194,17 @@ public class InputCompilerPort: Hashable, Identifiable {
     public var id: UUID
     public var node: CompilerNode?
     public var incomingEdge: CompilerEdge?
-    private var reservedSpirvId: UInt32? = nil;
     
     /// Starts a new branch
     public var newBranchId: UUID?
     public var dataType: JelloGraphDataType
     public var concreteDataType: JelloConcreteDataType? = nil
-
-    
-    public var inputSpirvId: UInt32? {
-        reservedSpirvId ?? incomingEdge?.outputPort.reservedSpirvId
-    }
     
     public init(id: UUID = UUID(), dataType: JelloGraphDataType = .any) {
         self.node = nil
         self.id = id
         self.incomingEdge = nil
         self.dataType = dataType
-    }
-    
-    public func getOrReserveId() -> UInt32 {
-        if let id = reservedSpirvId {
-            return id
-        }
-        reservedSpirvId = #id
-        return reservedSpirvId!
     }
     
     public func hash(into hasher: inout Hasher) {
@@ -251,6 +237,11 @@ public class OutputCompilerPort: Hashable, Identifiable {
         reservedSpirvId = #id
         return reservedSpirvId!
     }
+    
+    public func clearReservation() {
+        reservedSpirvId = nil
+    }
+    
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)

@@ -64,7 +64,6 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         let outputPort = outputPorts.first!
         let outputId = outputPort.getOrReserveId()
         #functionBody(opCode: SpirvOpPhi, [inputOutputTypeId, outputId, ifTrue, trueLabel, ifFalse, falseLabel])
-        
     }
     
     public func writeVertex(){}
@@ -215,9 +214,17 @@ public class PreviewOutputCompilerNode: CompilerNode {
                 let zeroVector = #typeDeclaration(opCode: SpirvOpConstantNull, [float4TypeId])
                 let oneFloat = #typeDeclaration(opCode: SpirvOpConstant, [floatTypeId], float(1))
                 let oneVector = #typeDeclaration(opCode: SpirvOpConstantComposite, [float4TypeId, oneFloat, oneFloat, oneFloat, oneFloat])
-                #iff(edge.outputPort.getOrReserveId()) {
-                }
-                #functionBody(opCode: SpirvOpPhi, [float4TypeId, resultId, oneVector, zeroVector])
+                let trueLabel = #id
+                let falseLabel = #id
+                let endLabel = #id
+                #functionBody(opCode: SpirvOpSelectionMerge, [endLabel, 0])
+                #functionBody(opCode: SpirvOpBranchConditional, [edge.outputPort.getOrReserveId(), trueLabel, falseLabel])
+                #functionBody(opCode: SpirvOpLabel, [trueLabel])
+                #functionBody(opCode: SpirvOpBranch, [endLabel])
+                #functionBody(opCode: SpirvOpLabel, [falseLabel])
+                #functionBody(opCode: SpirvOpBranch, [endLabel])
+                #functionBody(opCode: SpirvOpLabel, [endLabel])
+                #functionBody(opCode: SpirvOpPhi, [float4TypeId, resultId, oneVector, trueLabel, zeroVector, falseLabel])
                 break
             case .float:
                 resultId = #id
