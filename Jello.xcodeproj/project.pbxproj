@@ -19,6 +19,9 @@
 		BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF772AF257C400E2A242 /* JelloDocument.swift */; };
 		BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */; };
 		BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */; };
+		BC2F077C2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2F077B2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift */; };
+		BC2F077E2B3C0F7100D0A668 /* JelloCompilerNodeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2F077D2B3C0F7100D0A668 /* JelloCompilerNodeTypes.swift */; };
+		BC2F07802B3C193D00D0A668 /* JelloCompilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2F077F2B3C193D00D0A668 /* JelloCompilerTests.swift */; };
 		BC31EB712B035F52004401FC /* JelloNodeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB702B035F52004401FC /* JelloNodeController.swift */; };
 		BC31EB732B039291004401FC /* JelloTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB722B039291004401FC /* JelloTypes.swift */; };
 		BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */; };
@@ -130,6 +133,9 @@
 		BC2BDF772AF257C400E2A242 /* JelloDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDocument.swift; sourceTree = "<group>"; };
 		BC2BDF792AF2783B00E2A242 /* JelloDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDocumentView.swift; sourceTree = "<group>"; };
 		BC2BDF7B2AF2792C00E2A242 /* EmptyStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStates.swift; sourceTree = "<group>"; };
+		BC2F077B2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerTypeUtilities.swift; sourceTree = "<group>"; };
+		BC2F077D2B3C0F7100D0A668 /* JelloCompilerNodeTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerNodeTypes.swift; sourceTree = "<group>"; };
+		BC2F077F2B3C193D00D0A668 /* JelloCompilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerTests.swift; sourceTree = "<group>"; };
 		BC31EB702B035F52004401FC /* JelloNodeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeController.swift; sourceTree = "<group>"; };
 		BC31EB722B039291004401FC /* JelloTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloTypes.swift; sourceTree = "<group>"; };
 		BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeMenu.swift; sourceTree = "<group>"; };
@@ -242,6 +248,8 @@
 				BCDA24372B220851002DCFCB /* SpirvGenerator.swift */,
 				BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */,
 				BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */,
+				BC2F077B2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift */,
+				BC2F077D2B3C0F7100D0A668 /* JelloCompilerNodeTypes.swift */,
 			);
 			path = JelloCompilerStatic;
 			sourceTree = "<group>";
@@ -404,6 +412,7 @@
 			children = (
 				BC9BBFCA2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift */,
 				BC3DD0042B356C7D00F27E8D /* JelloGraphProcessingTests.swift */,
+				BC2F077F2B3C193D00D0A668 /* JelloCompilerTests.swift */,
 			);
 			path = JelloCompilerTests;
 			sourceTree = "<group>";
@@ -556,8 +565,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC2F077C2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift in Sources */,
 				BC3DD0132B35796700F27E8D /* JelloCompilerFunctions.swift in Sources */,
 				BC3DD0122B35796700F27E8D /* JelloCompilerTypes.swift in Sources */,
+				BC2F077E2B3C0F7100D0A668 /* JelloCompilerNodeTypes.swift in Sources */,
 				BC3DD0142B35796700F27E8D /* SpirvGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -621,6 +632,7 @@
 			files = (
 				BCEBEF4B2B35BE6D00C10617 /* JelloGoodBadSpirvFileGeneratorTest.swift in Sources */,
 				BCEBEF4C2B35BE6D00C10617 /* JelloGraphProcessingTests.swift in Sources */,
+				BC2F07802B3C193D00D0A668 /* JelloCompilerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

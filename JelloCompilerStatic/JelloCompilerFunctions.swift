@@ -8,6 +8,9 @@
 import Foundation
 import Collections
 import Algorithms
+import SpirvMacros
+import SPIRV_Headers_Swift
+import SpirvMacrosShared
 
 public func labelBranches(input: JelloCompilerInput){
     let startNode = input.output.node
@@ -216,6 +219,61 @@ public func decomposeGraph(input: JelloCompilerInput) {
 }
 
 
-public func compile(input: JelloCompilerInput) {
-    
+func prepareInput(input: JelloCompilerInput) throws {
+    labelBranches(input: input)
+    pruneGraph(input: input)
+    topologicallyOrderGraph(input: input)
+    try concretiseTypesInGraph(input: input)
+    decomposeGraph(input: input)
 }
+
+
+
+public func compileToSpirv(input: JelloCompilerInput) throws -> [UInt32] {
+    labelBranches(input: input)
+    pruneGraph(input: input)
+    topologicallyOrderGraph(input: input)
+    try concretiseTypesInGraph(input: input)
+    
+    return #document({
+        #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
+        let glsl450Id = #id
+        #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
+        #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
+        
+        for node in input.graph.nodes {
+            node.install()
+        }
+        decomposeGraph(input: input)
+        
+        // Write vertex
+        let vertexEntryPoint = #id
+        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [])
+        let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
+        let typeVertexFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
+        #functionHead(opCode: SpirvOpFunction, [typeVoid, vertexEntryPoint, 0, typeVertexFunction])
+        #functionHead(opCode: SpirvOpLabel, [#id])
+        for node in input.graph.nodes {
+            node.writeVertex()
+        }
+        #functionBody(opCode: SpirvOpFunctionEnd)
+        SpirvFunction.instance.writeFunction()
+        
+        
+        // Write fragment
+        let fragmentEntryPoint = #id
+        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [])
+        let typeFragmentFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
+        #functionHead(opCode: SpirvOpFunction, [typeVoid, fragmentEntryPoint, 0, typeFragmentFunction])
+        #functionHead(opCode: SpirvOpLabel, [#id])
+        for node in input.graph.nodes {
+            node.writeFragment()
+        }
+        #functionBody(opCode: SpirvOpFunctionEnd)
+        SpirvFunction.instance.writeFunction()
+        return
+    })
+}
+
+
+

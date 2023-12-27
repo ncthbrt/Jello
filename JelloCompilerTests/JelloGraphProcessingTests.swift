@@ -13,7 +13,9 @@ class GenericTestNode : CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
-    public static func install() {}
+    public func install() {}
+    public func writeVertex(){}
+    public func writeFragment(){}
     public var branchTags: Set<UUID>
     public var constraints: [PortConstraint] = []
     
@@ -626,7 +628,7 @@ final class JelloConcretiseTypesGraphTest: XCTestCase {
         labelBranches(input: input!)
         pruneGraph(input: input!)
         topologicallyOrderGraph(input: input!)
-        try! concretiseTypesInGraph(input: input!)
+        try concretiseTypesInGraph(input: input!)
         XCTAssertEqual(b!.outputPorts.map({$0.concreteDataType}), [JelloConcreteDataType.bool])
         XCTAssertEqual(d!.outputPorts.map({$0.concreteDataType}), [JelloConcreteDataType.float2])
         XCTAssertEqual(e!.outputPorts.map({$0.concreteDataType}), [JelloConcreteDataType.float2])
@@ -780,10 +782,11 @@ final class JelloDecomposeGraphTest: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
     
-    func testThatDecomposingGraphProducesExpectedResult(){
+    func testThatDecomposingGraphProducesExpectedResult() throws {
         labelBranches(input: input!)
         pruneGraph(input: input!)
         topologicallyOrderGraph(input: input!)
+        try concretiseTypesInGraph(input: input!)
         decomposeGraph(input: input!)
         let trueBranchId = ifElseNode!.trueBranchTag
         let falseBranchId = ifElseNode!.falseBranchTag

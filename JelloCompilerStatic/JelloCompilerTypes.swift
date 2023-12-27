@@ -8,7 +8,8 @@
 import Foundation
 import SpirvMacrosShared
 import SpirvMacros
-
+import SPIRV_Headers_Swift
+import simd
 
 public enum ConstraintApplicationResult {
     case dirty([UUID])
@@ -44,8 +45,6 @@ public class SameTypesConstraint: PortConstraint {
             else if a != type {
                 return .contradiction
             }
-          
-            
         }
         if !changed.isEmpty {
             return .dirty(changed)
@@ -67,6 +66,16 @@ public enum JelloConcreteDataType: Int, Codable, CaseIterable {
     case texture3d = 9
     case slabMaterial = 10
 }
+
+public enum JelloConstantValue {
+    case float(Float)
+    case float2(vector_float2)
+    case float3(vector_float3)
+    case float4(vector_float4)
+    case int(Int32)
+    case bool(Bool)
+}
+
 
 public enum JelloGraphDataType: Int, Codable, CaseIterable {
     case any = 0
@@ -147,7 +156,9 @@ public class MaterialOutputCompilerNode: CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    public static func install() {}
+    public func install() {}
+    public func writeFragment() {}
+    public func writeVertex(){}
     public var branchTags: Set<UUID>
     public var constraints: [PortConstraint] { [] }
     public init(id: UUID, inputPort: InputCompilerPort) {
@@ -164,7 +175,9 @@ public class PreviewOutputCompilerNode: CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    public static func install() {}
+    public func install() {}
+    public func writeFragment() {}
+    public func writeVertex(){}
     public var branchTags: Set<UUID>
     public var constraints: [PortConstraint] {[]}
     public init(id: UUID, inputPort: InputCompilerPort) {
@@ -180,7 +193,9 @@ public class PreviewOutputCompilerNode: CompilerNode {
 
 public protocol CompilerNode {
     var id: UUID { get }
-    static func install()
+    func install()
+    func writeFragment()
+    func writeVertex()
     var inputPorts: [InputCompilerPort] { get }
     var outputPorts: [OutputCompilerPort] { get }
     var branchTags: Set<UUID> { get set }
@@ -191,36 +206,6 @@ public protocol CompilerNode {
 public protocol BranchCompilerNode {
     var subNodes: [UUID: [CompilerNode]] {get set}
     var branches: [UUID] {get}
-}
-
-
-public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
-    public var id: UUID
-    public var inputPorts: [InputCompilerPort]
-    public var outputPorts: [OutputCompilerPort] = []
-    public static func install() {}
-    public var branchTags: Set<UUID> = []
-    public var subNodes: [UUID: [CompilerNode]] = [:]
-    public var branches: [UUID]
-    public var trueBranchTag: UUID
-    public var falseBranchTag: UUID
-    public var constraints: [PortConstraint] {
-        var ports = inputPorts.dropFirst().map({$0.id})
-        ports.append(contentsOf: outputPorts.map({$0.id}))
-        return [SameTypesConstraint(ports: Set(ports))]
-    }
-    
-    public init(id: UUID, condition: InputCompilerPort, ifTrue: InputCompilerPort, ifFalse: InputCompilerPort, outputPort: OutputCompilerPort) {
-        self.id = id
-        self.inputPorts =  [condition, ifTrue, ifFalse]
-        self.outputPorts = [outputPort]
-        self.trueBranchTag = UUID()
-        self.falseBranchTag = UUID()
-        self.branches = [trueBranchTag, falseBranchTag]
-        ifTrue.newBranchId = trueBranchTag
-        ifFalse.newBranchId = falseBranchTag
-        condition.dataType = .bool
-    }
 }
 
 
