@@ -171,25 +171,6 @@ public class MaterialOutputCompilerNode: CompilerNode {
     }
 }
 
-public class PreviewOutputCompilerNode: CompilerNode {
-    public var id: UUID
-    public var inputPorts: [InputCompilerPort]
-    public var outputPorts: [OutputCompilerPort] = []
-    public func install() {}
-    public func writeFragment() {}
-    public func writeVertex(){}
-    public var branchTags: Set<UUID>
-    public var constraints: [PortConstraint] {[]}
-    public init(id: UUID, inputPort: InputCompilerPort) {
-        self.id = id
-        self.inputPorts = [inputPort]
-        self.branchTags = Set([self.id])
-        for p in inputPorts {
-            p.newBranchId = self.id
-        }
-        inputPort.node = self
-    }
-}
 
 public protocol CompilerNode {
     var id: UUID { get }

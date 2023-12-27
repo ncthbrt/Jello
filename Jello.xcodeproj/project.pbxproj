@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		BC07D1092AFF674E00EFA199 /* AddNewNodeMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */; };
 		BC07D10A2AFFCB7500EFA199 /* GraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C742AFE43D90012F619 /* GraphView.swift */; };
+		BC0C97C22B3C74E3001A672D /* JelloCompilerBlackboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */; };
 		BC1A43F22B35E3BB00AFA078 /* libJelloCompilerStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */; };
 		BC1A44362B35E5B000AFA078 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A44352B35E5B000AFA078 /* SPIRV-Headers-Swift */; };
 		BC1A44392B35E6C100AFA078 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A44382B35E6C100AFA078 /* SPIRV-Headers-Swift */; };
@@ -126,6 +127,7 @@
 
 /* Begin PBXFileReference section */
 		BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNewNodeMenuView.swift; sourceTree = "<group>"; };
+		BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerBlackboard.swift; sourceTree = "<group>"; };
 		BC2AE5712B0763ED008F75C2 /* Rope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rope.swift; sourceTree = "<group>"; };
 		BC2AE5732B0764FA008F75C2 /* VertletShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VertletShared.swift; sourceTree = "<group>"; };
 		BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeEdgesEnvironmentKey.swift; sourceTree = "<group>"; };
@@ -250,6 +252,7 @@
 				BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */,
 				BC2F077B2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift */,
 				BC2F077D2B3C0F7100D0A668 /* JelloCompilerNodeTypes.swift */,
+				BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */,
 			);
 			path = JelloCompilerStatic;
 			sourceTree = "<group>";
@@ -568,6 +571,7 @@
 				BC2F077C2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift in Sources */,
 				BC3DD0132B35796700F27E8D /* JelloCompilerFunctions.swift in Sources */,
 				BC3DD0122B35796700F27E8D /* JelloCompilerTypes.swift in Sources */,
+				BC0C97C22B3C74E3001A672D /* JelloCompilerBlackboard.swift in Sources */,
 				BC2F077E2B3C0F7100D0A668 /* JelloCompilerNodeTypes.swift in Sources */,
 				BC3DD0142B35796700F27E8D /* SpirvGenerator.swift in Sources */,
 			);

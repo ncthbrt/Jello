@@ -38,24 +38,33 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         
         var ifTrue = defaultZeroValueConstantId
         var ifFalse = defaultZeroValueConstantId
-        #iff(condId) {
-            if let trueBranch = subNodes[trueBranchTag] {
-                for node in trueBranch {
-                    node.writeFragment()
-                }
-                ifTrue = truePort.incomingEdge!.outputPort.getOrReserveId()
+
+        let trueLabel = #id
+        let falseLabel = #id
+        let endLabel = #id
+        #functionBody(opCode: SpirvOpSelectionMerge, [endLabel, 0])
+        #functionBody(opCode: SpirvOpBranchConditional, [condId, trueLabel, falseLabel])
+        #functionBody(opCode: SpirvOpLabel, [trueLabel])
+        if let trueBranch = subNodes[trueBranchTag] {
+            for node in trueBranch {
+                node.writeFragment()
             }
-        } els: {
-            if let falseBranch = subNodes[falseBranchTag] {
-                for node in falseBranch {
-                    node.writeFragment()
-                }
-                ifFalse = falsePort.incomingEdge!.outputPort.getOrReserveId()
-            }
+            ifTrue = truePort.incomingEdge!.outputPort.getOrReserveId()
         }
+        #functionBody(opCode: SpirvOpBranch, [endLabel])
+        #functionBody(opCode: SpirvOpLabel, [falseLabel])
+        if let falseBranch = subNodes[falseBranchTag] {
+            for node in falseBranch {
+                node.writeFragment()
+            }
+            ifFalse = falsePort.incomingEdge!.outputPort.getOrReserveId()
+        }
+        #functionBody(opCode: SpirvOpBranch, [endLabel])
+        #functionBody(opCode: SpirvOpLabel, [endLabel])
         let outputPort = outputPorts.first!
         let outputId = outputPort.getOrReserveId()
-        #functionBody(opCode: SpirvOpPhi, [inputOutputTypeId, outputId, ifTrue, ifFalse])
+        #functionBody(opCode: SpirvOpPhi, [inputOutputTypeId, outputId, ifTrue, trueLabel, ifFalse, falseLabel])
+        
     }
     
     public func writeVertex(){}
@@ -154,10 +163,110 @@ public class ConstantCompilerNode : CompilerNode {
     public var constraints: [PortConstraint] { [] }
     private var value: JelloConstantValue
     
-    public init(id: UUID, outputPort: OutputCompilerPort, value: JelloConstantValue) {
+    public init(id: UUID = UUID(), outputPort: OutputCompilerPort, value: JelloConstantValue) {
         self.id = id
         self.inputPorts =  []
         self.outputPorts = [outputPort]
         self.value = value
+        switch value {
+        case .bool(_):
+            outputPort.dataType = .bool
+            break
+        case .float(_):
+            outputPort.dataType = .float
+            break
+        case .float2(_):
+            outputPort.dataType = .float2
+            break
+        case .float3(_):
+            outputPort.dataType = .float3
+            break
+        case .float4(_):
+            outputPort.dataType = .float4
+            break
+        case .int(_):
+            outputPort.dataType = .int
+            break
+        }
+    }
+}
+
+
+
+public class PreviewOutputCompilerNode: CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
+    public func install() {}
+    public func writeFragment() {
+        let inputPort = inputPorts.first!
+        let floatTypeId = #typeDeclaration(opCode: SpirvOpTypeFloat, [32])
+        let float4TypeId = declareType(dataType: .float4)
+        let float4PointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassOutput.rawValue, float4TypeId])
+        let outputVariableId = JelloCompilerBlackboard.fragOutputColorId
+        #debugNames(opCode: SpirvOpName, [outputVariableId], #stringLiteral("frag_out"))
+        #annotation(opCode: SpirvOpDecorate, [outputVariableId, SpirvDecorationLocation.rawValue, 0])
+        #globalDeclaration(opCode: SpirvOpVariable, [float4PointerTypeId, outputVariableId, SpirvStorageClassOutput.rawValue])
+        var resultId: UInt32 = 0
+        if let edge = inputPort.incomingEdge {
+            switch(inputPort.concreteDataType!) {
+            case .bool:
+                resultId = #id
+                let zeroVector = #typeDeclaration(opCode: SpirvOpConstantNull, [float4TypeId])
+                let oneFloat = #typeDeclaration(opCode: SpirvOpConstant, [floatTypeId], float(1))
+                let oneVector = #typeDeclaration(opCode: SpirvOpConstantComposite, [float4TypeId, oneFloat, oneFloat, oneFloat, oneFloat])
+                #iff(edge.outputPort.getOrReserveId()) {
+                }
+                #functionBody(opCode: SpirvOpPhi, [float4TypeId, resultId, oneVector, zeroVector])
+                break
+            case .float:
+                resultId = #id
+                let outId = edge.outputPort.getOrReserveId()
+                #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, resultId, outId, outId, 0, 0, 0, 0])
+                break
+            case .float2:
+                resultId = #id
+                let outId = edge.outputPort.getOrReserveId()
+                #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, resultId, outId, outId, 0, 1, 0xFFFFFFFF, 0xFFFFFFFF])
+                break
+            case .float3:
+                resultId = #id
+                let outId = edge.outputPort.getOrReserveId()
+                #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, resultId, outId, outId, 0, 1, 2, 0xFFFFFFFF])
+                break
+            case .float4:
+                resultId = edge.outputPort.getOrReserveId()
+                break
+            case .int:
+                fatalError("Integer Preview Not Currently Supported")
+                break
+            case .slabMaterial:
+                fatalError("Material Preview Not Currently Supported")
+                break
+            case .texture1d:
+                fatalError("Texture Preview Not Currently Supported")
+            case .texture2d:
+                fatalError("Texture Preview Not Currently Supported")
+            case .texture3d:
+                fatalError("Texture Preview Not Currently Supported")
+            }
+        } else {
+            resultId = #typeDeclaration(opCode: SpirvOpConstantNull, [float4TypeId])
+        }
+        #functionBody(opCode: SpirvOpStore, [outputVariableId, resultId])
+    }
+    
+    public func writeVertex(){
+    }
+    public var branchTags: Set<UUID>
+    public var constraints: [PortConstraint] {[]}
+    public init(id: UUID = UUID(), inputPort: InputCompilerPort) {
+        self.id = id
+        self.inputPorts = [inputPort]
+        self.branchTags = Set([self.id])
+        for p in inputPorts {
+            p.newBranchId = self.id
+        }
+        inputPort.node = self
     }
 }

@@ -236,42 +236,49 @@ public func compileToSpirv(input: JelloCompilerInput) throws -> [UInt32] {
     try concretiseTypesInGraph(input: input)
     
     return #document({
+        let fragmentEntryPoint = #id
+        let vertexEntryPoint = #id
+        JelloCompilerBlackboard.fragOutputColorId = #id
+        
         #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
         let glsl450Id = #id
         #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
         #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
-        
+        #executionMode(opCode: SpirvOpExecutionMode, [fragmentEntryPoint, SpirvExecutionModeOriginUpperLeft.rawValue])
+
         for node in input.graph.nodes {
             node.install()
         }
         decomposeGraph(input: input)
         
         // Write vertex
-        let vertexEntryPoint = #id
-        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [])
+        
         let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
+    
+        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [])
         let typeVertexFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
         #functionHead(opCode: SpirvOpFunction, [typeVoid, vertexEntryPoint, 0, typeVertexFunction])
         #functionHead(opCode: SpirvOpLabel, [#id])
         for node in input.graph.nodes {
             node.writeVertex()
         }
+        #functionBody(opCode: SpirvOpReturn)
         #functionBody(opCode: SpirvOpFunctionEnd)
         SpirvFunction.instance.writeFunction()
         
         
         // Write fragment
-        let fragmentEntryPoint = #id
-        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [])
+        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [JelloCompilerBlackboard.fragOutputColorId])
         let typeFragmentFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
         #functionHead(opCode: SpirvOpFunction, [typeVoid, fragmentEntryPoint, 0, typeFragmentFunction])
         #functionHead(opCode: SpirvOpLabel, [#id])
         for node in input.graph.nodes {
             node.writeFragment()
         }
+        #functionBody(opCode: SpirvOpReturn)
         #functionBody(opCode: SpirvOpFunctionEnd)
         SpirvFunction.instance.writeFunction()
-        return
+        JelloCompilerBlackboard.clear()
     })
 }
 
