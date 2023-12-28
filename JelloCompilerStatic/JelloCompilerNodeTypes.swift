@@ -18,7 +18,7 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
     public func install() {
     }
     
-    public func writeFragment() {
+    public func write() {
         let condPort = inputPorts.first!
         let truePort = inputPorts[1]
         let falsePort = inputPorts[2]
@@ -27,13 +27,15 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         var condId: UInt32 = maybeCondResultId ?? 0
         if maybeCondResultId == nil {
             let typeBool = #typeDeclaration(opCode: SpirvOpTypeBool)
-            condId = #typeDeclaration(opCode: SpirvOpConstantFalse, [typeBool])
+            condId = #id
+            #globalDeclaration(opCode: SpirvOpConstantFalse, [typeBool, condId])
         }
         
         let inputOutputTypeId = declareType(dataType: truePort.concreteDataType!)
         var defaultZeroValueConstantId: UInt32 = 0
         if truePort.incomingEdge == nil || falsePort.incomingEdge == nil {
-            defaultZeroValueConstantId = #typeDeclaration(opCode: SpirvOpConstantNull, [inputOutputTypeId])
+            defaultZeroValueConstantId = #id
+            #globalDeclaration(opCode: SpirvOpConstantNull, [inputOutputTypeId, defaultZeroValueConstantId])
         }
         
         var ifTrue = defaultZeroValueConstantId
@@ -47,7 +49,7 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         #functionBody(opCode: SpirvOpLabel, [trueLabel])
         if let trueBranch = subNodes[trueBranchTag] {
             for node in trueBranch {
-                node.writeFragment()
+                node.write()
             }
             ifTrue = truePort.incomingEdge!.outputPort.getOrReserveId()
         }
@@ -55,7 +57,7 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         #functionBody(opCode: SpirvOpLabel, [falseLabel])
         if let falseBranch = subNodes[falseBranchTag] {
             for node in falseBranch {
-                node.writeFragment()
+                node.write()
             }
             ifFalse = falsePort.incomingEdge!.outputPort.getOrReserveId()
         }
@@ -65,8 +67,6 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         let outputId = outputPort.getOrReserveId()
         #functionBody(opCode: SpirvOpPhi, [inputOutputTypeId, outputId, ifTrue, trueLabel, ifFalse, falseLabel])
     }
-    
-    public func writeVertex(){}
     
     public var branchTags: Set<UUID> = []
     public var subNodes: [UUID: [CompilerNode]] = [:]
@@ -125,18 +125,18 @@ public class ConstantCompilerNode : CompilerNode {
             break
         case .float3(let f3):
             let floatType = declareType(dataType: .float)
-            let f2Type = declareType(dataType: .float3)
+            let f3Type = declareType(dataType: .float3)
             let c1Id = #id
             #globalDeclaration(opCode: SpirvOpConstant, [floatType, c1Id], float(f3.x))
             let c2Id = #id
             #globalDeclaration(opCode: SpirvOpConstant, [floatType, c2Id], float(f3.y))
             let c3Id = #id
             #globalDeclaration(opCode: SpirvOpConstant, [floatType, c3Id], float(f3.z))
-            #globalDeclaration(opCode: SpirvOpConstantComposite, [f2Type, constantId, c1Id, c2Id, c3Id])
+            #globalDeclaration(opCode: SpirvOpConstantComposite, [f3Type, constantId, c1Id, c2Id, c3Id])
             break
         case .float4(let f4):
             let floatType = declareType(dataType: .float)
-            let f2Type = declareType(dataType: .float4)
+            let f4Type = declareType(dataType: .float4)
             let c1Id = #id
             #globalDeclaration(opCode: SpirvOpConstant, [floatType, c1Id], float(f4.x))
             let c2Id = #id
@@ -145,16 +145,14 @@ public class ConstantCompilerNode : CompilerNode {
             #globalDeclaration(opCode: SpirvOpConstant, [floatType, c3Id], float(f4.z))
             let c4Id = #id
             #globalDeclaration(opCode: SpirvOpConstant, [floatType, c4Id], float(f4.w))
-            #globalDeclaration(opCode: SpirvOpConstantComposite, [f2Type, constantId, c1Id, c2Id, c3Id, c4Id])
+            #globalDeclaration(opCode: SpirvOpConstantComposite, [f4Type, constantId, c1Id, c2Id, c3Id, c4Id])
             break
         }
     }
     
-    public func writeFragment() {
+    public func write() {
 
     }
-    
-    public func writeVertex(){}
     
     public var branchTags: Set<UUID> = []
 
@@ -187,9 +185,9 @@ public class ConstantCompilerNode : CompilerNode {
             outputPort.dataType = .int
             break
         }
+        outputPort.node = self
     }
 }
-
 
 
 public class PreviewOutputCompilerNode: CompilerNode {
@@ -197,7 +195,7 @@ public class PreviewOutputCompilerNode: CompilerNode {
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
     public func install() {}
-    public func writeFragment() {
+    public func write() {
         let inputPort = inputPorts.first!
         let floatTypeId = #typeDeclaration(opCode: SpirvOpTypeFloat, [32])
         let float4TypeId = declareType(dataType: .float4)
@@ -211,9 +209,12 @@ public class PreviewOutputCompilerNode: CompilerNode {
             switch(inputPort.concreteDataType!) {
             case .bool:
                 resultId = #id
-                let zeroVector = #typeDeclaration(opCode: SpirvOpConstantNull, [float4TypeId])
-                let oneFloat = #typeDeclaration(opCode: SpirvOpConstant, [floatTypeId], float(1))
-                let oneVector = #typeDeclaration(opCode: SpirvOpConstantComposite, [float4TypeId, oneFloat, oneFloat, oneFloat, oneFloat])
+                let zeroVector = #id
+                #globalDeclaration(opCode: SpirvOpConstantNull, [float4TypeId, zeroVector])
+                let oneFloat = #id
+                #globalDeclaration(opCode: SpirvOpConstant, [floatTypeId, oneFloat], float(1))
+                let oneVector = #id
+                #globalDeclaration(opCode: SpirvOpConstantComposite, [float4TypeId, oneVector, oneFloat, oneFloat, oneFloat, oneFloat])
                 let trueLabel = #id
                 let falseLabel = #id
                 let endLabel = #id
@@ -258,13 +259,12 @@ public class PreviewOutputCompilerNode: CompilerNode {
                 fatalError("Texture Preview Not Currently Supported")
             }
         } else {
-            resultId = #typeDeclaration(opCode: SpirvOpConstantNull, [float4TypeId])
+            resultId = #id
+            #globalDeclaration(opCode: SpirvOpConstantNull, [float4TypeId, resultId])
         }
         #functionBody(opCode: SpirvOpStore, [outputVariableId, resultId])
     }
     
-    public func writeVertex(){
-    }
     public var branchTags: Set<UUID>
     public var constraints: [PortConstraint] {[]}
     public init(id: UUID = UUID(), inputPort: InputCompilerPort) {
@@ -275,5 +275,248 @@ public class PreviewOutputCompilerNode: CompilerNode {
             p.newBranchId = self.id
         }
         inputPort.node = self
+    }
+}
+
+
+public class AddCompilerNode: CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
+    public func install() {}
+    
+    public func write() {
+        let fst = inputPorts.first!
+        let typeId = declareType(dataType: fst.concreteDataType!)
+        let zero = #id
+        #globalDeclaration(opCode: SpirvOpConstantNull, [typeId, zero])
+        var prevResultId = fst.incomingEdge?.outputPort.getOrReserveId() ?? zero
+        guard let f = getAddOperation(typeId: typeId, dataType: fst.concreteDataType!) else {
+            fatalError("\(fst.concreteDataType!) does not support the add operation")
+        }
+        for p in inputPorts.dropFirst().filter({$0.incomingEdge != nil}) {
+            prevResultId = f(prevResultId, p.incomingEdge?.outputPort.getOrReserveId() ?? zero)
+        }
+        outputPorts.first!.setReservedId(reservedId: prevResultId)
+    }
+    
+    func getAddOperation(typeId: UInt32, dataType: JelloConcreteDataType) -> ((UInt32, UInt32) -> UInt32)? {
+        switch (dataType) {
+        case .float, .float2, .float3, .float4:
+            return { a, b in
+                let resultId = #id
+                #functionBody(opCode: SpirvOpFAdd, [typeId, resultId, a, b])
+                return resultId
+            }
+        case .int:
+            return { a, b in
+                let resultId = #id
+                #functionBody(opCode: SpirvOpIAdd, [typeId, resultId, a, b])
+                return resultId
+            }
+        default:
+            return nil
+        }
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var constraints: [PortConstraint] {
+        var ports = inputPorts.map({$0.id})
+        ports.append(contentsOf: outputPorts.map({$0.id}))
+        return [SameTypesConstraint(ports: Set(ports))]
+    }
+    
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPort: OutputCompilerPort) {
+        self.id = id
+        self.inputPorts = inputPorts
+        self.outputPorts = [outputPort]
+        for p in inputPorts {
+            p.node = self
+        }
+        outputPort.node = self
+    }
+}
+
+public class SubtractCompilerNode: CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
+    public func install() {}
+    
+    public func write() {
+        let fst = inputPorts.first!
+        let typeId = declareType(dataType: fst.concreteDataType!)
+        let zero = #id
+        #globalDeclaration(opCode: SpirvOpConstantNull, [typeId, zero])
+        var prevResultId = fst.incomingEdge?.outputPort.getOrReserveId() ?? zero
+        guard let f = getSubtractOperation(typeId: typeId, dataType: fst.concreteDataType!) else {
+            fatalError("\(fst.concreteDataType!) does not support the subtract operation")
+        }
+        for p in inputPorts.dropFirst().filter({$0.incomingEdge != nil}) {
+            prevResultId = f(prevResultId, p.incomingEdge?.outputPort.getOrReserveId() ?? zero)
+        }
+        outputPorts.first!.setReservedId(reservedId: prevResultId)
+    }
+    
+    func getSubtractOperation(typeId: UInt32, dataType: JelloConcreteDataType) -> ((UInt32, UInt32) -> UInt32)? {
+        switch (dataType) {
+        case .float, .float2, .float3, .float4:
+            return { a, b in
+                let resultId = #id
+                #functionBody(opCode: SpirvOpFSub, [typeId, resultId, a, b])
+                return resultId
+            }
+        case .int:
+            return { a, b in
+                let resultId = #id
+                #functionBody(opCode: SpirvOpISub, [typeId, resultId, a, b])
+                return resultId
+            }
+        default:
+            return nil
+        }
+    }
+    
+    public var branchTags: Set<UUID>
+    public var constraints: [PortConstraint] {
+        var ports = inputPorts.map({$0.id})
+        ports.append(contentsOf: outputPorts.map({$0.id}))
+        return [SameTypesConstraint(ports: Set(ports))]
+    }
+    
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPorts: [OutputCompilerPort]) {
+        self.id = id
+        self.inputPorts = inputPorts
+        self.outputPorts = outputPorts
+        self.branchTags = Set([self.id])
+        for p in inputPorts {
+            p.node = self
+        }
+        for p in outputPorts {
+            p.node = self
+        }
+    }
+}
+
+public class MultiplyCompilerNode: CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
+    public func install() {}
+    
+    public func write() {
+        let fst = inputPorts.first!
+        let typeId = declareType(dataType: fst.concreteDataType!)
+        let zero = #id
+        #globalDeclaration(opCode: SpirvOpConstantNull, [typeId, zero])
+        var prevResultId = fst.incomingEdge?.outputPort.getOrReserveId() ?? zero
+        guard let f = getMultiplyOperation(typeId: typeId, dataType: fst.concreteDataType!) else {
+            fatalError("\(fst.concreteDataType!) does not support the mult operation")
+        }
+        for p in inputPorts.dropFirst().filter({$0.incomingEdge != nil}) {
+            prevResultId = f(prevResultId, p.incomingEdge?.outputPort.getOrReserveId() ?? zero)
+        }
+        outputPorts.first!.setReservedId(reservedId: prevResultId)
+    }
+    
+    func getMultiplyOperation(typeId: UInt32, dataType: JelloConcreteDataType) -> ((UInt32, UInt32) -> UInt32)? {
+        switch (dataType) {
+        case .float, .float2, .float3, .float4:
+            return { a, b in
+                let resultId = #id
+                #functionBody(opCode: SpirvOpFMul, [typeId, resultId, a, b])
+                return resultId
+            }
+        case .int:
+            return { a, b in
+                let resultId = #id
+                #functionBody(opCode: SpirvOpIMul, [typeId, resultId, a, b])
+                return resultId
+            }
+        default:
+            return nil
+        }
+    }
+    
+    public var branchTags: Set<UUID>
+    public var constraints: [PortConstraint] {
+        var ports = inputPorts.map({$0.id})
+        ports.append(contentsOf: outputPorts.map({$0.id}))
+        return [SameTypesConstraint(ports: Set(ports))]
+    }
+    
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPorts: [OutputCompilerPort]) {
+        self.id = id
+        self.inputPorts = inputPorts
+        self.outputPorts = outputPorts
+        self.branchTags = Set([self.id])
+        for p in inputPorts {
+            p.node = self
+        }
+        for p in outputPorts {
+            p.node = self
+        }
+    }
+}
+
+
+public class DivideCompilerNode: CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
+    public func install() {}
+    
+    public func write() {
+        let fst = inputPorts.first!
+        let typeId = declareType(dataType: fst.concreteDataType!)
+        let zero = #id
+        #globalDeclaration(opCode: SpirvOpConstantNull, [typeId, zero])
+        var prevResultId = fst.incomingEdge?.outputPort.getOrReserveId() ?? zero
+        guard let f = getDivideOperation(typeId: typeId, dataType: fst.concreteDataType!) else {
+            fatalError("\(fst.concreteDataType!) does not support the divide operation")
+        }
+        for p in inputPorts.dropFirst().filter({$0.incomingEdge != nil}) {
+            prevResultId = f(prevResultId, p.incomingEdge?.outputPort.getOrReserveId() ?? zero)
+        }
+        outputPorts.first!.setReservedId(reservedId: prevResultId)
+    }
+    
+    func getDivideOperation(typeId: UInt32, dataType: JelloConcreteDataType) -> ((UInt32, UInt32) -> UInt32)? {
+        switch (dataType) {
+        case .float, .float2, .float3, .float4:
+            return { a, b in
+                let resultId = #id
+                #functionBody(opCode: SpirvOpFDiv, [typeId, resultId, a, b])
+                return resultId
+            }
+        case .int:
+            return { a, b in
+                let resultId = #id
+                #functionBody(opCode: SpirvOpSDiv, [typeId, resultId, a, b])
+                return resultId
+            }
+        default:
+            return nil
+        }
+    }
+    
+    public var branchTags: Set<UUID>
+    public var constraints: [PortConstraint] {
+        var ports = inputPorts.map({$0.id})
+        ports.append(contentsOf: outputPorts.map({$0.id}))
+        return [SameTypesConstraint(ports: Set(ports))]
+    }
+    
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPorts: [OutputCompilerPort]) {
+        self.id = id
+        self.inputPorts = inputPorts
+        self.outputPorts = outputPorts
+        self.branchTags = Set([self.id])
+        for p in inputPorts {
+            p.node = self
+        }
+        for p in outputPorts {
+            p.node = self
+        }
     }
 }

@@ -15,7 +15,7 @@ class GenericTestNode : CompilerNode {
     public var outputPorts: [OutputCompilerPort]
     public func install() {}
     public func writeVertex(){}
-    public func writeFragment(){}
+    public func write(){}
     public var branchTags: Set<UUID>
     public var constraints: [PortConstraint] = []
     

@@ -157,8 +157,7 @@ public class MaterialOutputCompilerNode: CompilerNode {
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
     public func install() {}
-    public func writeFragment() {}
-    public func writeVertex(){}
+    public func write() {}
     public var branchTags: Set<UUID>
     public var constraints: [PortConstraint] { [] }
     public init(id: UUID, inputPort: InputCompilerPort) {
@@ -175,8 +174,7 @@ public class MaterialOutputCompilerNode: CompilerNode {
 public protocol CompilerNode {
     var id: UUID { get }
     func install()
-    func writeFragment()
-    func writeVertex()
+    func write()
     var inputPorts: [InputCompilerPort] { get }
     var outputPorts: [OutputCompilerPort] { get }
     var branchTags: Set<UUID> { get set }
@@ -242,6 +240,10 @@ public class OutputCompilerPort: Hashable, Identifiable {
         reservedSpirvId = nil
     }
     
+    public func setReservedId(reservedId: UInt32) {
+        reservedSpirvId = reservedId
+    }
+    
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
@@ -250,7 +252,6 @@ public class OutputCompilerPort: Hashable, Identifiable {
     public static func == (lhs: OutputCompilerPort, rhs: OutputCompilerPort) -> Bool {
         lhs.id == rhs.id
     }
-
 }
 
 public class CompilerEdge {

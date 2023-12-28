@@ -229,7 +229,7 @@ func prepareInput(input: JelloCompilerInput) throws {
 
 
 
-public func compileToSpirv(input: JelloCompilerInput) throws -> (vertex: [UInt32], fragment: [UInt32]) {
+public func compileToSpirv(input: JelloCompilerInput) throws -> (vertex: [UInt32]?, fragment: [UInt32]?) {
     labelBranches(input: input)
     pruneGraph(input: input)
     topologicallyOrderGraph(input: input)
@@ -237,31 +237,32 @@ public func compileToSpirv(input: JelloCompilerInput) throws -> (vertex: [UInt32
     let nodes = input.graph.nodes
     decomposeGraph(input: input)
     
-    let vertex = #document({
-        let vertexEntryPoint = #id
-        #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
-        let glsl450Id = #id
-        #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
-        #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
-        for node in nodes {
-            node.install()
-        }
-        let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
-        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [])
-        
-        let typeVertexFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
-        #functionHead(opCode: SpirvOpFunction, [typeVoid, vertexEntryPoint, 0, typeVertexFunction])
-        #functionHead(opCode: SpirvOpLabel, [#id])
-        for node in input.graph.nodes {
-            node.writeVertex()
-        }
-        
-        #functionBody(opCode: SpirvOpReturn)
-        #functionBody(opCode: SpirvOpFunctionEnd)
-        
-        SpirvFunction.instance.writeFunction()
-        JelloCompilerBlackboard.clear()
-    })
+//    let vertex = #document({
+//        let vertexEntryPoint = #id
+//        #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
+//        let glsl450Id = #id
+//        #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
+//        #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
+//        for node in nodes {
+//            node.install()
+//        }
+//        let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
+//        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [])
+//        
+//        let typeVertexFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
+//        #functionHead(opCode: SpirvOpFunction, [typeVoid, vertexEntryPoint, 0, typeVertexFunction])
+//        #functionHead(opCode: SpirvOpLabel, [#id])
+//        for node in input.graph.nodes {
+//            node.write()
+//        }
+//        
+//        #functionBody(opCode: SpirvOpReturn)
+//        #functionBody(opCode: SpirvOpFunctionEnd)
+//        
+//        SpirvFunction.instance.writeFunction()
+//        JelloCompilerBlackboard.clear()
+//    })
+    let vertex: [UInt32]? = nil
     
     for outputPort in nodes.flatMap({$0.outputPorts}) {
         outputPort.clearReservation()
@@ -284,7 +285,7 @@ public func compileToSpirv(input: JelloCompilerInput) throws -> (vertex: [UInt32
         #functionHead(opCode: SpirvOpFunction, [typeVoid, fragmentEntryPoint, 0, typeFragmentFunction])
         #functionHead(opCode: SpirvOpLabel, [#id])
         for node in input.graph.nodes {
-            node.writeFragment()
+            node.write()
         }
         #functionBody(opCode: SpirvOpReturn)
         #functionBody(opCode: SpirvOpFunctionEnd)
