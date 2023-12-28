@@ -377,24 +377,21 @@ public class SubtractCompilerNode: CompilerNode {
         }
     }
     
-    public var branchTags: Set<UUID>
+    public var branchTags: Set<UUID> = []
     public var constraints: [PortConstraint] {
         var ports = inputPorts.map({$0.id})
         ports.append(contentsOf: outputPorts.map({$0.id}))
         return [SameTypesConstraint(ports: Set(ports))]
     }
     
-    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPorts: [OutputCompilerPort]) {
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPort: OutputCompilerPort) {
         self.id = id
         self.inputPorts = inputPorts
-        self.outputPorts = outputPorts
-        self.branchTags = Set([self.id])
+        self.outputPorts = [outputPort]
         for p in inputPorts {
             p.node = self
         }
-        for p in outputPorts {
-            p.node = self
-        }
+        outputPort.node = self
     }
 }
 
@@ -438,24 +435,21 @@ public class MultiplyCompilerNode: CompilerNode {
         }
     }
     
-    public var branchTags: Set<UUID>
+    public var branchTags: Set<UUID> = []
     public var constraints: [PortConstraint] {
         var ports = inputPorts.map({$0.id})
         ports.append(contentsOf: outputPorts.map({$0.id}))
         return [SameTypesConstraint(ports: Set(ports))]
     }
     
-    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPorts: [OutputCompilerPort]) {
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPort: OutputCompilerPort) {
         self.id = id
         self.inputPorts = inputPorts
-        self.outputPorts = outputPorts
-        self.branchTags = Set([self.id])
+        self.outputPorts = [outputPort]
         for p in inputPorts {
             p.node = self
         }
-        for p in outputPorts {
-            p.node = self
-        }
+        outputPort.node = self
     }
 }
 
@@ -500,23 +494,20 @@ public class DivideCompilerNode: CompilerNode {
         }
     }
     
-    public var branchTags: Set<UUID>
+    public var branchTags: Set<UUID> = []
     public var constraints: [PortConstraint] {
         var ports = inputPorts.map({$0.id})
         ports.append(contentsOf: outputPorts.map({$0.id}))
         return [SameTypesConstraint(ports: Set(ports))]
     }
     
-    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPorts: [OutputCompilerPort]) {
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPort: OutputCompilerPort) {
         self.id = id
         self.inputPorts = inputPorts
-        self.outputPorts = outputPorts
-        self.branchTags = Set([self.id])
+        self.outputPorts = [outputPort]
         for p in inputPorts {
             p.node = self
         }
-        for p in outputPorts {
-            p.node = self
-        }
+        outputPort.node = self
     }
 }
