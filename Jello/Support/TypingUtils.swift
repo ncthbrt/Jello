@@ -12,6 +12,8 @@ extension JelloNodeCategory {
             return Gradient(colors: [.blue, .orange])
         case .material:
             return Gradient(colors: [.blue, .purple])
+        case .value:
+            return Gradient(colors: [.red, .purple])
         }
     }
 }

@@ -45,6 +45,9 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
         ],
         .utility: [
             JelloBuiltInNodeMenuDefinition(description: "Preview Arbitrary Values", previewImage: "", category: .utility, type: .preview),
+        ],
+        .value: [
+            JelloBuiltInNodeMenuDefinition(description: "Outputs a Vector4 Color Value", previewImage: "", category: .value, type: .color),
         ]
     ]
 }

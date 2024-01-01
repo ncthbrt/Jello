@@ -17,6 +17,8 @@ enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable {
     case slabShader = 101
     case preview = 102
 
+    case color
+    
     
     var name : String {
         return String(describing: self).capitalized
@@ -64,6 +66,7 @@ enum JelloNodeCategory: Int, Codable, CaseIterable, Identifiable {
     case other = 1
     case material = 2
     case utility = 3
+    case value = 4
     var id: Int { self.rawValue }
 }
 

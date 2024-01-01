@@ -131,7 +131,6 @@ final class JelloAddTest: XCTestCase {
         let (vertex:vertexSpirv, fragment: fragmentSpirv) = try compileToSpirv(input: input!)
         XCTAssertNotNil(fragmentSpirv)
         XCTAssertNil(vertexSpirv)
-        print(fragmentSpirv)
         guard let someSpirv = fragmentSpirv else {
             return
         }
@@ -198,7 +197,6 @@ final class JelloSubtractTest: XCTestCase {
         let (vertex:vertexSpirv, fragment: fragmentSpirv) = try compileToSpirv(input: input!)
         XCTAssertNotNil(fragmentSpirv)
         XCTAssertNil(vertexSpirv)
-        print(fragmentSpirv)
         guard let someSpirv = fragmentSpirv else {
             return
         }
@@ -266,7 +264,6 @@ final class JelloDivideTest: XCTestCase {
         let (vertex:vertexSpirv, fragment: fragmentSpirv) = try compileToSpirv(input: input!)
         XCTAssertNotNil(fragmentSpirv)
         XCTAssertNil(vertexSpirv)
-        print(fragmentSpirv)
         guard let someSpirv = fragmentSpirv else {
             return
         }
@@ -335,7 +332,6 @@ final class JelloMultiplyTest: XCTestCase {
         let (vertex:vertexSpirv, fragment: fragmentSpirv) = try compileToSpirv(input: input!)
         XCTAssertNotNil(fragmentSpirv)
         XCTAssertNil(vertexSpirv)
-        print(fragmentSpirv)
         guard let someSpirv = fragmentSpirv else {
             return
         }

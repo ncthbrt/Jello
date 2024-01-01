@@ -129,6 +129,7 @@ struct NodeView: View {
 struct NodeControllerView : View {
     let node: JelloNode
     let controller: any JelloNodeController
+    
     @Environment(JelloCompilerService.self) private var compiler
     init(node: JelloNode) {
         self.node = node

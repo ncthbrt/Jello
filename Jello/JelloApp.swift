@@ -47,6 +47,7 @@ struct JelloVersionedSchema: VersionedSchema {
         JelloEdge.self,
         JelloNode.self,
         JelloInputPort.self,
-        JelloOutputPort.self
+        JelloOutputPort.self,
+        JelloNodeData.self
     ]
 }

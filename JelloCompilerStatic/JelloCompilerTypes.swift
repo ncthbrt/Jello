@@ -258,7 +258,7 @@ public class CompilerEdge {
     public var inputPort: InputCompilerPort
     public var outputPort: OutputCompilerPort
 
-    public init(inputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
+    @discardableResult public init(inputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
         self.inputPort = inputPort
         self.outputPort = outputPort
         self.inputPort.incomingEdge = self

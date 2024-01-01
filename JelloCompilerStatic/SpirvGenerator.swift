@@ -34,7 +34,7 @@ public func compileMSLShader(spirv: [UInt32]) throws -> String  {
         spvc_context_destroy(context);
     }
     
-    var errorContext: SpirvCompilationErrorContext = .init()
+    let errorContext: SpirvCompilationErrorContext = .init()
     let errorContextPointer = Unmanaged.passRetained(errorContext).toOpaque()
 
     spvc_context_set_error_callback(context, { errorContext, message in

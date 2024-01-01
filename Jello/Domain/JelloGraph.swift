@@ -143,7 +143,10 @@ final class JelloNode  {
     var material: JelloMaterial?
     
     var function: JelloFunction?
-
+    
+    @Relationship(deleteRule: .cascade, inverse: \JelloNodeData.node)
+    var data: [JelloNodeData]
+    
     fileprivate(set) var minX: Float
     fileprivate(set) var minY: Float
     fileprivate(set) var maxX: Float
@@ -192,7 +195,7 @@ final class JelloNode  {
     }
     
     var type: JelloNodeType
-     
+    
     @Relationship(deleteRule: .cascade, inverse: \JelloInputPort.node)
     private var inputPorts: [JelloInputPort]
     
@@ -200,7 +203,7 @@ final class JelloNode  {
     private var outputPorts: [JelloOutputPort]
     
     
-    private init(type: JelloNodeType, material: JelloMaterial?, function: JelloFunction?, graph: JelloGraph, uuid: UUID, inputPorts: [JelloInputPort], outputPorts: [JelloOutputPort], position: CGPoint, size: CGSize) {
+    private init(type: JelloNodeType, material: JelloMaterial?, function: JelloFunction?, graph: JelloGraph, uuid: UUID, inputPorts: [JelloInputPort], outputPorts: [JelloOutputPort], position: CGPoint, size: CGSize, data: [JelloNodeData]) {
         self.type = type
         self.graph = graph
         self.uuid = uuid
@@ -208,6 +211,7 @@ final class JelloNode  {
         self.function = function
         self.inputPorts = inputPorts
         self.outputPorts = outputPorts
+        self.data = data
         positionX = Float(position.x)
         positionY = Float(position.y)
         width = Float(size.width)
@@ -219,17 +223,17 @@ final class JelloNode  {
     }
     
     
-    convenience init(material: JelloMaterial, graph: JelloGraph, position: CGPoint) {
-        self.init(type: .material(material.uuid), material: material, function: nil, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero)
+    convenience init(material: JelloMaterial, graph: JelloGraph, position: CGPoint, data: [JelloNodeData] = []) {
+        self.init(type: .material(material.uuid), material: material, function: nil, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero, data: data)
     }
     
-    convenience init(function: JelloFunction, graph: JelloGraph, position: CGPoint) {
-        self.init(type: .userFunction(function.uuid), material: nil, function: function, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero)
+    convenience init(function: JelloFunction, graph: JelloGraph, position: CGPoint, data: [JelloNodeData] = []) {
+        self.init(type: .userFunction(function.uuid), material: nil, function: function, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero, data: data)
     }
     
     
-    convenience init(builtIn: JelloBuiltInNodeSubtype, graph: JelloGraph, position: CGPoint) {
-        self.init(type: .builtIn(builtIn), material: nil, function: nil, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero)
+    convenience init(builtIn: JelloBuiltInNodeSubtype, graph: JelloGraph, position: CGPoint, data: [JelloNodeData] = []) {
+        self.init(type: .builtIn(builtIn), material: nil, function: nil, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero, data: data)
     }
 
 }

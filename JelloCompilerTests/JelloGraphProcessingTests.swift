@@ -657,7 +657,7 @@ final class JelloDecomposeGraphTest: XCTestCase {
         var graph = CompilerGraph()
         var outputInPort = InputCompilerPort()
         outputNode = PreviewOutputCompilerNode(id: UUID(), inputPort: outputInPort)
-        var output = JelloCompilerInput.Output.previewOutput(outputNode!)
+        let output = JelloCompilerInput.Output.previewOutput(outputNode!)
 
         
         outputInPort.node = outputNode
