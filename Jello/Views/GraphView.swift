@@ -14,9 +14,10 @@ struct GraphView<AddNodeMenu: View> : View {
     @Query var freeEdges: [JelloEdge]
 
     @Environment(\.modelContext) var modelContext
-    
+    @Environment(JelloCompilerService.self) var compiler
     @ViewBuilder var onOpenAddNodeMenu: (CGPoint) -> AddNodeMenu
     
+    @State private var showNodeInspector : Bool = false
     @State private var showNodeMenu : Bool = false
     @State private var tapLocation: CGPoint = .zero
     @State private var scale : CGFloat = 1
@@ -77,7 +78,7 @@ struct GraphView<AddNodeMenu: View> : View {
                     ZStack {
                         ForEach(nodes) { node in
                             if !node.isDeleted {
-                                NodeControllerView(node: node)
+                                NodeControllerView(node: node, showInspector: $showNodeInspector)
                             }
                         }
                         .freeEdges(freeEdgesEnvironmentValue)
@@ -105,6 +106,7 @@ struct GraphView<AddNodeMenu: View> : View {
                 }
                 .onTapGesture(count: 1) { location in
                     selection.selectedNodes.removeAll()
+                    showNodeInspector = false
                 }
                 .gesture(DragGesture()
                     .onChanged { event in
@@ -147,7 +149,18 @@ struct GraphView<AddNodeMenu: View> : View {
                     self.updateViewBounds()
                 })
             }
-        }
+        }.inspector(isPresented: $showNodeInspector, content: {
+            if selection.selectedNodes.count == 1 {
+                let nodeId  = selection.selectedNodes.first!
+                let node = nodes.first(where: {$0.uuid == nodeId})!
+                let controller = JelloNodeControllerFactory.getController(node)
+                if controller.hasSettings {
+                    controller.settingsView(compiler: compiler, node: node)
+                                .background(.ultraThinMaterial)
+                                .inspectorColumnWidth(ideal: 500)
+                }
+            }
+        })
     }
         
 }

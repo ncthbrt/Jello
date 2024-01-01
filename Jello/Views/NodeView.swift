@@ -19,11 +19,13 @@ fileprivate struct NodeRendererView: View {
     @Environment(\.boxSelection) var boxSelection
     @EnvironmentObject var simulationRunner: SimulationRunner
     @State var uuid: UUID = UUID()
-    
+
     var node : JelloNode
     @ObservedObject var sim: JellyBoxVertletSimulation
     @ViewBuilder let innerBody: (@escaping (inout Path) -> ()) -> AnyView
     let gradient: Gradient
+    @Binding var showInspector: Bool
+    let hasSettings: Bool
 
     var body: some View {
         ZStack {
@@ -89,6 +91,13 @@ fileprivate struct NodeRendererView: View {
                 sim.dragging = false
             }
         )
+        .onTapGesture(count: 1) {
+            if hasSettings {
+                boxSelection.selectedNodes.removeAll()
+                boxSelection.selectedNodes.insert(node.uuid)
+                showInspector = true
+            }
+        }
         .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
         .onAppear() {
             self.sim.setup(dimensions: vector_float2(x: Float(node.width), y: Float(node.height)), topLeft: vector_float2(node.position), constraintIterations: 4, updateIterations: 2, radius: Float(JelloNode.cornerRadius))
@@ -119,27 +128,34 @@ struct NodeView: View {
     let gradient: Gradient
     
     @ViewBuilder let innerBody: (@escaping (inout Path) -> ()) -> AnyView
+    @Binding var showInspector: Bool
+    let hasSettings: Bool
 
+    
     @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
     var body: some View {
-        NodeRendererView(node: node, sim: sim, innerBody: innerBody, gradient: gradient)
+        NodeRendererView(node: node, sim: sim, innerBody: innerBody, gradient: gradient, showInspector: $showInspector, hasSettings: hasSettings)
     }
 }
 
 struct NodeControllerView : View {
     let node: JelloNode
     let controller: any JelloNodeController
-    
+    @Binding var showInspector: Bool
     @Environment(JelloCompilerService.self) private var compiler
-    init(node: JelloNode) {
+    
+    init(node: JelloNode, showInspector: Binding<Bool>) {
         self.node = node
+        self._showInspector = showInspector
         self.controller = JelloNodeControllerFactory.getController(node)
     }
     
     
     var body: some View {
         if !node.isDeleted {
-            NodeView(node: node, gradient: controller.category.getCategoryGradient(), innerBody: { path in controller.body(compiler: compiler, node: node, drawBounds: path) })
+            NodeView(node: node, gradient: controller.category.getCategoryGradient(), innerBody: { path in controller.body(compiler: compiler, node: node, drawBounds: path) }, showInspector: $showInspector, hasSettings: controller.hasSettings)
         }
     }
 }
+
+

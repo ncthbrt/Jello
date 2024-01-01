@@ -12,13 +12,11 @@ import SwiftData
 struct ColorNodeView : View {
     private var node: JelloNode
     private var drawBounds: (inout Path) -> ()
-    private var openSettingsView: () -> ()
     @Query private var nodeData: [JelloNodeData]
     
-    init(node: JelloNode, drawBounds:  @escaping (inout Path) -> (), openSettingsView: @escaping () -> ()) {
+    init(node: JelloNode, drawBounds:  @escaping (inout Path) -> ()) {
         self.node = node
         self.drawBounds = drawBounds
-        self.openSettingsView = openSettingsView
         let nodeId = node.uuid
         self._nodeData = Query(filter: #Predicate<JelloNodeData> { data in data.node?.uuid == nodeId })
     }
@@ -41,9 +39,6 @@ struct ColorNodeView : View {
                 Spacer()
             }
             .padding(.all, JelloNode.padding)
-            .onTapGesture {
-                openSettingsView()
-            }
         })
     }
 }

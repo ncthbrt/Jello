@@ -20,7 +20,7 @@ protocol JelloNodeController {
     func onInputPortDisconnected(compiler: JelloCompilerService, port: JelloInputPort, edge: JelloEdge)
     func onOutputPortDisconnected(compiler: JelloCompilerService, port: JelloInputPort, edge: JelloEdge)
     var category: JelloNodeCategory { get }
-    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> (), openSettingsView: @escaping () -> ()) -> AnyView
+    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView
 
     var hasSettings: Bool{ get }
     @ViewBuilder func settingsView(compiler: JelloCompilerService, node: JelloNode) -> AnyView
@@ -35,7 +35,7 @@ extension JelloNodeController {
     func onOutputPortDisconnected(compiler: JelloCompilerService, port: JelloInputPort, edge: JelloEdge) {}
     var hasSettings: Bool { false }
     
-    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> (), openSettingsView: @escaping () -> ()) -> AnyView {
+    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             VStack {
                 Text(node.name ?? "Unknown").font(.title2).minimumScaleFactor(0.2)
@@ -117,7 +117,7 @@ fileprivate class JelloOutputNodeController: JelloNodeController {
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
-    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> (), openSettingsView: @escaping () -> ()) -> AnyView {
+    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             ZStack {
                 GeometryReader { geometry in
@@ -154,7 +154,7 @@ fileprivate class JelloPreviewNodeController: JelloNodeController {
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
-    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> (), openSettingsView: @escaping () -> ()) -> AnyView {
+    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             ZStack {
                 GeometryReader { geometry in
@@ -187,14 +187,16 @@ fileprivate class JelloColorNodeController: JelloNodeController {
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
-    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> (), openSettingsView: @escaping () -> ()) -> AnyView {
+    var hasSettings: Bool { true }
+    
+    @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
-            ColorNodeView(node: node, drawBounds: drawBounds, openSettingsView: openSettingsView)
+            ColorNodeView(node: node, drawBounds: drawBounds)
         )
     }
     
     @ViewBuilder func settingsView(compiler: JelloCompilerService, node: JelloNode) -> AnyView {
-        AnyView(EmptyView())
+        AnyView(ColorSettingsView())
     }
 }
 
