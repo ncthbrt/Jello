@@ -57,7 +57,6 @@
 		BCCE16082B1723A8000370CB /* ControlGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16072B1723A8000370CB /* ControlGeometry.swift */; };
 		BCCE160A2B1723D5000370CB /* ControlHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16092B1723D5000370CB /* ControlHelpers.swift */; };
 		BCCE160C2B1723F3000370CB /* PlanarGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */; };
-		BCCE160E2B172413000370CB /* SingleTouchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE160D2B172413000370CB /* SingleTouchView.swift */; };
 		BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE160F2B172426000370CB /* TwoParameterControl.swift */; };
 		BCCE161A2B1724C4000370CB /* IndexedSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16122B1724C3000370CB /* IndexedSlider.swift */; };
 		BCCE161B2B1724C4000370CB /* PitchWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16132B1724C3000370CB /* PitchWheel.swift */; };
@@ -169,7 +168,6 @@
 		BCCE16072B1723A8000370CB /* ControlGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlGeometry.swift; sourceTree = "<group>"; };
 		BCCE16092B1723D5000370CB /* ControlHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlHelpers.swift; sourceTree = "<group>"; };
 		BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanarGeometry.swift; sourceTree = "<group>"; };
-		BCCE160D2B172413000370CB /* SingleTouchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleTouchView.swift; sourceTree = "<group>"; };
 		BCCE160F2B172426000370CB /* TwoParameterControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoParameterControl.swift; sourceTree = "<group>"; };
 		BCCE16122B1724C3000370CB /* IndexedSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexedSlider.swift; sourceTree = "<group>"; };
 		BCCE16132B1724C3000370CB /* PitchWheel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PitchWheel.swift; sourceTree = "<group>"; };
@@ -246,7 +244,6 @@
 				BCCE16072B1723A8000370CB /* ControlGeometry.swift */,
 				BCCE16092B1723D5000370CB /* ControlHelpers.swift */,
 				BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */,
-				BCCE160D2B172413000370CB /* SingleTouchView.swift */,
 				BCCE160F2B172426000370CB /* TwoParameterControl.swift */,
 			);
 			path = Controls;
@@ -618,7 +615,6 @@
 				BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */,
 				BCCE161B2B1724C4000370CB /* PitchWheel.swift in Sources */,
 				BC31EB712B035F52004401FC /* JelloNodeController.swift in Sources */,
-				BCCE160E2B172413000370CB /* SingleTouchView.swift in Sources */,
 				BC614E8C2B0B48F800AA18E5 /* BoxSelectionView.swift in Sources */,
 				BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */,
 				BC2AE5762B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift in Sources */,

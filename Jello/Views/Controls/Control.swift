@@ -52,20 +52,18 @@ public struct Control<Content: View>: View {
         GeometryReader { proxy in
             ZStack {
                 content(proxy)
-                SingleTouchView { touch in
-                    if let touch = touch {
-                        if !hasStarted {
-                            onStarted()
-                            hasStarted = true
-                        }
-                        touchLocation = touch
-                    } else {
-                        touchLocation = .zero
-                        onEnded()
-                        hasStarted = false
-                    }
-                }
             }
+            .gesture(DragGesture().onChanged({ value in
+                if !hasStarted {
+                    onStarted()
+                    hasStarted = true
+                }
+                touchLocation = value.location
+            }).onEnded({ _ in
+                touchLocation = .zero
+                onEnded()
+                hasStarted = false
+            }))
             .onAppear {
                 rect = proxy.frame(in: .local)
             }

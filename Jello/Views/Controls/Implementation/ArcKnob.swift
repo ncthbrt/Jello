@@ -90,11 +90,11 @@ public struct ArcKnob<Foreground : ShapeStyle, Background: ShapeStyle> : View {
                     .shadow(radius: 10)
                     .squareFrame(dim(geo) * 0.8)
 
-                Text("\(isShowingValue ? "\(Int(value))" : text)")
+                Text("\(isShowingValue ? "\(value)" : text)")
                     .frame(width: dim(geo) * 0.8)
                     .font(Font.system(size: dim(geo) * 0.2, weight: .bold).monospaced().italic())
                     .foregroundStyle(textColor)
-            }
+            }.contentShape(.rect)
         }
     }
 }
