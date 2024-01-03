@@ -18,44 +18,22 @@ import simd
         self.modelContext = modelContext
     }
     
-    func compileOutputs(materialId: UUID) async throws {
-        if let someModelContext = modelContext {
-            try someModelContext.transaction {
-                guard let someMaterial = try? someModelContext.fetch(FetchDescriptor<JelloMaterial>(predicate: #Predicate{ $0.uuid == materialId })).first  else {
-                    return
-                }
-                let graphId = someMaterial.graph.uuid
-                
-                guard let someGraph = try? someModelContext.fetch(FetchDescriptor<JelloGraph>(predicate: #Predicate{ $0.uuid == graphId })).first else {
-                    return
-                }
-                
-                guard let nodes = try? someModelContext.fetch(FetchDescriptor<JelloNode>(predicate: #Predicate{ $0.graph?.uuid == graphId })) else {
-                    return
-                }
-                
-                guard let edges = try? someModelContext.fetch(FetchDescriptor<JelloEdge>(predicate: #Predicate{ $0.graph?.uuid == graphId })) else {
-                    return
-                }
-                
-                guard let inputPorts = try? someModelContext.fetch(FetchDescriptor<JelloInputPort>(predicate: #Predicate{ $0.node?.graph?.uuid == graphId })) else {
-                    return
-                }
-                
-                guard let outputPorts = try? someModelContext.fetch(FetchDescriptor<JelloOutputPort>(predicate: #Predicate{ $0.node?.graph?.uuid == graphId })) else {
-                    return
-                }
-                
-                guard let data = try? someModelContext.fetch(FetchDescriptor<JelloNodeData>(predicate: #Predicate{ $0.node?.graph?.uuid == graphId })) else {
-                    return
-                }
-                
-                let graph = buildGraph(jelloGraph: someGraph, jelloNodes: nodes, jelloNodeData: data, jelloEdges: edges, jelloInputPorts: inputPorts, jelloOutputPorts: outputPorts)
-            }
+    func compileMSL(input: JelloCompilerInput) throws -> (vertex: String?, fragment: String?) {
+        let result = try JelloCompilerStatic.compileToSpirv(input: input)
+        var vertex : String? = nil
+        var fragment : String? = nil
+        if let vertexSpirv = result.vertex {
+            vertex = try JelloCompilerStatic.compileMSLShader(spirv: vertexSpirv)
         }
+        
+        if let fragmentSpirv = result.fragment {
+            vertex = try JelloCompilerStatic.compileMSLShader(spirv: fragmentSpirv)
+        }
+        
+        return (vertex: vertex, fragment: fragment)
     }
     
-    func buildGraph(jelloGraph: JelloGraph, jelloNodes: [JelloNode], jelloNodeData: [JelloNodeData], jelloEdges: [JelloEdge], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> CompilerGraph {
+    func buildGraph(outputNode: JelloNode, jelloGraph: JelloGraph, jelloNodes: [JelloNode], jelloNodeData: [JelloNodeData], jelloEdges: [JelloEdge], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> JelloCompilerInput {
         let graph = CompilerGraph()
         let inputPortsDict: [UUID: [JelloInputPort]] = jelloInputPorts.reduce(into: [UUID:[JelloInputPort]](), { (result, port) in
             if let nodeUUID = port.node?.uuid {
@@ -80,18 +58,25 @@ import simd
         
         for node in compilerNodes {
             for port in node.inputPorts {
-                if let inputEdge = edgesDictionary[port.id] {
-                    let _ = CompilerEdge(inputPort: port, outputPort: compilerOutputPorts[inputEdge.outputPort!.uuid]!)
+                if let inputEdge = edgesDictionary[port.id], let outputPort = compilerOutputPorts[inputEdge.outputPort?.uuid ?? UUID()] {
+                    let _ = CompilerEdge(inputPort: port, outputPort: outputPort)
                 }
             }
         }
         
-        return graph
+        if outputNode.type == .builtIn(.preview) {
+            return JelloCompilerInput(output: .previewOutput(compilerNodes.first(where: {$0.id == outputNode.uuid})! as! PreviewOutputCompilerNode), graph: graph)
+        } else if outputNode.type == .builtIn(.materialOutput) {
+            return JelloCompilerInput(output: .materialOutput(compilerNodes.first(where: {$0.id == outputNode.uuid})! as! MaterialOutputCompilerNode), graph: graph)
+        } else {
+            fatalError("Unexpected output node type")
+        }
+        
     }
     
     
     
-    func buildCompilerNode(jelloNode: JelloNode, jelloNodeData: [String: JelloNodeDataValue], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> CompilerNode? {
+    private func buildCompilerNode(jelloNode: JelloNode, jelloNodeData: [String: JelloNodeDataValue], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> CompilerNode? {
         let compilerInputPorts = jelloInputPorts.map({ InputCompilerPort(id: $0.uuid, dataType: $0.dataType) })
         let compilerOutputPorts = jelloOutputPorts.map({ OutputCompilerPort(id: $0.uuid, dataType: $0.dataType) })
         switch(jelloNode.type) {

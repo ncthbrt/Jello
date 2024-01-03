@@ -12,6 +12,7 @@
 		BC0C97C22B3C74E3001A672D /* JelloCompilerBlackboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */; };
 		BC1A44362B35E5B000AFA078 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A44352B35E5B000AFA078 /* SPIRV-Headers-Swift */; };
 		BC1A44392B35E6C100AFA078 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A44382B35E6C100AFA078 /* SPIRV-Headers-Swift */; };
+		BC258A862B45906B00FEB690 /* PreviewNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC258A852B45906B00FEB690 /* PreviewNodeView.swift */; };
 		BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5712B0763ED008F75C2 /* Rope.swift */; };
 		BC2AE5742B0764FA008F75C2 /* VertletShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5732B0764FA008F75C2 /* VertletShared.swift */; };
 		BC2AE5762B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */; };
@@ -131,6 +132,7 @@
 /* Begin PBXFileReference section */
 		BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNewNodeMenuView.swift; sourceTree = "<group>"; };
 		BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerBlackboard.swift; sourceTree = "<group>"; };
+		BC258A852B45906B00FEB690 /* PreviewNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNodeView.swift; sourceTree = "<group>"; };
 		BC2AE5712B0763ED008F75C2 /* Rope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rope.swift; sourceTree = "<group>"; };
 		BC2AE5732B0764FA008F75C2 /* VertletShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VertletShared.swift; sourceTree = "<group>"; };
 		BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeEdgesEnvironmentKey.swift; sourceTree = "<group>"; };
@@ -357,6 +359,7 @@
 				BC31EB7A2B049428004401FC /* EdgeView.swift */,
 				BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */,
 				BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */,
+				BC258A852B45906B00FEB690 /* PreviewNodeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -609,6 +612,7 @@
 				BC2AE5782B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift in Sources */,
 				BCCE16212B1724C4000370CB /* SmallKnob.swift in Sources */,
 				BCCE16062B172394000370CB /* Control.swift in Sources */,
+				BC258A862B45906B00FEB690 /* PreviewNodeView.swift in Sources */,
 				BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */,
 				BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */,
 				BCCE161E2B1724C4000370CB /* XYPad.swift in Sources */,

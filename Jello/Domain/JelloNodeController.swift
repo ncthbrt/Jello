@@ -147,28 +147,11 @@ fileprivate class JelloPreviewNodeController: JelloNodeController {
         let inputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .any, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset.x), nodeOffsetY: Float(inputPortOffset.y))
         node.modelContext?.insert(inputPortModel)
         
-        let outputPortOffset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(0))
-        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .any, node: node, edges: [], nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
-        node.modelContext?.insert(outputPortModel)
-
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
     @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
-        AnyView(
-            ZStack {
-                GeometryReader { geometry in
-                    Path(drawBounds).fill(ImagePaint(image: Image("FakeTestRender").resizable(), scale: geometry.size.width/1024))
-                }
-                Path(drawBounds).fill(Gradient(colors: [.black.opacity(0.3), .clear]))
-                VStack {
-                    Text("Preview").font(.title2).minimumScaleFactor(0.2)
-                        .bold()
-                        .monospaced()
-                    Spacer()
-                }.padding(.all, JelloNode.padding)
-            }
-        )
+        AnyView(PreviewNodeView(node: node, drawBounds: drawBounds))
     }
 }
 

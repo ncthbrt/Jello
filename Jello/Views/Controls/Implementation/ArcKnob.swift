@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 /// Knob in which you control the value by moving in a circular shape
 public struct ArcKnob<Foreground : ShapeStyle, Background: ShapeStyle> : View {
@@ -90,7 +91,7 @@ public struct ArcKnob<Foreground : ShapeStyle, Background: ShapeStyle> : View {
                     .shadow(radius: 10)
                     .squareFrame(dim(geo) * 0.8)
 
-                Text("\(isShowingValue ? "\(value)" : text)")
+                Text("\(isShowingValue ? "\(String(format: "%.2f" ,value))" : text)")
                     .frame(width: dim(geo) * 0.8)
                     .font(Font.system(size: dim(geo) * 0.2, weight: .bold).monospaced().italic())
                     .foregroundStyle(textColor)
