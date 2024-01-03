@@ -158,6 +158,14 @@ struct GraphView<AddNodeMenu: View> : View {
                     controller.settingsView(compiler: compiler, node: node)
                                 .background(.ultraThinMaterial)
                                 .inspectorColumnWidth(ideal: 500)
+                                .toolbar {
+                                    Spacer()
+                                    Button {
+                                        showNodeInspector.toggle()
+                                    } label: {
+                                        Label("Toggle Inspector", systemImage: "info.circle")
+                                    }
+                                }
                 }
             }
         })

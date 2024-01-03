@@ -108,11 +108,7 @@ import simd
             return node
         case .builtIn(.color):
             let value = jelloNodeData[JelloNodeDataKey.value.rawValue] ?? .null
-            var x: Float = 0
-            var y: Float = 0
-            var z: Float = 0
-            var w: Float = 0
-            if case JelloNodeDataValue.float4(x, y, z, w) = value {
+            if case JelloNodeDataValue.float4(let x, let y, let z, let w) = value {
                 let node = ConstantCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, value: .float4(vector_float4(x, y, z, w)))
                 return node
             }

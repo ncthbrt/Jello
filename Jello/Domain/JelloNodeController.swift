@@ -187,19 +187,14 @@ fileprivate class JelloColorNodeController: JelloNodeController {
         node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.standardNodeWidth)
     }
     
-    var hasSettings: Bool { true }
+    var hasSettings: Bool { false }
     
     @ViewBuilder func body(compiler: JelloCompilerService, node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             ColorNodeView(node: node, drawBounds: drawBounds)
         )
     }
-    
-    @ViewBuilder func settingsView(compiler: JelloCompilerService, node: JelloNode) -> AnyView {
-        AnyView(ColorSettingsView())
-    }
 }
-
 
 struct JelloNodeControllerFactory {
     private static let materialNodeController : any JelloNodeController = JelloMaterialNodeController()

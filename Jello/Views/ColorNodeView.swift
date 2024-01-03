@@ -28,15 +28,22 @@ struct ColorNodeView : View {
         guard case .float4(let x, let y, let z, let w) = nodeData.value else {
             return AnyView(EmptyView())
         }
-        let backgroundColor = Color(red: Double(x), green: Double(y), blue: Double(z), opacity: Double(w))
+        
         return AnyView(ZStack {
-            Path(self.drawBounds).background(backgroundColor)
             VStack {
                 Text(node.name ?? "Unknown").font(.title2).minimumScaleFactor(0.2)
                     .bold()
                     .monospaced()
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                 Spacer()
+                HStack {
+                    ArcKnob("R", value: .init(get: {x}, set: { value in nodeData.value = .float4(value, y, z, w) }), range: 0...1.0, foreground: Gradient(colors: [.red]), background: .gray)
+                    ArcKnob("G", value: .init(get: {y}, set: { value in nodeData.value = .float4(x, value, z, w) }), range: 0...1.0, foreground: Gradient(colors: [.green]), background: .gray)
+                }
+                HStack {
+                    ArcKnob("B", value: .init(get: {z}, set: { value in nodeData.value = .float4(x, y, value, w) }), range: 0...1, foreground: Gradient(colors: [.blue]), background: .gray)
+                    ArcKnob("A", value: .init(get: {w}, set: { value in nodeData.value = .float4(x, y, z, value) }), range: 0...1, foreground: Gradient(colors: [.white]), background: .gray)
+                }
             }
             .padding(.all, JelloNode.padding)
         })

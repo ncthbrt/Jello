@@ -81,7 +81,6 @@
 		BCEE1C772AFE44440012F619 /* JelloCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C762AFE44440012F619 /* JelloCanvas.swift */; };
 		BCFC210E2B42B38E004FF404 /* JelloNodeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFC210D2B42B38E004FF404 /* JelloNodeData.swift */; };
 		BCFC21102B42EFDB004FF404 /* ColorNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */; };
-		BCFC21122B4306C9004FF404 /* ColorSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFC21112B4306C9004FF404 /* ColorSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -197,7 +196,6 @@
 		BCEE1C762AFE44440012F619 /* JelloCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCanvas.swift; sourceTree = "<group>"; };
 		BCFC210D2B42B38E004FF404 /* JelloNodeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeData.swift; sourceTree = "<group>"; };
 		BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorNodeView.swift; sourceTree = "<group>"; };
-		BCFC21112B4306C9004FF404 /* ColorSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -362,7 +360,6 @@
 				BC31EB7A2B049428004401FC /* EdgeView.swift */,
 				BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */,
 				BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */,
-				BCFC21112B4306C9004FF404 /* ColorSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -619,7 +616,6 @@
 				BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */,
 				BCCE161E2B1724C4000370CB /* XYPad.swift in Sources */,
 				BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */,
-				BCFC21122B4306C9004FF404 /* ColorSettingsView.swift in Sources */,
 				BCCE161B2B1724C4000370CB /* PitchWheel.swift in Sources */,
 				BC31EB712B035F52004401FC /* JelloNodeController.swift in Sources */,
 				BCCE160E2B172413000370CB /* SingleTouchView.swift in Sources */,
