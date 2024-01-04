@@ -13,6 +13,11 @@
 		BC1A44362B35E5B000AFA078 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A44352B35E5B000AFA078 /* SPIRV-Headers-Swift */; };
 		BC1A44392B35E6C100AFA078 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BC1A44382B35E6C100AFA078 /* SPIRV-Headers-Swift */; };
 		BC258A862B45906B00FEB690 /* PreviewNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC258A852B45906B00FEB690 /* PreviewNodeView.swift */; };
+		BC258A882B469AD600FEB690 /* ShaderPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC258A872B469AD600FEB690 /* ShaderPreviewView.swift */; };
+		BC258A8B2B46A52700FEB690 /* Bridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC258A8A2B46A52700FEB690 /* Bridge.swift */; };
+		BC258A8E2B46AB0200FEB690 /* JelloMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC258A8D2B46AB0200FEB690 /* JelloMesh.swift */; };
+		BC258A942B46CBE400FEB690 /* JelloDefaultFragmentShaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC258A932B46CBE400FEB690 /* JelloDefaultFragmentShaderTest.swift */; };
+		BC258A952B46CFAB00FEB690 /* DefaultFragmentShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC258A912B46B49B00FEB690 /* DefaultFragmentShader.swift */; };
 		BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5712B0763ED008F75C2 /* Rope.swift */; };
 		BC2AE5742B0764FA008F75C2 /* VertletShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5732B0764FA008F75C2 /* VertletShared.swift */; };
 		BC2AE5762B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */; };
@@ -133,6 +138,11 @@
 		BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNewNodeMenuView.swift; sourceTree = "<group>"; };
 		BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerBlackboard.swift; sourceTree = "<group>"; };
 		BC258A852B45906B00FEB690 /* PreviewNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNodeView.swift; sourceTree = "<group>"; };
+		BC258A872B469AD600FEB690 /* ShaderPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShaderPreviewView.swift; sourceTree = "<group>"; };
+		BC258A8A2B46A52700FEB690 /* Bridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge.swift; sourceTree = "<group>"; };
+		BC258A8D2B46AB0200FEB690 /* JelloMesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloMesh.swift; sourceTree = "<group>"; };
+		BC258A912B46B49B00FEB690 /* DefaultFragmentShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultFragmentShader.swift; sourceTree = "<group>"; };
+		BC258A932B46CBE400FEB690 /* JelloDefaultFragmentShaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloDefaultFragmentShaderTest.swift; sourceTree = "<group>"; };
 		BC2AE5712B0763ED008F75C2 /* Rope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rope.swift; sourceTree = "<group>"; };
 		BC2AE5732B0764FA008F75C2 /* VertletShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VertletShared.swift; sourceTree = "<group>"; };
 		BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeEdgesEnvironmentKey.swift; sourceTree = "<group>"; };
@@ -238,6 +248,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BC258A892B46A50E00FEB690 /* Unsafe */ = {
+			isa = PBXGroup;
+			children = (
+				BC258A8A2B46A52700FEB690 /* Bridge.swift */,
+			);
+			path = Unsafe;
+			sourceTree = "<group>";
+		};
+		BC258A8C2B46A65C00FEB690 /* Rendering */ = {
+			isa = PBXGroup;
+			children = (
+				BC258A8D2B46AB0200FEB690 /* JelloMesh.swift */,
+			);
+			path = Rendering;
+			sourceTree = "<group>";
+		};
 		BC33AA902B17007F003471D9 /* Controls */ = {
 			isa = PBXGroup;
 			children = (
@@ -254,6 +280,7 @@
 		BC3DD00C2B35795800F27E8D /* JelloCompilerStatic */ = {
 			isa = PBXGroup;
 			children = (
+				BC258A912B46B49B00FEB690 /* DefaultFragmentShader.swift */,
 				BCDA24372B220851002DCFCB /* SpirvGenerator.swift */,
 				BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */,
 				BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */,
@@ -282,7 +309,6 @@
 				BC9F96E62B35B7970041FCCE /* Jello.xctestplan */,
 				BC9BBFB42AEFDE3D00FC068C /* Jello */,
 				BC3DD00C2B35795800F27E8D /* JelloCompilerStatic */,
-				BC9F970D2B35B9E50041FCCE /* Compilertests */,
 				BCEBEF432B35BE6900C10617 /* JelloCompilerTests */,
 				BC9BBFB32AEFDE3D00FC068C /* Products */,
 				BCDA241A2B21DC17002DCFCB /* Frameworks */,
@@ -302,6 +328,8 @@
 		BC9BBFB42AEFDE3D00FC068C /* Jello */ = {
 			isa = PBXGroup;
 			children = (
+				BC258A8C2B46A65C00FEB690 /* Rendering */,
+				BC258A892B46A50E00FEB690 /* Unsafe */,
 				BCEAFD182B20621E00D23E1F /* Compiler */,
 				BC7E22452AF4EE7900EC04E6 /* Support */,
 				BCE067592AF8B8F30066F8D4 /* Math */,
@@ -360,6 +388,7 @@
 				BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */,
 				BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */,
 				BC258A852B45906B00FEB690 /* PreviewNodeView.swift */,
+				BC258A872B469AD600FEB690 /* ShaderPreviewView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -373,13 +402,6 @@
 				BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */,
 			);
 			path = Physics;
-			sourceTree = "<group>";
-		};
-		BC9F970D2B35B9E50041FCCE /* Compilertests */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Compilertests;
 			sourceTree = "<group>";
 		};
 		BCCE16112B17247F000370CB /* Implementation */ = {
@@ -426,6 +448,7 @@
 				BC9BBFCA2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift */,
 				BC3DD0042B356C7D00F27E8D /* JelloGraphProcessingTests.swift */,
 				BC2F077F2B3C193D00D0A668 /* JelloCompilerTests.swift */,
+				BC258A932B46CBE400FEB690 /* JelloDefaultFragmentShaderTest.swift */,
 			);
 			path = JelloCompilerTests;
 			sourceTree = "<group>";
@@ -496,8 +519,8 @@
 			buildRules = (
 			);
 			dependencies = (
-				BC1A443B2B36F80C00AFA078 /* PBXTargetDependency */,
 				BCEBEF472B35BE6900C10617 /* PBXTargetDependency */,
+				BC1A443B2B36F80C00AFA078 /* PBXTargetDependency */,
 			);
 			name = JelloCompilerTests;
 			packageProductDependencies = (
@@ -585,6 +608,7 @@
 				BC3DD0122B35796700F27E8D /* JelloCompilerTypes.swift in Sources */,
 				BC0C97C22B3C74E3001A672D /* JelloCompilerBlackboard.swift in Sources */,
 				BC2F077E2B3C0F7100D0A668 /* JelloCompilerNodeTypes.swift in Sources */,
+				BC258A952B46CFAB00FEB690 /* DefaultFragmentShader.swift in Sources */,
 				BC3DD0142B35796700F27E8D /* SpirvGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -593,12 +617,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC258A8B2B46A52700FEB690 /* Bridge.swift in Sources */,
 				BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */,
 				BCCE16082B1723A8000370CB /* ControlGeometry.swift in Sources */,
 				BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */,
 				BCFC210E2B42B38E004FF404 /* JelloNodeData.swift in Sources */,
 				BCEE1C772AFE44440012F619 /* JelloCanvas.swift in Sources */,
 				BC07D10A2AFFCB7500EFA199 /* GraphView.swift in Sources */,
+				BC258A882B469AD600FEB690 /* ShaderPreviewView.swift in Sources */,
 				BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */,
 				BCCE16202B1724C4000370CB /* ModWheel.swift in Sources */,
 				BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */,
@@ -641,6 +667,7 @@
 				BC57B8AD2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift in Sources */,
 				BC9BBFEB2AEFEFB400FC068C /* JelloFunction.swift in Sources */,
 				BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */,
+				BC258A8E2B46AB0200FEB690 /* JelloMesh.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -649,6 +676,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BCEBEF4B2B35BE6D00C10617 /* JelloGoodBadSpirvFileGeneratorTest.swift in Sources */,
+				BC258A942B46CBE400FEB690 /* JelloDefaultFragmentShaderTest.swift in Sources */,
 				BCEBEF4C2B35BE6D00C10617 /* JelloGraphProcessingTests.swift in Sources */,
 				BC2F07802B3C193D00D0A668 /* JelloCompilerTests.swift in Sources */,
 			);

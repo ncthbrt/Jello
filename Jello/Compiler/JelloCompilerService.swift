@@ -25,9 +25,8 @@ import simd
         if let vertexSpirv = result.vertex {
             vertex = try JelloCompilerStatic.compileMSLShader(spirv: vertexSpirv)
         }
-        
         if let fragmentSpirv = result.fragment {
-            vertex = try JelloCompilerStatic.compileMSLShader(spirv: fragmentSpirv)
+            fragment = try JelloCompilerStatic.compileMSLShader(spirv: fragmentSpirv)
         }
         
         return (vertex: vertex, fragment: fragment)

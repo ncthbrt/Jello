@@ -79,3 +79,9 @@ enum JelloGraphDomainType: Int, Codable, CaseIterable {
     case variable = 2
     case timeVarying = 3
 }
+
+
+enum JelloPreviewGeometry: Codable {
+    case sphere
+    case cube
+}
