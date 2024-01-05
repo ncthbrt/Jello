@@ -18,6 +18,10 @@ class SpirvCompilationErrorContext {
     var errorValue: String? = nil
 }
 
+func makeMSLVersion(_ major: UInt32, _ minor: UInt32, _ patch: UInt32 = 0) -> UInt32 {
+    (major * 10000) + (minor * 100) + patch;
+}
+
 
 public func compileMSLShader(spirv: [UInt32]) throws -> String  {
     var context : spvc_context? = nil
@@ -54,12 +58,12 @@ public func compileMSLShader(spirv: [UInt32]) throws -> String  {
     if let errValue = errorContext.errorValue {
         throw SpirvCompilationError.compilationError(errValue)
     }
-//    var count = 0
-//    var resources: spvc_resources? = nil
-//    var list: UnsafePointer<spvc_reflected_resource>? = nil
+    var count = 0
+    var resources: spvc_resources? = nil
+    var list: UnsafePointer<spvc_reflected_resource>? = nil
 
-//    spvc_compiler_create_shader_resources(compiler_msl, &resources)
-//    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count)
+    spvc_compiler_create_shader_resources(compiler_msl, &resources)
+    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count)
     
 //        for i in 0..<count {
 //            print("ID: \(list?[i].id), BaseTypeID: \(list?[i].base_type_id), TypeID: \(list?[i].type_id), Name: \(list?[i].name)");
@@ -71,7 +75,11 @@ public func compileMSLShader(spirv: [UInt32]) throws -> String  {
     if let errValue = errorContext.errorValue {
         throw SpirvCompilationError.compilationError(errValue)
     }
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, 20100)
+    
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, makeMSLVersion(2, 1, 0))
+    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS, 0)
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS_TIER, 0)
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_PLATFORM, 0)
     
     if let errValue = errorContext.errorValue {
         throw SpirvCompilationError.compilationError(errValue)

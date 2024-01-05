@@ -44,7 +44,7 @@ public let defaultFragmentShader: [UInt32] = #document({
     let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
     
     let frameDataTypeId = FrameData.register()
-    let (frameDataPointerTypeId, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassUniform)
+    let (frameDataPointerTypeId, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassUniformConstant)
     
     let frameDataId = createFrameDataVariable()
     #debugNames(opCode: SpirvOpName, [frameDataId], #stringLiteral("frameData"))
@@ -94,8 +94,9 @@ public let defaultFragmentShader: [UInt32] = #document({
     #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 7, SpirvDecorationRowMajor.rawValue])
     #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 8, SpirvDecorationRowMajor.rawValue])
     
-    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationDescriptorSet.rawValue, 2])
-    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, 3])
+    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationDescriptorSet.rawValue, 0])
+//    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, 3])
+    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationNonWritable.rawValue])
 
     let intTypeId = declareType(dataType: .int)
 
@@ -105,7 +106,7 @@ public let defaultFragmentShader: [UInt32] = #document({
     
 
     let float4x4TypeId = #typeDeclaration(opCode: SpirvOpTypeMatrix, [float4TypeId, 4])
-    let float4x4UniformPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniform.rawValue, float4x4TypeId])
+    let float4x4UniformPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, float4x4TypeId])
 
     let float4InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float4TypeId])
     
@@ -185,7 +186,7 @@ public let defaultFragmentShader: [UInt32] = #document({
     #annotation(opCode: SpirvOpDecorate, [normalOutId, SpirvDecorationLocation.rawValue, 5])
     
     
-    #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [positionInId, texCoordInId, normalInId, tangentInId, bitangentInId, positionOutId, worldPosOutId, texCoordOutId, tangentOutId, bitangentOutId, normalOutId])
+    #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [positionInId, texCoordInId, normalInId, tangentInId, bitangentInId, frameDataId, positionOutId, worldPosOutId, texCoordOutId, tangentOutId, bitangentOutId, normalOutId])
     
     let typeVertexFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
     #functionHead(opCode: SpirvOpFunction, [typeVoid, vertexEntryPoint, 0, typeVertexFunction])
