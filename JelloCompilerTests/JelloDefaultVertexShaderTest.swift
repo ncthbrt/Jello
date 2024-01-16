@@ -17,11 +17,10 @@ import Foundation
 import XCTest
 @testable import JelloCompilerStatic
 
-final class JelloDefaultFragmentShaderTest: XCTestCase {
+final class JelloDefaultVertexShaderTest: XCTestCase {
     
     func testCompilingSpirvFileToMSLShouldProduceExpectedResult() throws {
-        print(defaultFragmentShader)
-        let result = try compileMSLShader(spirv: defaultFragmentShader)
+        let result = try compileMSLShader(spirv: defaultVertexShader)
         let expectedResult = """
 #include <metal_stdlib>
 #include <simd/simd.h>

@@ -10,32 +10,7 @@ import SpirvMacrosShared
 import SpirvMacros
 import simd
 
-@SpirvStruct
-public struct FrameData {
-    // Per-frame constants.
-    var projectionMatrix : matrix_float4x4 // 0, 0
-    var projectionMatrixInv : matrix_float4x4 // 1, 64
-    var viewMatrix: matrix_float4x4 // 2, 64
-    var viewMatrixInv: matrix_float4x4 // 3, 64
-    var depthUnproject: vector_float2 // 4, 64
-    var screenToViewSpace: vector_float3 // 5, 8
-    
-    // Per-mesh constants.
-    var modelViewMatrix : matrix_float4x4 // 6, 12
-    var normalMatrix: matrix_float3x3 // 7, 64
-    var modelMatrix : matrix_float4x4 // 8, 36
-    
-    // Per-light properties.
-    var ambientLightColor: vector_float3 // 9, 64
-    var directionalLightDirection : vector_float3 // 10, 12
-    var directionalLightColor: vector_float3 // 12, 12
-    var framebufferWidth: UInt32 // 12, 12
-    var framebufferHeight : UInt32 // 13, 4
-}
-
-
-
-public let defaultFragmentShader: [UInt32] = #document({
+public let defaultVertexShader: [UInt32] = #document({
     let vertexEntryPoint = #id
     #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
     let glsl450Id = #id
@@ -95,7 +70,7 @@ public let defaultFragmentShader: [UInt32] = #document({
     #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 8, SpirvDecorationRowMajor.rawValue])
     
     #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationDescriptorSet.rawValue, 0])
-//    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, 3])
+    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, 2])
     #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationNonWritable.rawValue])
 
     let intTypeId = declareType(dataType: .int)
@@ -108,6 +83,10 @@ public let defaultFragmentShader: [UInt32] = #document({
     let float4x4TypeId = #typeDeclaration(opCode: SpirvOpTypeMatrix, [float4TypeId, 4])
     let float4x4UniformPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, float4x4TypeId])
 
+    let float3x3TypeId = #typeDeclaration(opCode: SpirvOpTypeMatrix, [float3TypeId, 3])
+    let float3x3UniformPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, float3x3TypeId])
+
+    
     let float4InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float4TypeId])
     
     let float3InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float3TypeId])
@@ -160,30 +139,30 @@ public let defaultFragmentShader: [UInt32] = #document({
     let worldPosOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float4OutputPointerTypeId, worldPosOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [worldPosOutId], #stringLiteral("worldPos"))
-    #annotation(opCode: SpirvOpDecorate, [worldPosOutId, SpirvDecorationLocation.rawValue, 1])
+    #annotation(opCode: SpirvOpDecorate, [worldPosOutId, SpirvDecorationLocation.rawValue, 0])
 
     // TexCoord Out
     let texCoordOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float2OutputPointerTypeId, texCoordOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [texCoordOutId], #stringLiteral("texCoord"))
-    #annotation(opCode: SpirvOpDecorate, [texCoordOutId, SpirvDecorationLocation.rawValue, 2])
+    #annotation(opCode: SpirvOpDecorate, [texCoordOutId, SpirvDecorationLocation.rawValue, 1])
     // Tangent Out
     let tangentOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float3OutputPointerTypeId, tangentOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [tangentOutId], #stringLiteral("tangent"))
-    #annotation(opCode: SpirvOpDecorate, [tangentOutId, SpirvDecorationLocation.rawValue, 3])
+    #annotation(opCode: SpirvOpDecorate, [tangentOutId, SpirvDecorationLocation.rawValue, 2])
     
     // Bitangent Out
     let bitangentOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float3OutputPointerTypeId, bitangentOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [bitangentOutId], #stringLiteral("bitangent"))
-    #annotation(opCode: SpirvOpDecorate, [bitangentOutId, SpirvDecorationLocation.rawValue, 4])
+    #annotation(opCode: SpirvOpDecorate, [bitangentOutId, SpirvDecorationLocation.rawValue, 3])
     
     // Normal Out
     let normalOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float3OutputPointerTypeId, normalOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [normalOutId], #stringLiteral("normal"))
-    #annotation(opCode: SpirvOpDecorate, [normalOutId, SpirvDecorationLocation.rawValue, 5])
+    #annotation(opCode: SpirvOpDecorate, [normalOutId, SpirvDecorationLocation.rawValue, 4])
     
     
     #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [positionInId, texCoordInId, normalInId, tangentInId, bitangentInId, frameDataId, positionOutId, worldPosOutId, texCoordOutId, tangentOutId, bitangentOutId, normalOutId])
@@ -206,9 +185,77 @@ public let defaultFragmentShader: [UInt32] = #document({
     #functionBody(opCode: SpirvOpLoad, [float4x4TypeId, modelMatrixInLoadId, modelMatrixInPtrId])
     
     let worldPositionId = #id
-    #functionBody(opCode: SpirvOpMatrixTimesVector, [float4TypeId, worldPositionId, modelMatrixInLoadId, positionInLoadId])
+    #functionBody(opCode: SpirvOpVectorTimesMatrix, [float4TypeId, worldPositionId, positionInLoadId, modelMatrixInLoadId])
     #functionBody(opCode: SpirvOpStore, [worldPosOutId, worldPositionId])
 
+    // Calculate position in clip space
+    
+    let projectionMatrixInPtrId = #id
+    let projectionMatrixInLoadId = #id
+
+    
+    let projectionMatrixIndexId = #id
+    #globalDeclaration(opCode: SpirvOpConstant, [intTypeId, projectionMatrixIndexId], int(0))
+    #functionBody(opCode: SpirvOpAccessChain, [float4x4UniformPointerTypeId, projectionMatrixInPtrId, frameDataId, projectionMatrixIndexId])
+    #functionBody(opCode: SpirvOpLoad, [float4x4TypeId, projectionMatrixInLoadId, projectionMatrixInPtrId])
+
+    let modelViewMatrixInPtrId = #id
+    let modelViewMatrixInLoadId = #id
+    
+    let modelViewMatrixIndexId = #id
+    #globalDeclaration(opCode: SpirvOpConstant, [intTypeId, modelViewMatrixIndexId], int(6))
+    #functionBody(opCode: SpirvOpAccessChain, [float4x4UniformPointerTypeId, modelViewMatrixInPtrId, frameDataId, modelViewMatrixIndexId])
+    #functionBody(opCode: SpirvOpLoad, [float4x4TypeId, modelViewMatrixInLoadId, modelViewMatrixInPtrId])
+    
+    let positionTimesModelViewMatrixId = #id
+    #functionBody(opCode: SpirvOpVectorTimesMatrix, [float4TypeId, positionTimesModelViewMatrixId, positionInLoadId, modelViewMatrixInLoadId])
+    let clipSpacePositionId = #id
+    #functionBody(opCode: SpirvOpVectorTimesMatrix, [float4TypeId, clipSpacePositionId, positionTimesModelViewMatrixId, projectionMatrixInLoadId])
+    #functionBody(opCode: SpirvOpStore, [positionOutId, clipSpacePositionId])
+    
+    // Calculate the tangent, bitangent and normal in eye space.
+    let normalMatrixInPtrId = #id
+    let normalMatrixInLoadId = #id
+    
+    let normalMatrixIndexId = #id
+    #globalDeclaration(opCode: SpirvOpConstant, [intTypeId, normalMatrixIndexId], int(7))
+    #functionBody(opCode: SpirvOpAccessChain, [float3x3UniformPointerTypeId, normalMatrixInPtrId, frameDataId, normalMatrixIndexId])
+    #functionBody(opCode: SpirvOpLoad, [float3x3TypeId, normalMatrixInLoadId, normalMatrixInPtrId])
+    
+    let tangentInLoadId = #id
+    #functionBody(opCode: SpirvOpLoad, [float3TypeId, tangentInLoadId, tangentInId])
+
+    let bitangentInLoadId = #id
+    #functionBody(opCode: SpirvOpLoad, [float3TypeId, bitangentInLoadId, bitangentInId])
+    
+    let normalInLoadId = #id
+    #functionBody(opCode: SpirvOpLoad, [float3TypeId, normalInLoadId, normalInId])
+
+    let normalMatrixTimesNormalId = #id
+    #functionBody(opCode: SpirvOpVectorTimesMatrix, [float3TypeId, normalMatrixTimesNormalId, normalInLoadId, normalMatrixInLoadId])
+    
+    let normalMatrixTimesTangentId = #id
+    #functionBody(opCode: SpirvOpVectorTimesMatrix, [float3TypeId, normalMatrixTimesTangentId, tangentInLoadId, normalMatrixInLoadId])
+    
+    let normalMatrixTimesBitangentId = #id
+    #functionBody(opCode: SpirvOpVectorTimesMatrix, [float3TypeId, normalMatrixTimesBitangentId, bitangentInLoadId, normalMatrixInLoadId])
+    
+    let normaliseNormalId = #id
+    #functionBody(opCode: SpirvOpExtInst, [float3TypeId, normaliseNormalId, glsl450Id, GLSLstd450Normalize.rawValue, normalMatrixTimesNormalId])
+    
+    let normaliseTangentId = #id
+    #functionBody(opCode: SpirvOpExtInst, [float3TypeId, normaliseTangentId, glsl450Id, GLSLstd450Normalize.rawValue, normalMatrixTimesTangentId])
+    
+    let normaliseBitangentId = #id
+    #functionBody(opCode: SpirvOpExtInst, [float3TypeId, normaliseBitangentId, glsl450Id, GLSLstd450Normalize.rawValue, normalMatrixTimesBitangentId])
+
+    let negateBitangentId = #id
+    #functionBody(opCode: SpirvOpFNegate, [float3TypeId, negateBitangentId, normaliseBitangentId])
+    
+    #functionBody(opCode: SpirvOpStore, [normalOutId, normaliseNormalId])
+    #functionBody(opCode: SpirvOpStore, [tangentOutId, normaliseTangentId])
+    #functionBody(opCode: SpirvOpStore, [bitangentOutId, negateBitangentId])
+    
     #functionBody(opCode: SpirvOpReturn)
     #functionBody(opCode: SpirvOpFunctionEnd)
     

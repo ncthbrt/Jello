@@ -10,6 +10,24 @@ import MetalKit
 import ModelIO
 import SwiftData
 
+struct PreviewNodeViewImpl: View {
+    let node: JelloNode
+    var graphs: [JelloGraph]
+    let nodes: [JelloNode]
+    let edges: [JelloEdge]
+    let nodeData: [JelloNodeData]
+    let inputPorts: [JelloInputPort]
+    let outputPorts: [JelloOutputPort]
+    @Environment(JelloCompilerService.self) var compiler
+
+    var body: some View {
+        let graphInput = compiler.buildGraph(outputNode: node, jelloGraph: graphs.first!, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}))
+        let result = try! compiler.compileMSL(input: graphInput)
+        
+        ShaderPreviewView(vertexShader: result.vertex!, fragmentShader: result.fragment!, previewGeometry: .sphere)
+    }
+}
+
 struct PreviewNodeView: View {
     @Query var graphs: [JelloGraph]
     @Query var nodes: [JelloNode]
@@ -17,7 +35,6 @@ struct PreviewNodeView: View {
     @Query var nodeData: [JelloNodeData]
     @Query var inputPorts: [JelloInputPort]
     @Query var outputPorts: [JelloOutputPort]
-    @Environment(JelloCompilerService.self) var compiler
     let node: JelloNode
     let drawBounds: (inout Path) -> ()
     
@@ -29,17 +46,11 @@ struct PreviewNodeView: View {
         self._nodes = Query(FetchDescriptor(predicate: #Predicate { $0.graph?.uuid == graphId }))
         self._edges = Query(FetchDescriptor(predicate: #Predicate { $0.graph?.uuid == graphId }))
     }
-    
+
     var body: some View {
         // TODO: Make compilation asynchronous
-        let graphInput = compiler.buildGraph(outputNode: node, jelloGraph: graphs.first!, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}))
-        let result = try? compiler.compileMSL(input: graphInput)
-        let _ = print(result?.vertex ?? "")
-        
         ZStack {
-            GeometryReader { geometry in
-                Path(drawBounds).fill(ImagePaint(image: Image("FakeTestRender").resizable(), scale: geometry.size.width/1024))
-            }
+            PreviewNodeViewImpl(node: node, graphs: graphs, nodes: nodes, edges: edges, nodeData: nodeData, inputPorts: inputPorts, outputPorts: outputPorts) .clipShape(Path(drawBounds)).clipped(antialiased: true)
             Path(drawBounds).fill(Gradient(colors: [.black.opacity(0.3), .clear]))
             VStack {
                 Text("Preview").font(.title2).minimumScaleFactor(0.2)

@@ -8,5 +8,6 @@
 #ifndef JelloSharedHeader_h
 #define JelloSharedHeader_h
 
+#include "FrameDataC.h"
 
 #endif /* JelloSharedHeader_h */

@@ -201,7 +201,7 @@ public class PreviewOutputCompilerNode: CompilerNode {
         let float4TypeId = declareType(dataType: .float4)
         let float4PointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassOutput.rawValue, float4TypeId])
         let outputVariableId = JelloCompilerBlackboard.fragOutputColorId
-        #debugNames(opCode: SpirvOpName, [outputVariableId], #stringLiteral("frag_out"))
+        #debugNames(opCode: SpirvOpName, [outputVariableId], #stringLiteral("fragmentMain"))
         #annotation(opCode: SpirvOpDecorate, [outputVariableId, SpirvDecorationLocation.rawValue, 0])
         #globalDeclaration(opCode: SpirvOpVariable, [float4PointerTypeId, outputVariableId, SpirvStorageClassOutput.rawValue])
         var resultId: UInt32 = 0

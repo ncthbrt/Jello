@@ -20,6 +20,7 @@ import simd
     
     func compileMSL(input: JelloCompilerInput) throws -> (vertex: String?, fragment: String?) {
         let result = try JelloCompilerStatic.compileToSpirv(input: input)
+        
         var vertex : String? = nil
         var fragment : String? = nil
         if let vertexSpirv = result.vertex {
