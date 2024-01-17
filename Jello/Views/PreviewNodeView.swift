@@ -10,7 +10,7 @@ import MetalKit
 import ModelIO
 import SwiftData
 
-struct PreviewNodeViewImpl: View {
+fileprivate struct PreviewNodeViewImpl: View {
     let node: JelloNode
     var graphs: [JelloGraph]
     let nodes: [JelloNode]
@@ -24,7 +24,7 @@ struct PreviewNodeViewImpl: View {
         let graphInput = compiler.buildGraph(outputNode: node, jelloGraph: graphs.first!, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}))
         let result = try! compiler.compileMSL(input: graphInput)
         
-        ShaderPreviewView(vertexShader: result.vertex!, fragmentShader: result.fragment!, previewGeometry: .sphere)
+        ShaderPreviewView(vertexShader: result.vertex!, fragmentShader: result.fragment!, previewGeometry: .cube)
     }
 }
 

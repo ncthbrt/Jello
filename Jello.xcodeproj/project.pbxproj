@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BC0699C42B57EE55002441F8 /* Cube.obj in Resources */ = {isa = PBXBuildFile; fileRef = BC0699C22B57EE55002441F8 /* Cube.obj */; };
+		BC0699C52B57EE55002441F8 /* Cube.mtl in Resources */ = {isa = PBXBuildFile; fileRef = BC0699C32B57EE55002441F8 /* Cube.mtl */; };
 		BC07D1092AFF674E00EFA199 /* AddNewNodeMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */; };
 		BC07D10A2AFFCB7500EFA199 /* GraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C742AFE43D90012F619 /* GraphView.swift */; };
 		BC0C97C22B3C74E3001A672D /* JelloCompilerBlackboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */; };
@@ -138,6 +140,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BC0699C22B57EE55002441F8 /* Cube.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Cube.obj; sourceTree = "<group>"; };
+		BC0699C32B57EE55002441F8 /* Cube.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Cube.mtl; sourceTree = "<group>"; };
 		BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNewNodeMenuView.swift; sourceTree = "<group>"; };
 		BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerBlackboard.swift; sourceTree = "<group>"; };
 		BC258A852B45906B00FEB690 /* PreviewNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNodeView.swift; sourceTree = "<group>"; };
@@ -447,6 +451,8 @@
 		BCE63ADB2B55476500DC3D4B /* Meshes */ = {
 			isa = PBXGroup;
 			children = (
+				BC0699C32B57EE55002441F8 /* Cube.mtl */,
+				BC0699C22B57EE55002441F8 /* Cube.obj */,
 				BCE63ADC2B55476500DC3D4B /* UV_Sphere.obj */,
 				BCE63ADD2B55476500DC3D4B /* UV_Sphere.mtl */,
 			);
@@ -605,7 +611,9 @@
 			files = (
 				BCE63ADE2B55476500DC3D4B /* UV_Sphere.obj in Resources */,
 				BCE63ADF2B55476500DC3D4B /* UV_Sphere.mtl in Resources */,
+				BC0699C42B57EE55002441F8 /* Cube.obj in Resources */,
 				BC9BBFC12AEFDE3E00FC068C /* Preview Assets.xcassets in Resources */,
+				BC0699C52B57EE55002441F8 /* Cube.mtl in Resources */,
 				BC9BBFBC2AEFDE3E00FC068C /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

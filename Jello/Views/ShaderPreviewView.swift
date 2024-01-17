@@ -31,6 +31,7 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
         let mtkView = uiView as! MTKView
         mtkView.frame = self.frame
         context.coordinator.setShaders(metalKitView: mtkView, vertexShader: vertexShader, fragmentShader: fragmentShader)
+        context.coordinator.setPreviewGeometry(geometry)
     }
     
     func makeUIView(context: Context) -> some UIView {
@@ -38,14 +39,15 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             fatalError("Metal is not supported")
         }
         assert(defaultDevice.supportsFamily(.apple4),
-                 "Sample requires MTLGPUFamilyApple4 (only available on Macs with Apple Silicon or iOS devices with an A11 or later)")
+                 "Application requires MTLGPUFamilyApple4 (only available on Macs with Apple Silicon or iOS devices with an A11 or later)")
         
         let view = MTKView(frame: self.frame, device: defaultDevice)
-        view.depthStencilPixelFormat = .invalid
+        view.depthStencilPixelFormat = .depth32Float
         view.backgroundColor = UIColor.black
         context.coordinator.setup(metalKitView: view, vertexShader: vertexShader, fragmentShader: fragmentShader)
         context.coordinator.setShaders(metalKitView: view, vertexShader: vertexShader, fragmentShader: fragmentShader)
         context.coordinator.mtkView(view, drawableSizeWillChange: view.drawableSize)
+        context.coordinator.setPreviewGeometry(geometry)
         view.delegate = context.coordinator
         return view
     }
@@ -56,24 +58,28 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
     
     
     class Coordinator: NSObject, MTKViewDelegate {
-
-        var drawableSize: CGSize = CGSizeZero
-        var vertexDescriptor: MTLVertexDescriptor? = nil
-        var depthPrePassPipelineState: MTLRenderPipelineState? = nil
-        var forwardLightingPipelineState: MTLRenderPipelineState? = nil
-        var frameDataBuffers: [MTLBuffer] = Array()
-        let inFlightSemaphore = DispatchSemaphore(value: 2)
-        var nearPlane: Float = 0.1
-        var farPlane: Float = 1000
+        var nearPlane: Float = 1
+        var farPlane: Float = 4
         var fov: Float = 60.0 * (.pi / 180.0)
-        var currentBufferIndex: Int = 0
-        var projectionMatrix: matrix_float4x4 = matrix_float4x4()
-        var rotation: Float = 0
-        var meshes: [JelloMesh] = []
+        private var device: MTLDevice? = nil
+        private var drawableSize: CGSize = CGSizeZero
+        private var vertexDescriptor: MTLVertexDescriptor? = nil
+        private var mainPipelineState: MTLRenderPipelineState? = nil
+        private var frameDataBuffers: [MTLBuffer] = Array()
+        private let inFlightSemaphore = DispatchSemaphore(value: 2)
+        private var currentBufferIndex: Int = 0
+        private var projectionMatrix: matrix_float4x4 = matrix_float4x4()
+        private var rotation: Float = 0
+        private var meshes: [JelloMesh] = []
+        private var modelIOVertexDescriptor: MDLVertexDescriptor? = nil
         var viewRenderPassDescriptor: MTLRenderPassDescriptor? = nil
         var commandQueue: MTLCommandQueue?
-        var relaxedDepthState: MTLDepthStencilState? = nil
+        var depthState: MTLDepthStencilState? = nil
 
+        
+        func setPreviewGeometry(_ geometry: JelloPreviewGeometry){
+            meshes = try! loadPreviewGeometry(geometry, modelIOVertexDescriptor: modelIOVertexDescriptor!, device: device!)
+        }
         
         func updateFrameState(){
             self.currentBufferIndex = (self.currentBufferIndex + 1) % maxBuffersInFlight
@@ -105,9 +111,9 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             frameData.screenToViewSpace = vector_float3(fovScale / Float(frameData.framebufferHeight), -fovScale * 0.5 * aspectRatio, -fovScale * 0.5)
 
             // Calculate new view matrix and inverted view matrix.
-            frameData.viewMatrix = matrix_multiply(matrix4x4_translation(-0, -0, 3),
+            frameData.viewMatrix = matrix_multiply(matrix4x4_translation(-0, -0.3, 3),
                                                    matrix_multiply(matrix4x4_rotation(radians: 0, axis: vector_float3(1,0,0)),
-                                                                   matrix4x4_rotation(radians: 0, axis:vector_float3(0,1,0))))
+                                                                   matrix4x4_rotation(radians: rotation, axis:vector_float3(0,1,0))))
             frameData.viewMatrixInv = frameData.viewMatrix.inverse
 
             let rotationAxis = vector_float3(0, 1, 0);
@@ -129,12 +135,11 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
 
         }
         
-        func drawMeshes(_ renderEncoder: MTLRenderCommandEncoder)
+        func drawMesh(_ renderEncoder: MTLRenderCommandEncoder)
         {
-            for mesh in meshes
-            {
-                let metalKitMesh = mesh.metalKitMesh;
-
+            for msh in self.meshes {
+                let metalKitMesh = msh.metalKitMesh
+                
                 // Set the mesh's vertex buffers.
                 for bufferIndex in 0..<metalKitMesh.vertexBuffers.count {
                     let vertexBuffer = metalKitMesh.vertexBuffers[bufferIndex];
@@ -142,19 +147,19 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
                         renderEncoder.setVertexBuffer(vertexBuffer.buffer,  offset:vertexBuffer.offset, index:bufferIndex);
                     }
                 }
-
+                
                 // Draw each submesh of the mesh.
-                for submesh in mesh.submeshes
+                for submesh in msh.submeshes
                 {
                     // Set any textures that you read or sample in the render pipeline.
-
+                    
                     let metalKitSubmesh = submesh.metalKitSubmesh;
-
+                    
                     renderEncoder.drawIndexedPrimitives(type: metalKitSubmesh.primitiveType,
-                                              indexCount:metalKitSubmesh.indexCount,
-                                               indexType:metalKitSubmesh.indexType,
-                                             indexBuffer:metalKitSubmesh.indexBuffer.buffer,
-                                       indexBufferOffset:metalKitSubmesh.indexBuffer.offset
+                                                        indexCount:metalKitSubmesh.indexCount,
+                                                        indexType:metalKitSubmesh.indexType,
+                                                        indexBuffer:metalKitSubmesh.indexBuffer.buffer,
+                                                        indexBufferOffset:metalKitSubmesh.indexBuffer.offset
                     );
                 }
             }
@@ -179,33 +184,22 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
                 
                     // Check if there is a drawable to render content to.
                     if let drawableTexture = view.currentDrawable?.texture {
-                        //                    if(FPNumSamples > 1)
-                        //                    {
-//                        viewRenderPassDescriptor!.colorAttachments[0].resolveTexture = view.currentDrawable!.texture;
-                        //                    }
-                        //                    else
-                        //                    {
-
                         viewRenderPassDescriptor!.colorAttachments[0].texture = drawableTexture
-                        
+                        viewRenderPassDescriptor!.depthAttachment.texture = view.depthStencilTexture
                         if let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: viewRenderPassDescriptor!) {
                             renderEncoder.setCullMode(.back);
 
-                            // Render scene to depth buffer only. You later use this data to determine the minimum and
-                            // maximum depth values of each tile.
-
                             // Render objects with lighting.
                             renderEncoder.pushDebugGroup("Render Forward Lighting");
-                            renderEncoder.setRenderPipelineState(forwardLightingPipelineState!);
-                            renderEncoder.setDepthStencilState(relaxedDepthState);
+                            renderEncoder.setRenderPipelineState(mainPipelineState!);
+                            renderEncoder.setDepthStencilState(depthState);
                             renderEncoder.setVertexBuffer(frameDataBuffers[currentBufferIndex], offset:0, index: 2)
 //                            renderEncoder.setFragmentBuffer(frameDataBuffers[currentBufferIndex], offset:0, index: 2)
-                            self.drawMeshes(renderEncoder);
+                            self.drawMesh(renderEncoder);
                             renderEncoder.popDebugGroup();
 
                             renderEncoder.endEncoding()
                     }
-
                 }
                 
                 if let drawable = view.currentDrawable {
@@ -219,13 +213,13 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
         
         func setup(metalKitView: MTKView, vertexShader: String, fragmentShader: String){
             self.frameDataBuffers.reserveCapacity(maxBuffersInFlight)
-            let device = metalKitView.device!
+            self.device = metalKitView.device!
 
             let storageMode = MTLResourceOptions.storageModeShared
             self.frameDataBuffers.reserveCapacity(maxBuffersInFlight)
             for i in 0..<maxBuffersInFlight {
                 let idxStr = String(i)
-                self.frameDataBuffers.append(device.makeBuffer(length: MemoryLayout<FrameDataC>.size, options: storageMode)!)
+                self.frameDataBuffers.append(device!.makeBuffer(length: MemoryLayout<FrameDataC>.size, options: storageMode)!)
                 self.frameDataBuffers[i].label = "FrameDataBuffer"+idxStr
             }
             
@@ -265,7 +259,7 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             
             // Set view's depth stencil pixel format to Invalid.  This app will manually manage it's own
             // depth buffer, not depend on the depth buffer managed by MTKView
-            metalKitView.depthStencilPixelFormat = .invalid;
+            metalKitView.depthStencilPixelFormat = .depth32Float
 
             setShaders(metalKitView: metalKitView, vertexShader: vertexShader, fragmentShader: fragmentShader)
             
@@ -277,13 +271,9 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             // Create a depth state with depth buffer write disabled and set the comparison function to
             //   `MTLCompareFunctionLessEqual`.
             
-            // The comparison function is `MTLCompareFunctionLessEqual` instead of `MTLCompareFunctionLess`.
-            //   The geometry pass renders to a pre-populated depth buffer (depth pre-pass) so each
-            //   fragment needs to pass if its z-value is equal to the existing value already in the
-            //   depth buffer.
-            depthStateDesc.depthCompareFunction = .always
-            depthStateDesc.isDepthWriteEnabled = false
-            self.relaxedDepthState = device.makeDepthStencilState(descriptor: depthStateDesc)!
+            depthStateDesc.depthCompareFunction = .less
+            depthStateDesc.isDepthWriteEnabled = true
+            self.depthState = device!.makeDepthStencilState(descriptor: depthStateDesc)!
             
             self.viewRenderPassDescriptor = MTLRenderPassDescriptor();
             self.viewRenderPassDescriptor!.colorAttachments[0].loadAction = .clear
@@ -303,25 +293,14 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             
             // Creata a Model I/O vertex descriptor so that the format and layout of Model I/O mesh vertices
             //   fits the Metal render pipeline's vertex descriptor layout.
-            let modelIOVertexDescriptor = MTKModelIOVertexDescriptorFromMetal(vertexDescriptor!)
+            self.modelIOVertexDescriptor = MTKModelIOVertexDescriptorFromMetal(vertexDescriptor!)
             
             // Indicate how each Metal vertex descriptor attribute maps to each Model I/O attribute.
-            (modelIOVertexDescriptor.attributes[0] as! MDLVertexAttribute).name  = MDLVertexAttributePosition
-            (modelIOVertexDescriptor.attributes[1] as! MDLVertexAttribute).name = MDLVertexAttributeTextureCoordinate
-            (modelIOVertexDescriptor.attributes[2] as! MDLVertexAttribute).name = MDLVertexAttributeNormal
-            (modelIOVertexDescriptor.attributes[3] as! MDLVertexAttribute).name  = MDLVertexAttributeTangent
-            (modelIOVertexDescriptor.attributes[4] as! MDLVertexAttribute).name = MDLVertexAttributeBitangent
-
-            let modelFileURL = Bundle.main.url(forResource: "UV_Sphere.obj", withExtension: nil)
-            assert(modelFileURL != nil, "Could not find model UV_Sphere.obj file in bundle")
-            
-            // Create a MetalKit mesh buffer allocator so that ModelIO  will load mesh data directly into
-            //   Metal buffers accessible by the GPU
-            do {
-                self.meshes = try JelloMesh.load(url: modelFileURL!, modelIOVertexDescriptor: modelIOVertexDescriptor, device: metalKitView.device!)
-            } catch {
-                self.meshes = Array()
-            }
+            (modelIOVertexDescriptor!.attributes[0] as! MDLVertexAttribute).name  = MDLVertexAttributePosition
+            (modelIOVertexDescriptor!.attributes[1] as! MDLVertexAttribute).name = MDLVertexAttributeTextureCoordinate
+            (modelIOVertexDescriptor!.attributes[2] as! MDLVertexAttribute).name = MDLVertexAttributeNormal
+            (modelIOVertexDescriptor!.attributes[3] as! MDLVertexAttribute).name  = MDLVertexAttributeTangent
+            (modelIOVertexDescriptor!.attributes[4] as! MDLVertexAttribute).name = MDLVertexAttributeBitangent
 
         }
         
@@ -333,6 +312,7 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             renderPipelineStateDescriptor.rasterSampleCount = Int(1)
 
             renderPipelineStateDescriptor.colorAttachments[0].pixelFormat = metalKitView.colorPixelFormat
+            renderPipelineStateDescriptor.depthAttachmentPixelFormat = .depth32Float
 
             let vertexLibrary = try! metalKitView.device!.makeLibrary(source: vertexShader, options: compileOptions)
             let fragmentLibrary = try! metalKitView.device!.makeLibrary(source: fragmentShader, options: compileOptions)
@@ -344,7 +324,7 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             renderPipelineStateDescriptor.vertexDescriptor = vertexDescriptor
             renderPipelineStateDescriptor.vertexFunction = vertexFunction
             renderPipelineStateDescriptor.fragmentFunction = fragmentFunction
-            try! self.forwardLightingPipelineState = metalKitView.device!.makeRenderPipelineState(descriptor: renderPipelineStateDescriptor)
+            try! self.mainPipelineState = metalKitView.device!.makeRenderPipelineState(descriptor: renderPipelineStateDescriptor)
         }
         
         func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
@@ -354,8 +334,8 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             //   or size has changed.
             let aspect = Float(size.width) / Float(size.height)
             self.fov = 60.0 * (.pi / 180.0)
-            self.nearPlane = 0.1
-            self.farPlane = 50.0
+            self.nearPlane = 0.5
+            self.farPlane = 4.0
             self.projectionMatrix = matrix_perspective_left_hand(fovyRadians: self.fov, aspectRatio: aspect, nearZ: nearPlane, farZ: farPlane);
         }
     }
