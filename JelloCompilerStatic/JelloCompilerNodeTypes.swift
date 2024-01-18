@@ -204,6 +204,7 @@ public class PreviewOutputCompilerNode: CompilerNode {
         #debugNames(opCode: SpirvOpName, [outputVariableId], #stringLiteral("fragmentMain"))
         #annotation(opCode: SpirvOpDecorate, [outputVariableId, SpirvDecorationLocation.rawValue, 0])
         #globalDeclaration(opCode: SpirvOpVariable, [float4PointerTypeId, outputVariableId, SpirvStorageClassOutput.rawValue])
+        
         var resultId: UInt32 = 0
         if let edge = inputPort.incomingEdge {
             switch(inputPort.concreteDataType!) {
@@ -509,5 +510,47 @@ public class DivideCompilerNode: CompilerNode {
             p.node = self
         }
         outputPort.node = self
+    }
+}
+
+
+
+public class LoadCompilerNode : CompilerNode {
+    public var id: UUID
+    private let normalize : Bool
+    public var inputPorts: [InputCompilerPort] = []
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
+        let loadResultId = #id
+        #functionBody(opCode: SpirvOpLoad, [typeId, loadResultId, getPointerId()])
+        if !normalize {
+            outputPorts.first!.setReservedId(reservedId: loadResultId)
+            return
+        }
+        let normalizeResultId = #id
+        #functionBody(opCode: SpirvOpExtInst, [typeId, normalizeResultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Normalize.rawValue, loadResultId])
+        outputPorts.first!.setReservedId(reservedId: normalizeResultId)
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    public var constraints: [PortConstraint] { [] }
+    public let getPointerId: () -> UInt32
+    
+    
+    public init(id: UUID = UUID(), outputPort: OutputCompilerPort, type: JelloConcreteDataType, getPointerId: @escaping () -> UInt32, normalize: Bool) {
+        self.id = id
+        self.inputPorts =  []
+        self.outputPorts = [outputPort]
+        self.getPointerId = getPointerId
+        self.normalize = normalize
+        outputPort.concreteDataType = type
+        outputPort.node = self
+        
     }
 }

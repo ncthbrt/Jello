@@ -21,7 +21,7 @@ extension JelloNode {
     static let inputPortStrokeWidth : CGFloat = 3.0
 
     static func getStandardNodeHeight(inputPortsCount: Int, outputPortsCount: Int) -> CGFloat {
-        return Self.headerHeight + JelloNode.portHeight * CGFloat(max(inputPortsCount, inputPortsCount))
+        return Self.headerHeight + JelloNode.portHeight * CGFloat(max(inputPortsCount, outputPortsCount))
     }
     
     static func getStandardInputPortPositionOffset(index: UInt8) -> CGPoint {

@@ -259,6 +259,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BC0699C62B5832CE002441F8 /* Nodes */ = {
+			isa = PBXGroup;
+			children = (
+				BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */,
+				BC258A852B45906B00FEB690 /* PreviewNodeView.swift */,
+			);
+			path = Nodes;
+			sourceTree = "<group>";
+		};
 		BC258A892B46A50E00FEB690 /* Unsafe */ = {
 			isa = PBXGroup;
 			children = (
@@ -388,6 +397,7 @@
 		BC9BBFF12AF0072D00FC068C /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				BC0699C62B5832CE002441F8 /* Nodes */,
 				BC33AA902B17007F003471D9 /* Controls */,
 				BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */,
 				BCE0675A2AF934820066F8D4 /* NodeView.swift */,
@@ -400,8 +410,6 @@
 				BC07D1082AFF674E00EFA199 /* AddNewNodeMenuView.swift */,
 				BC31EB7A2B049428004401FC /* EdgeView.swift */,
 				BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */,
-				BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */,
-				BC258A852B45906B00FEB690 /* PreviewNodeView.swift */,
 				BC258A872B469AD600FEB690 /* ShaderPreviewView.swift */,
 			);
 			path = Views;

@@ -44,10 +44,14 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
             JelloBuiltInNodeMenuDefinition(description: "Primary BSDF used to shade surfaces", previewImage: "", category: .material, type: .slabShader),
         ],
         .utility: [
-            JelloBuiltInNodeMenuDefinition(description: "Preview Arbitrary Values", previewImage: "", category: .utility, type: .preview),
+            JelloBuiltInNodeMenuDefinition(description: "Preview arbitrary values", previewImage: "", category: .utility, type: .preview),
         ],
         .value: [
-            JelloBuiltInNodeMenuDefinition(description: "Outputs a Vector4 Color Value", previewImage: "", category: .value, type: .color),
+            JelloBuiltInNodeMenuDefinition(description: "Outputs the world position", previewImage: "", category: .value, type: .worldPosition),
+            JelloBuiltInNodeMenuDefinition(description: "Outputs the texture coordinates", previewImage: "", category: .value, type: .texCoord),
+            JelloBuiltInNodeMenuDefinition(description: "Outputs the normal in model view space", previewImage: "", category: .value, type: .normal),
+            JelloBuiltInNodeMenuDefinition(description: "Outputs the tangent in model view space", previewImage: "", category: .value, type: .tangent),
+            JelloBuiltInNodeMenuDefinition(description: "Outputs the bitangent in model view space", previewImage: "", category: .value, type: .bitangent)
         ]
     ]
 }

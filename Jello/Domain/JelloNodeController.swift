@@ -188,7 +188,14 @@ struct JelloNodeControllerFactory {
         .slabShader: JelloConstantFunctionNodeController(builtIn: .slabShader, category: .material, inputPorts: [PortDefinition(dataType: .float3, name: "Albedo"), PortDefinition(dataType: .float, name: "F0"), PortDefinition(dataType: .float, name: "F90"), PortDefinition(dataType: .float, name: "Roughness"), PortDefinition(dataType: .float, name: "Anisotropy"), PortDefinition(dataType: .float3, name: "Normal"), PortDefinition(dataType: .float3, name: "Tangent"), PortDefinition(dataType: .float, name: "SSS MFP"), PortDefinition(dataType: .float, name: "SSS MFP Scale"), PortDefinition(dataType: .float, name: "SSS Phase Anisotropy"), PortDefinition(dataType: .float3, name: "Emissive Color"), PortDefinition(dataType: .float, name: "2nd Roughness"), PortDefinition(dataType: .float, name: "2nd Roughness Weight"), PortDefinition(dataType: .float, name: "Fuzz Roughness"), PortDefinition(dataType: .float3, name: "Fuzz Amount"), PortDefinition(dataType: .float3, name: "Fuzz Color"), PortDefinition(dataType: .float, name: "Glint Density"), PortDefinition(dataType: .float2, name: "Glint UVS")], outputPorts: [PortDefinition(dataType: .slabMaterial, name: "")]),
         .add: JelloConstantFunctionNodeController(builtIn: .add, category: .math, inputPorts: [PortDefinition(dataType: .anyFloat, name: "X"), PortDefinition(dataType: .anyFloat, name: "Y")], outputPorts: [PortDefinition(dataType: .anyFloat, name: "Z")]),
         .subtract: JelloConstantFunctionNodeController(builtIn: .subtract, category: .math, inputPorts: [PortDefinition(dataType: .anyFloat, name: "X"), PortDefinition(dataType: .anyFloat, name: "Y")], outputPorts: [PortDefinition(dataType: .anyFloat, name: "Z")]),
-        .color: JelloColorNodeController()
+        .color: JelloColorNodeController(),
+        
+        .worldPosition: JelloConstantFunctionNodeController(builtIn: .worldPosition, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float4, name: "")]),
+        .texCoord: JelloConstantFunctionNodeController(builtIn: .texCoord, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float2, name: "")]),
+        .normal: JelloConstantFunctionNodeController(builtIn: .normal, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float3, name: "")]),
+        .tangent: JelloConstantFunctionNodeController(builtIn: .tangent, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float3, name: "")]),
+        .bitangent: JelloConstantFunctionNodeController(builtIn: .bitangent, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float3, name: "")]),
+        
     ]
 
 

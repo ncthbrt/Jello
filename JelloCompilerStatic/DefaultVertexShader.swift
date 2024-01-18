@@ -19,7 +19,7 @@ public let defaultVertexShader: [UInt32] = #document({
     let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
     
     let frameDataTypeId = FrameData.register()
-    let (frameDataPointerTypeId, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassUniformConstant)
+    let (_, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassUniformConstant)
     
     let frameDataId = createFrameDataVariable()
     #debugNames(opCode: SpirvOpName, [frameDataId], #stringLiteral("frameData"))

@@ -13,7 +13,6 @@ import JelloCompilerStatic
 
 let maxBuffersInFlight = 3
 
-
 fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
     let vertexShader: String
     let fragmentShader: String
@@ -333,9 +332,6 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             // Update the aspect ratio and projection matrix because the view orientation
             //   or size has changed.
             let aspect = Float(size.width) / Float(size.height)
-            self.fov = 60.0 * (.pi / 180.0)
-            self.nearPlane = 0.5
-            self.farPlane = 4.0
             self.projectionMatrix = matrix_perspective_left_hand(fovyRadians: self.fov, aspectRatio: aspect, nearZ: nearPlane, farZ: farPlane);
         }
     }

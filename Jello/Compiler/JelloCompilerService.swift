@@ -74,8 +74,6 @@ import simd
         
     }
     
-    
-    
     private func buildCompilerNode(jelloNode: JelloNode, jelloNodeData: [String: JelloNodeDataValue], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> CompilerNode? {
         let compilerInputPorts = jelloInputPorts.map({ InputCompilerPort(id: $0.uuid, dataType: $0.dataType) })
         let compilerOutputPorts = jelloOutputPorts.map({ OutputCompilerPort(id: $0.uuid, dataType: $0.dataType) })
@@ -98,6 +96,16 @@ import simd
                 return node
             }
             return nil
+        case .builtIn(.worldPosition):
+            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float4, getPointerId: { JelloCompilerBlackboard.worldPosInId }, normalize: false)
+        case .builtIn(.texCoord):
+            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float2, getPointerId: { JelloCompilerBlackboard.texCoordInId }, normalize: false)
+        case .builtIn(.normal):
+            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.normalInId }, normalize: true)
+        case .builtIn(.tangent):
+            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.tangentInId }, normalize: true)
+        case .builtIn(.bitangent):
+            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.bitangentInId }, normalize: true)
         case .material:
             // TODO: Add support for nested materials
             return nil
@@ -106,4 +114,5 @@ import simd
             return nil
         }
     }
+    
 }

@@ -9,15 +9,24 @@ import Foundation
 
 
 enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable {
-    
+    // Functions
     case add = 0
     case subtract = 1
     
+    // Shaders and Outputs
     case materialOutput = 100
     case slabShader = 101
     case preview = 102
 
-    case color
+    // Constants
+    case color = 300
+    
+    // Inputs
+    case worldPosition = 401
+    case texCoord = 402
+    case normal = 403
+    case tangent = 404
+    case bitangent = 405
     
     
     var name : String {

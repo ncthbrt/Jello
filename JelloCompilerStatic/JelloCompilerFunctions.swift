@@ -249,13 +249,116 @@ public func compileToSpirv(input: JelloCompilerInput) throws -> (vertex: [UInt32
         #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
         let glsl450Id = #id
         #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
+        JelloCompilerBlackboard.glsl450ExtId = glsl450Id
+        
         #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
         #executionMode(opCode: SpirvOpExecutionMode, [fragmentEntryPoint, SpirvExecutionModeOriginUpperLeft.rawValue])
+     
+        let frameDataTypeId = FrameData.register()
+        let (_, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassUniformConstant)
+        
+        let frameDataId = createFrameDataVariable()
+        #debugNames(opCode: SpirvOpName, [frameDataId], #stringLiteral("frameData"))
+        #annotation(opCode: SpirvOpDecorate, [frameDataTypeId, SpirvDecorationBlock.rawValue])
+        var frameDataOffset: UInt32 = 0
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 0, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 64
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 1, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 64
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 2, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 64
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 3, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 64
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 4, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 16
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 5, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 16
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 6, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 64
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 7, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 48
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 8, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 64
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 9, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 16
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 10, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 16
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 11, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 16
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 12, SpirvDecorationOffset.rawValue, frameDataOffset])
+        frameDataOffset += 4
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 13, SpirvDecorationOffset.rawValue, frameDataOffset])
+        // Matrix strides for Frame Data
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 0, SpirvDecorationMatrixStride.rawValue, 16])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 1, SpirvDecorationMatrixStride.rawValue, 16])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 2, SpirvDecorationMatrixStride.rawValue, 16])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 3, SpirvDecorationMatrixStride.rawValue, 16])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 6, SpirvDecorationMatrixStride.rawValue, 16])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 7, SpirvDecorationMatrixStride.rawValue, 16])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 8, SpirvDecorationMatrixStride.rawValue, 16])
+        // Matrix Layout for Frame Data
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 0, SpirvDecorationRowMajor.rawValue])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 1, SpirvDecorationRowMajor.rawValue])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 2, SpirvDecorationRowMajor.rawValue])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 3, SpirvDecorationRowMajor.rawValue])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 6, SpirvDecorationRowMajor.rawValue])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 7, SpirvDecorationRowMajor.rawValue])
+        #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 8, SpirvDecorationRowMajor.rawValue])
+        
+        #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationDescriptorSet.rawValue, 0])
+        #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, 2])
+        #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationNonWritable.rawValue])
+
+        JelloCompilerBlackboard.frameDataId = frameDataId
+
+        let float4TypeId = declareType(dataType: .float4)
+        let float3TypeId = declareType(dataType: .float3)
+        let float2TypeId = declareType(dataType: .float2)
+        
+        let float4InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float4TypeId])
+        let float3InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float3TypeId])
+        let float2InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float2TypeId])
+        
+        
+        // World Pos In
+        let worldPosInId = #id
+        JelloCompilerBlackboard.worldPosInId = worldPosInId
+        #globalDeclaration(opCode: SpirvOpVariable, [float4InputPointerTypeId, worldPosInId, SpirvStorageClassInput.rawValue])
+        #debugNames(opCode: SpirvOpName, [worldPosInId], #stringLiteral("worldPos"))
+        #annotation(opCode: SpirvOpDecorate, [worldPosInId, SpirvDecorationLocation.rawValue, 0])
+
+        // TexCoord In
+        let texCoordInId = #id
+        JelloCompilerBlackboard.texCoordInId = texCoordInId
+        #globalDeclaration(opCode: SpirvOpVariable, [float2InputPointerTypeId, texCoordInId, SpirvStorageClassInput.rawValue])
+        #debugNames(opCode: SpirvOpName, [texCoordInId], #stringLiteral("texCoord"))
+        #annotation(opCode: SpirvOpDecorate, [texCoordInId, SpirvDecorationLocation.rawValue, 1])
+        // Tangent In
+        let tangentInId = #id
+        JelloCompilerBlackboard.tangentInId = tangentInId
+        #globalDeclaration(opCode: SpirvOpVariable, [float3InputPointerTypeId, tangentInId, SpirvStorageClassInput.rawValue])
+        #debugNames(opCode: SpirvOpName, [tangentInId], #stringLiteral("tangent"))
+        #annotation(opCode: SpirvOpDecorate, [tangentInId, SpirvDecorationLocation.rawValue, 2])
+        
+        // Bitangent In
+        let bitangentInId = #id
+        JelloCompilerBlackboard.bitangentInId = bitangentInId
+        #globalDeclaration(opCode: SpirvOpVariable, [float3InputPointerTypeId, bitangentInId, SpirvStorageClassInput.rawValue])
+        #debugNames(opCode: SpirvOpName, [bitangentInId], #stringLiteral("bitangent"))
+        #annotation(opCode: SpirvOpDecorate, [bitangentInId, SpirvDecorationLocation.rawValue, 3])
+        
+        // Normal In
+        let normalInId = #id
+        JelloCompilerBlackboard.normalInId = normalInId
+        #globalDeclaration(opCode: SpirvOpVariable, [float3InputPointerTypeId, normalInId, SpirvStorageClassInput.rawValue])
+        #debugNames(opCode: SpirvOpName, [normalInId], #stringLiteral("normal"))
+        #annotation(opCode: SpirvOpDecorate, [normalInId, SpirvDecorationLocation.rawValue, 4])
+        
         for node in nodes {
             node.install()
         }
         let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
-        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [JelloCompilerBlackboard.fragOutputColorId])
+        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [JelloCompilerBlackboard.fragOutputColorId, JelloCompilerBlackboard.frameDataId, worldPosInId, texCoordInId, tangentInId, bitangentInId, normalInId])
         let typeFragmentFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
         #functionHead(opCode: SpirvOpFunction, [typeVoid, fragmentEntryPoint, 0, typeFragmentFunction])
         #functionHead(opCode: SpirvOpLabel, [#id])

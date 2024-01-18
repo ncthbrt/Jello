@@ -189,6 +189,7 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
         set {
             topLeftCell.position = newValue
             lastInteractionTime = SuspendingClock.now
+            lastPublishTime = lastInteractionTime - Duration.seconds(1)
         }
     }
     
@@ -409,7 +410,7 @@ class JellyBoxVertletSimulation: ObservableObject, SimulationDrawable {
     func sync(operation: @escaping DrawOperation) {
         let drawWasNil = draw == nil
         draw = operation
-        if drawWasNil || SuspendingClock.now - lastPublishTime > Duration.milliseconds(4) {
+        if drawWasNil || SuspendingClock.now - lastPublishTime > Duration.milliseconds(6) {
             objectWillChange.send()
             lastPublishTime = .now
         }
