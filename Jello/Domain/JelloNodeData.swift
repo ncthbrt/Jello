@@ -12,7 +12,7 @@ import SwiftData
 
 
 
-enum JelloNodeDataValue: Codable {
+enum JelloNodeDataValue: Codable, Equatable {
     case null
     case string(String)
     case bool(Bool)
@@ -27,6 +27,8 @@ enum JelloNodeDataValue: Codable {
 
 enum JelloNodeDataKey: String {
     case value
+    case componentCount
+    case componentSliderDisabled
 }
 
 

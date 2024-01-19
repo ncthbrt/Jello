@@ -28,7 +28,7 @@ struct ContentView: View {
             
             for node in nodes {
                 let controller = JelloNodeControllerFactory.getController(node)
-                controller.migrate(compiler: compiler, node: node)
+                controller.migrate(node: node)
             }
         }
         .environment(compiler)

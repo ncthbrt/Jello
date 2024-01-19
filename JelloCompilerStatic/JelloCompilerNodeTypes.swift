@@ -231,7 +231,7 @@ public class PreviewOutputCompilerNode: CompilerNode {
             case .float:
                 resultId = #id
                 let outId = edge.outputPort.getOrReserveId()
-                #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, resultId, outId, outId, 0, 0, 0, 0])
+                #functionBody(opCode: SpirvOpCompositeConstruct, [float4TypeId, resultId, outId, outId, outId, outId])
                 break
             case .float2:
                 resultId = #id
@@ -552,5 +552,99 @@ public class LoadCompilerNode : CompilerNode {
         outputPort.concreteDataType = type
         outputPort.node = self
         
+    }
+}
+
+
+
+public class SwizzleCompilerNode : CompilerNode {
+    
+    public enum SwizzleComponentSelector {
+        case zero
+        case index(UInt8)
+        
+        public static func == (lhs: SwizzleComponentSelector, rhs: SwizzleComponentSelector) -> Bool {
+            switch (lhs, rhs) {
+            case (.zero, .zero):
+                return true
+            case (.index(let a), .index(let b)) where a == b:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+    
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        let inputPort = inputPorts.first!
+        let outputPort = outputPorts.first!
+        if inputPort.incomingEdge == nil {
+            let resultId = declareNullValueConstant(dataType: outputPort.concreteDataType!)
+            outputPort.setReservedId(reservedId: resultId)
+        } else {
+            let inId = inputPort.incomingEdge!.outputPort.getOrReserveId()
+            let resultTypeId = declareType(dataType: outputPort.concreteDataType!)
+            var resultId = #id
+            if inputPort.concreteDataType == .float {
+                let nullId = declareNullValueConstant(dataType: .float)
+                if outputPort.concreteDataType != .float {
+                    // Special case for the float type
+                    
+                    let components = selectors.map({selector in switch(selector){
+                    case .zero:
+                        return nullId
+                    case .index(let idx) where idx == 0:
+                        return inId
+                    default:
+                        fatalError("Received unexpected index")
+                    }})
+                    #functionBody(opCode: SpirvOpCompositeConstruct, [resultTypeId, resultId], components)
+                } else {
+                    if let fst = selectors.first, fst == .zero {
+                        resultId = nullId
+                    } else {
+                        resultId = inId
+                    }
+                }
+            } else {
+                let components = selectors.map({selector in switch(selector){
+                case .zero:
+                    return UInt32(0xFFFFFFFF)
+                case .index(let idx):
+                    return UInt32(idx)
+                }})
+
+                let inId = inputPort.incomingEdge!.outputPort.getOrReserveId()
+                #functionBody(opCode: SpirvOpVectorShuffle, [resultTypeId, resultId, inId, inId], components)
+            }
+            outputPort.setReservedId(reservedId: resultId)
+        }
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    public var constraints: [PortConstraint] { [] }
+    public var selectors: [SwizzleComponentSelector] = []
+    
+    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPort: OutputCompilerPort, selectors: [SwizzleComponentSelector]) {
+        self.id = id
+        self.inputPorts =  [inputPort]
+        self.outputPorts = [outputPort]
+        self.selectors = selectors
+        
+        inputPort.node = self
+        outputPort.node = self
+    }
+    
+    public static func buildSelectors(componentCount: Int, components: [Float]) -> [SwizzleComponentSelector] {
+        let results: [SwizzleComponentSelector] = components.map({ UInt8($0) == 0 ? .zero : .index(UInt8($0 - 1))})
+        return Array(results[0..<componentCount])
     }
 }

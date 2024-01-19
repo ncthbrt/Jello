@@ -45,6 +45,7 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
         ],
         .utility: [
             JelloBuiltInNodeMenuDefinition(description: "Preview arbitrary values", previewImage: "", category: .utility, type: .preview),
+            JelloBuiltInNodeMenuDefinition(description: "Select a set of values from a vector", previewImage: "", category: .utility, type: .swizzle),
         ],
         .value: [
             JelloBuiltInNodeMenuDefinition(description: "Outputs the world position", previewImage: "", category: .value, type: .worldPosition),

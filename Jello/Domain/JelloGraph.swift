@@ -151,8 +151,8 @@ final class JelloNode  {
     fileprivate(set) var minY: Float
     fileprivate(set) var maxX: Float
     fileprivate(set) var maxY: Float
-    var width: Float
-    var height: Float
+    fileprivate(set) var width: Float
+    fileprivate(set) var height: Float
     
     fileprivate(set) var positionX: Float
     fileprivate(set) var positionY: Float
@@ -307,16 +307,43 @@ final class JelloEdge {
             self.endPositionY = Float(newValue.y)
             
             
-            if let port = closestPort {
-                self.inputPort = port
+            if let port = closestPort, let endNodeId = port.node?.uuid, let outputPortId = outputPort?.uuid, let startNodeId = outputPort?.node?.uuid {
                 self.endPositionX = port.positionX
                 self.endPositionY = port.positionY
-                withAnimation(.easeIn.speed(0.5)) {
-                    self.dataType = self.outputPort?.dataType ?? .any
-                    self.dataType = JelloGraphDataType.getMostSpecificType(a: outputPort?.dataType ?? .any, b: port.dataType)
+
+                if self.inputPort != port {
+                    let outputPort = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.uuid == outputPortId }))) ?? []).first!
+                    let startNode = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloNode>{ $0.uuid == startNodeId }))) ?? []).first!
+                    let startNodeController = JelloNodeControllerFactory.getController(startNode)
+                    startNodeController.onOutputPortDisconnected(port: outputPort, edge: self)
+                    if let oldInputPortId = self.inputPort?.uuid, let oldEndNodeId = self.inputPort?.node?.uuid {
+                        let oldInputPort = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.uuid == oldInputPortId }))) ?? []).first!
+                        let oldEndNode = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloNode>{ $0.uuid == oldEndNodeId }))) ?? []).first!
+                        let oldEndNodeController = JelloNodeControllerFactory.getController(oldEndNode)
+                        oldEndNodeController.onInputPortDisconnected(port: oldInputPort, edge: self)
+                    }
+                    self.inputPort = port
+                    let newEndNode = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloNode>{ $0.uuid == endNodeId }))) ?? []).first!
+                    let newEndNodeController = JelloNodeControllerFactory.getController(newEndNode)
+                    startNodeController.onOutputPortConnected(port: outputPort, edge: self)
+                    newEndNodeController.onInputPortConnected(port: port, edge: self)
+
+                    withAnimation(.easeIn.speed(0.5)) {
+                        self.dataType = self.outputPort?.dataType ?? .any
+                        self.dataType = JelloGraphDataType.getMostSpecificType(a: outputPort.dataType, b: port.dataType)
+                    }
                 }
             } else {
-                if let _ = self.inputPort {
+                if let outputPortId = outputPort?.uuid, let startNodeId = outputPort?.node?.uuid, let oldInputPortId = self.inputPort?.uuid, let oldEndNodeId = self.inputPort?.node?.uuid  {
+                    let outputPort = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.uuid == outputPortId }))) ?? []).first!
+                    let startNode = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloNode>{ $0.uuid == startNodeId }))) ?? []).first!
+                    let startNodeController = JelloNodeControllerFactory.getController(startNode)
+                    startNodeController.onOutputPortDisconnected(port: outputPort, edge: self)
+                    
+                    let oldInputPort = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.uuid == oldInputPortId }))) ?? []).first!
+                    let oldEndNode = ((try! modelContext?.fetch(FetchDescriptor(predicate: #Predicate<JelloNode>{ $0.uuid == oldEndNodeId }))) ?? []).first!
+                    let oldEndNodeController = JelloNodeControllerFactory.getController(oldEndNode)
+                    oldEndNodeController.onInputPortDisconnected(port: oldInputPort, edge: self)
                     self.inputPort = nil
                     withAnimation(.easeIn) {
                         self.dataType = self.outputPort?.dataType ?? .any

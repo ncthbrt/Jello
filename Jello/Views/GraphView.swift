@@ -155,7 +155,7 @@ struct GraphView<AddNodeMenu: View> : View {
                 let node = nodes.first(where: {$0.uuid == nodeId})!
                 let controller = JelloNodeControllerFactory.getController(node)
                 if controller.hasSettings {
-                    controller.settingsView(compiler: compiler, node: node)
+                    controller.settingsView(node: node)
                                 .background(.ultraThinMaterial)
                                 .inspectorColumnWidth(ideal: 500)
                                 .toolbar {

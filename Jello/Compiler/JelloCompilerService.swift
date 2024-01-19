@@ -97,15 +97,22 @@ import simd
             }
             return nil
         case .builtIn(.worldPosition):
-            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float4, getPointerId: { JelloCompilerBlackboard.worldPosInId }, normalize: false)
+            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float4, getPointerId: { JelloCompilerBlackboard.worldPosInId }, normalize: false)
         case .builtIn(.texCoord):
-            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float2, getPointerId: { JelloCompilerBlackboard.texCoordInId }, normalize: false)
+            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float2, getPointerId: { JelloCompilerBlackboard.texCoordInId }, normalize: false)
         case .builtIn(.normal):
-            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.normalInId }, normalize: true)
+            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.normalInId }, normalize: true)
         case .builtIn(.tangent):
-            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.tangentInId }, normalize: true)
+            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.tangentInId }, normalize: true)
         case .builtIn(.bitangent):
-            return LoadCompilerNode(outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.bitangentInId }, normalize: true)
+            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.bitangentInId }, normalize: true)
+        case .builtIn(.swizzle):
+            let componentCount = jelloNodeData[JelloNodeDataKey.componentCount.rawValue] ?? .null
+            let value = jelloNodeData[JelloNodeDataKey.value.rawValue] ?? .null
+            if case JelloNodeDataValue.float4(let x, let y, let z, let w) = value, case .int(let componentCount) = componentCount {
+                return SwizzleCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, selectors: SwizzleCompilerNode.buildSelectors(componentCount: componentCount, components: [x, y, z, w]))
+            }
+            return nil
         case .material:
             // TODO: Add support for nested materials
             return nil

@@ -153,7 +153,7 @@ struct NodeControllerView : View {
     
     var body: some View {
         if !node.isDeleted {
-            NodeView(node: node, gradient: controller.category.getCategoryGradient(), innerBody: { path in controller.body(compiler: compiler, node: node, drawBounds: path) }, showInspector: $showInspector, hasSettings: controller.hasSettings)
+            NodeView(node: node, gradient: controller.category.getCategoryGradient(), innerBody: { path in controller.body(node: node, drawBounds: path) }, showInspector: $showInspector, hasSettings: controller.hasSettings)
         }
     }
 }

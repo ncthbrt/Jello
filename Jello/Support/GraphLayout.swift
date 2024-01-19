@@ -28,7 +28,7 @@ extension JelloNode {
         return CGPoint(x: JelloNode.padding, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
     }
     
-    static func getStandardOutputPortPositionOffset(index: UInt8) -> CGPoint {
-        return CGPoint(x: JelloNode.standardNodeWidth - JelloNode.padding, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
+    static func getStandardOutputPortPositionOffset(index: UInt8, width: CGFloat = standardNodeWidth) -> CGPoint {
+        return CGPoint(x: width - JelloNode.padding, y: JelloNode.headerHeight) + CGPoint(x: 0, y: JelloNode.portHeight) * CGFloat(index)
     }
 }

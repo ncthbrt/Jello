@@ -102,7 +102,7 @@ struct AddNewNodeMenuView: View {
                     let node = JelloNode(builtIn: builtIn, graph: graph, position: position)
                     let controller = JelloNodeControllerFactory.getController(node)
                     modelContext.insert(node)
-                    controller.setup(compiler: compiler, node: node)
+                    controller.setup(node: node)
                 case .material(let materialId):
                     let material = materials.first(where: { $0.uuid == materialId})!
                     modelContext.insert(JelloNode(material: material, graph: graph, position: position))

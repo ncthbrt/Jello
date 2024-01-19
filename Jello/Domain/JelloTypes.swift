@@ -12,6 +12,7 @@ enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable {
     // Functions
     case add = 0
     case subtract = 1
+    case swizzle = 2
     
     // Shaders and Outputs
     case materialOutput = 100
@@ -90,7 +91,7 @@ enum JelloGraphDomainType: Int, Codable, CaseIterable {
 }
 
 
-enum JelloPreviewGeometry: Codable {
+enum JelloPreviewGeometry: Codable, Equatable {
     case sphere
     case cube
 }

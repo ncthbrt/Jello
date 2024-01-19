@@ -37,3 +37,11 @@ public func declareType(dataType: JelloConcreteDataType) -> UInt32 {
         fatalError("Type Not Supported Yet")
     }
 }
+
+
+public func declareNullValueConstant(dataType: JelloConcreteDataType) -> UInt32 {
+    let typeId = declareType(dataType: dataType)
+    let resultId = #id
+    #globalDeclaration(opCode: SpirvOpConstantNull, [typeId, resultId])
+    return resultId
+}
