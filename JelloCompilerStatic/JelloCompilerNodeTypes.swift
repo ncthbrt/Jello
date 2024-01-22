@@ -648,3 +648,150 @@ public class SwizzleCompilerNode : CompilerNode {
         return Array(results[0..<componentCount])
     }
 }
+
+
+public class UnaryOperatorCompilerNode : CompilerNode {
+    public var id: UUID
+    private let spirvOperator: SpirvOp
+    private let resultType: JelloConcreteDataType
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        let typeId = declareType(dataType: resultType)
+        let resultId = #id
+        if let inputId = inputPorts.first!.incomingEdge?.outputPort.getOrReserveId() {
+            #functionBody(opCode: spirvOperator, [typeId, resultId, inputId])
+        } else {
+            let nullId = declareNullValueConstant(dataType: inputPorts.first!.concreteDataType!)
+            #functionBody(opCode: spirvOperator, [typeId, resultId, nullId])
+        }
+        outputPorts.first!.setReservedId(reservedId: resultId)
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    public var constraints: [PortConstraint] { [] }
+    
+    
+    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPort: OutputCompilerPort, spirvOperator: SpirvOp, resultType: JelloConcreteDataType) {
+        self.id = id
+        self.inputPorts =  [inputPort]
+        self.outputPorts = [outputPort]
+        self.spirvOperator = spirvOperator
+        self.resultType = resultType
+        inputPort.node = self
+        outputPort.node = self
+    }
+}
+
+public class UnaryGLSL450OperatorCompilerNode : CompilerNode {
+    public var id: UUID
+    private let glsl450Operator: GLSLstd450
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
+        let resultId = #id
+        if let inputId = inputPorts.first!.incomingEdge?.outputPort.getOrReserveId() {
+            let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, glsl450Operator.rawValue, inputId])
+        } else {
+            let nullId = declareNullValueConstant(dataType: inputPorts.first!.concreteDataType!)
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, glsl450Operator.rawValue, nullId])
+        }
+        outputPorts.first!.setReservedId(reservedId: resultId)
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    public var constraints: [PortConstraint] { [] }
+    
+    
+    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPort: OutputCompilerPort, glsl450Operator: GLSLstd450) {
+        self.id = id
+        self.inputPorts =  [inputPort]
+        self.outputPorts = [outputPort]
+        self.glsl450Operator = glsl450Operator
+        inputPort.node = self
+        outputPort.node = self
+    }
+}
+
+
+public class BinaryGLSL450OperatorCompilerNode : CompilerNode {
+    public var id: UUID
+    private let glsl450Operator: GLSLstd450
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
+        let resultId = #id
+        let input1Id: UInt32 = inputPorts[0].incomingEdge?.outputPort.getOrReserveId() ?? declareNullValueConstant(dataType: inputPorts[0].concreteDataType!)
+        let input2Id: UInt32 = inputPorts[1].incomingEdge?.outputPort.getOrReserveId() ?? declareNullValueConstant(dataType: inputPorts[1].concreteDataType!)
+        #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, glsl450Operator.rawValue, input1Id, input2Id])
+        outputPorts.first!.setReservedId(reservedId: resultId)
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    public var constraints: [PortConstraint] { [] }
+    
+    
+    public init(id: UUID = UUID(), inputPort1: InputCompilerPort, inputPort2: InputCompilerPort, outputPort: OutputCompilerPort, glsl450Operator: GLSLstd450) {
+        self.id = id
+        self.inputPorts =  [inputPort1, inputPort2]
+        self.outputPorts = [outputPort]
+        self.glsl450Operator = glsl450Operator
+        inputPort1.node = self
+        inputPort2.node = self
+        outputPort.node = self
+    }
+}
+
+
+public class BinaryOperatorCompilerNode : CompilerNode {
+    public var id: UUID
+    private let spirvOperator: SpirvOp
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
+        let resultId = #id
+        let input1Id: UInt32 = inputPorts[0].incomingEdge?.outputPort.getOrReserveId() ?? declareNullValueConstant(dataType: inputPorts[0].concreteDataType!)
+        let input2Id: UInt32 = inputPorts[1].incomingEdge?.outputPort.getOrReserveId() ?? declareNullValueConstant(dataType: inputPorts[1].concreteDataType!)
+        #functionBody(opCode: spirvOperator, [typeId, resultId, input1Id, input2Id])
+        outputPorts.first!.setReservedId(reservedId: resultId)
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    public var constraints: [PortConstraint] { [] }
+    
+    
+    public init(id: UUID = UUID(), inputPort1: InputCompilerPort, inputPort2: InputCompilerPort, outputPort: OutputCompilerPort, spirvOperator: SpirvOp) {
+        self.id = id
+        self.inputPorts =  [inputPort1, inputPort2]
+        self.outputPorts = [outputPort]
+        self.spirvOperator = spirvOperator
+        inputPort1.node = self
+        inputPort2.node = self
+        outputPort.node = self
+    }
+}
+

@@ -38,7 +38,12 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
     public static let builtInFunctions:  OrderedDictionary<JelloNodeCategory, [JelloBuiltInNodeMenuDefinition]> = [
         .math: [
             JelloBuiltInNodeMenuDefinition(description: "Adds values together", previewImage: "", category: .math, type: .add),
-            JelloBuiltInNodeMenuDefinition(description: "Subtracts values from one another", previewImage: "", category: .math, type: .subtract)
+            JelloBuiltInNodeMenuDefinition(description: "Subtracts values from one another", previewImage: "", category: .math, type: .subtract),
+            JelloBuiltInNodeMenuDefinition(description: "Multiplies values together", previewImage: "", category: .math, type: .multiply),
+            JelloBuiltInNodeMenuDefinition(description: "Divides values", previewImage: "", category: .math, type: .divide),
+            JelloBuiltInNodeMenuDefinition(description: "The length of a vector", previewImage: "", category: .math, type: .length),
+            JelloBuiltInNodeMenuDefinition(description: "Sets the length of a vector to 1", previewImage: "", category: .math, type: .normalize),
+            JelloBuiltInNodeMenuDefinition(description: "Returns the fractional part of a number", previewImage: "", category: .math, type: .fract),
         ],
         .material: [
             JelloBuiltInNodeMenuDefinition(description: "Primary BSDF used to shade surfaces", previewImage: "", category: .material, type: .slabShader),
@@ -48,6 +53,7 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
             JelloBuiltInNodeMenuDefinition(description: "Select a set of values from a vector", previewImage: "", category: .utility, type: .swizzle),
         ],
         .value: [
+            JelloBuiltInNodeMenuDefinition(description: "Specify a constant color", previewImage: "", category: .value, type: .color),
             JelloBuiltInNodeMenuDefinition(description: "Outputs the world position", previewImage: "", category: .value, type: .worldPosition),
             JelloBuiltInNodeMenuDefinition(description: "Outputs the texture coordinates", previewImage: "", category: .value, type: .texCoord),
             JelloBuiltInNodeMenuDefinition(description: "Outputs the normal in model view space", previewImage: "", category: .value, type: .normal),

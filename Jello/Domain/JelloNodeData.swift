@@ -27,6 +27,7 @@ enum JelloNodeDataValue: Codable, Equatable {
 
 enum JelloNodeDataKey: String {
     case value
+    case position
     case componentCount
     case componentSliderDisabled
 }

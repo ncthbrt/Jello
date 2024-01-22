@@ -10,6 +10,7 @@ import SwiftUI
 import SwiftData
 import JelloCompilerStatic
 import simd
+import SPIRV_Headers_Swift
 
 @Observable class JelloCompilerService {
     @ObservationIgnored private var modelContext: ModelContext?
@@ -82,6 +83,16 @@ import simd
             return AddCompilerNode(id: jelloNode.uuid, inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)
         case .builtIn(.subtract):
             return SubtractCompilerNode(id: jelloNode.uuid, inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)
+        case .builtIn(.divide):
+            return DivideCompilerNode(id: jelloNode.uuid, inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)
+        case .builtIn(.multiply):
+            return MultiplyCompilerNode(id: jelloNode.uuid, inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)
+        case .builtIn(.fract):
+            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Fract)
+        case .builtIn(.normalize):
+            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Normalize)
+        case .builtIn(.length):
+            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Length)
         case .builtIn(.preview):
             return PreviewOutputCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!)
         case .builtIn(.slabShader):
@@ -91,8 +102,9 @@ import simd
             return node
         case .builtIn(.color):
             let value = jelloNodeData[JelloNodeDataKey.value.rawValue] ?? .null
-            if case JelloNodeDataValue.float4(let x, let y, let z, let w) = value {
-                let node = ConstantCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, value: .float4(vector_float4(x, y, z, w)))
+            if case JelloNodeDataValue.float4(let h, let s, let b, let a) = value {
+                let rgb = hsb2rgb(hsb: .init(h, s, b))
+                let node = ConstantCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, value: .float4(vector_float4(rgb.x, rgb.y, rgb.z, a)))
                 return node
             }
             return nil

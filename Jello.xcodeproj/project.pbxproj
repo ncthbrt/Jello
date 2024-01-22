@@ -44,9 +44,15 @@
 		BC3DD0212B357A1400F27E8D /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = BC3DD0202B357A1400F27E8D /* DequeModule */; };
 		BC3DD0232B357A1400F27E8D /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = BC3DD0222B357A1400F27E8D /* OrderedCollections */; };
 		BC57B8AD2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC57B8AC2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift */; };
+		BC57B9492B5C080300DE6D8A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		BC57B94B2B5C084300DE6D8A /* CheckerboardEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */; };
 		BC614E8C2B0B48F800AA18E5 /* BoxSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */; };
+		BC8618132B5C315200AF6EE8 /* HSBEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC8618122B5C315200AF6EE8 /* HSBEffect.metal */; };
+		BC8618152B5E641B00AF6EE8 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8618142B5E641B00AF6EE8 /* ColorExtensions.swift */; };
+		BC8618172B5E81CA00AF6EE8 /* WaveEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */; };
 		BC876D982B5A70DE00B8E62F /* DiscreteSliderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC876D972B5A70DE00B8E62F /* DiscreteSliderView.swift */; };
 		BC876D9A2B5A716300B8E62F /* SwizzleNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC876D992B5A716300B8E62F /* SwizzleNodeView.swift */; };
+		BC876D9C2B5C063300B8E62F /* ColorPickerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC876D9B2B5C063300B8E62F /* ColorPickerViews.swift */; };
 		BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */; };
 		BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */; };
 		BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB92AEFDE3D00FC068C /* JelloMaterial.swift */; };
@@ -68,14 +74,7 @@
 		BCCE160A2B1723D5000370CB /* ControlHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16092B1723D5000370CB /* ControlHelpers.swift */; };
 		BCCE160C2B1723F3000370CB /* PlanarGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */; };
 		BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE160F2B172426000370CB /* TwoParameterControl.swift */; };
-		BCCE161A2B1724C4000370CB /* IndexedSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16122B1724C3000370CB /* IndexedSlider.swift */; };
-		BCCE161B2B1724C4000370CB /* PitchWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16132B1724C3000370CB /* PitchWheel.swift */; };
-		BCCE161C2B1724C4000370CB /* Ribbon.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16142B1724C4000370CB /* Ribbon.swift */; };
-		BCCE161D2B1724C4000370CB /* Joystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16152B1724C4000370CB /* Joystick.swift */; };
-		BCCE161E2B1724C4000370CB /* XYPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16162B1724C4000370CB /* XYPad.swift */; };
 		BCCE161F2B1724C4000370CB /* ArcKnob.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16172B1724C4000370CB /* ArcKnob.swift */; };
-		BCCE16202B1724C4000370CB /* ModWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16182B1724C4000370CB /* ModWheel.swift */; };
-		BCCE16212B1724C4000370CB /* SmallKnob.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16192B1724C4000370CB /* SmallKnob.swift */; };
 		BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */; };
 		BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */; };
 		BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067552AF8B8C10066F8D4 /* JelloBox.swift */; };
@@ -171,9 +170,14 @@
 		BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libJelloCompilerStatic.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerFunctions.swift; sourceTree = "<group>"; };
 		BC57B8AC2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoxSelectionEnvironmentKey+PreferenceKey.swift"; sourceTree = "<group>"; };
+		BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CheckerboardEffect.metal; sourceTree = "<group>"; };
 		BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxSelectionView.swift; sourceTree = "<group>"; };
+		BC8618122B5C315200AF6EE8 /* HSBEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = HSBEffect.metal; sourceTree = "<group>"; };
+		BC8618142B5E641B00AF6EE8 /* ColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
+		BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = WaveEffect.metal; sourceTree = "<group>"; };
 		BC876D972B5A70DE00B8E62F /* DiscreteSliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscreteSliderView.swift; sourceTree = "<group>"; };
 		BC876D992B5A716300B8E62F /* SwizzleNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwizzleNodeView.swift; sourceTree = "<group>"; };
+		BC876D9B2B5C063300B8E62F /* ColorPickerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerViews.swift; sourceTree = "<group>"; };
 		BC9BBFB22AEFDE3D00FC068C /* Jello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloApp.swift; sourceTree = "<group>"; };
 		BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -193,14 +197,7 @@
 		BCCE16092B1723D5000370CB /* ControlHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlHelpers.swift; sourceTree = "<group>"; };
 		BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanarGeometry.swift; sourceTree = "<group>"; };
 		BCCE160F2B172426000370CB /* TwoParameterControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoParameterControl.swift; sourceTree = "<group>"; };
-		BCCE16122B1724C3000370CB /* IndexedSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexedSlider.swift; sourceTree = "<group>"; };
-		BCCE16132B1724C3000370CB /* PitchWheel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PitchWheel.swift; sourceTree = "<group>"; };
-		BCCE16142B1724C4000370CB /* Ribbon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Ribbon.swift; sourceTree = "<group>"; };
-		BCCE16152B1724C4000370CB /* Joystick.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Joystick.swift; sourceTree = "<group>"; };
-		BCCE16162B1724C4000370CB /* XYPad.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XYPad.swift; sourceTree = "<group>"; };
 		BCCE16172B1724C4000370CB /* ArcKnob.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArcKnob.swift; sourceTree = "<group>"; };
-		BCCE16182B1724C4000370CB /* ModWheel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModWheel.swift; sourceTree = "<group>"; };
-		BCCE16192B1724C4000370CB /* SmallKnob.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmallKnob.swift; sourceTree = "<group>"; };
 		BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloProjectReference.swift; sourceTree = "<group>"; };
 		BCDA24372B220851002DCFCB /* SpirvGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpirvGenerator.swift; sourceTree = "<group>"; };
 		BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerTypes.swift; sourceTree = "<group>"; };
@@ -245,6 +242,7 @@
 				BCB9E5EF2B41BDD600472DB8 /* libJelloCompilerStatic.a in Frameworks */,
 				BCB9E5EE2B41BCDB00472DB8 /* SPIRV-Cross in Frameworks */,
 				BC9BBFE52AEFE93600FC068C /* Collections in Frameworks */,
+				BC57B9492B5C080300DE6D8A /* (null) in Frameworks */,
 				BC9BBFE72AEFE93600FC068C /* DequeModule in Frameworks */,
 				BCB9E5EC2B41BCC200472DB8 /* SPIRV-Headers-Swift in Frameworks */,
 				BC9BBFE92AEFE93600FC068C /* OrderedCollections in Frameworks */,
@@ -298,7 +296,6 @@
 				BCCE16092B1723D5000370CB /* ControlHelpers.swift */,
 				BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */,
 				BCCE160F2B172426000370CB /* TwoParameterControl.swift */,
-				BC876D972B5A70DE00B8E62F /* DiscreteSliderView.swift */,
 			);
 			path = Controls;
 			sourceTree = "<group>";
@@ -435,14 +432,12 @@
 		BCCE16112B17247F000370CB /* Implementation */ = {
 			isa = PBXGroup;
 			children = (
+				BC876D972B5A70DE00B8E62F /* DiscreteSliderView.swift */,
 				BCCE16172B1724C4000370CB /* ArcKnob.swift */,
-				BCCE16122B1724C3000370CB /* IndexedSlider.swift */,
-				BCCE16152B1724C4000370CB /* Joystick.swift */,
-				BCCE16182B1724C4000370CB /* ModWheel.swift */,
-				BCCE16132B1724C3000370CB /* PitchWheel.swift */,
-				BCCE16142B1724C4000370CB /* Ribbon.swift */,
-				BCCE16192B1724C4000370CB /* SmallKnob.swift */,
-				BCCE16162B1724C4000370CB /* XYPad.swift */,
+				BC876D9B2B5C063300B8E62F /* ColorPickerViews.swift */,
+				BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */,
+				BC8618122B5C315200AF6EE8 /* HSBEffect.metal */,
+				BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */,
 			);
 			path = Implementation;
 			sourceTree = "<group>";
@@ -458,6 +453,7 @@
 			isa = PBXGroup;
 			children = (
 				BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */,
+				BC8618142B5E641B00AF6EE8 /* ColorExtensions.swift */,
 			);
 			path = Math;
 			sourceTree = "<group>";
@@ -661,7 +657,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC8618172B5E81CA00AF6EE8 /* WaveEffect.metal in Sources */,
 				BC258A8B2B46A52700FEB690 /* Bridge.swift in Sources */,
+				BC8618152B5E641B00AF6EE8 /* ColorExtensions.swift in Sources */,
+				BC876D9C2B5C063300B8E62F /* ColorPickerViews.swift in Sources */,
 				BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */,
 				BCCE16082B1723A8000370CB /* ControlGeometry.swift in Sources */,
 				BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */,
@@ -670,25 +669,22 @@
 				BC07D10A2AFFCB7500EFA199 /* GraphView.swift in Sources */,
 				BC258A882B469AD600FEB690 /* ShaderPreviewView.swift in Sources */,
 				BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */,
-				BCCE16202B1724C4000370CB /* ModWheel.swift in Sources */,
 				BC876D9A2B5A716300B8E62F /* SwizzleNodeView.swift in Sources */,
 				BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */,
+				BC8618132B5C315200AF6EE8 /* HSBEffect.metal in Sources */,
 				BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */,
 				BCEAFD172B205E9100D23E1F /* JelloCompilerService.swift in Sources */,
 				BCCE161F2B1724C4000370CB /* ArcKnob.swift in Sources */,
 				BC31EB732B039291004401FC /* JelloTypes.swift in Sources */,
 				BCCE160C2B1723F3000370CB /* PlanarGeometry.swift in Sources */,
 				BC2AE5742B0764FA008F75C2 /* VertletShared.swift in Sources */,
-				BCCE161C2B1724C4000370CB /* Ribbon.swift in Sources */,
 				BC2AE5782B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift in Sources */,
-				BCCE16212B1724C4000370CB /* SmallKnob.swift in Sources */,
+				BC57B94B2B5C084300DE6D8A /* CheckerboardEffect.metal in Sources */,
 				BCCE16062B172394000370CB /* Control.swift in Sources */,
 				BC258A862B45906B00FEB690 /* PreviewNodeView.swift in Sources */,
 				BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */,
 				BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */,
-				BCCE161E2B1724C4000370CB /* XYPad.swift in Sources */,
 				BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */,
-				BCCE161B2B1724C4000370CB /* PitchWheel.swift in Sources */,
 				BC31EB712B035F52004401FC /* JelloNodeController.swift in Sources */,
 				BC614E8C2B0B48F800AA18E5 /* BoxSelectionView.swift in Sources */,
 				BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */,
@@ -703,11 +699,9 @@
 				BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */,
 				BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */,
 				BCCE160A2B1723D5000370CB /* ControlHelpers.swift in Sources */,
-				BCCE161D2B1724C4000370CB /* Joystick.swift in Sources */,
 				BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */,
 				BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */,
 				BC07D1092AFF674E00EFA199 /* AddNewNodeMenuView.swift in Sources */,
-				BCCE161A2B1724C4000370CB /* IndexedSlider.swift in Sources */,
 				BCEE1C732AFE40180012F619 /* TypingUtils.swift in Sources */,
 				BC9BBFEE2AEFF02100FC068C /* JelloGraph.swift in Sources */,
 				BC57B8AD2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift in Sources */,

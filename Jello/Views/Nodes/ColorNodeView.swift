@@ -22,12 +22,34 @@ struct ColorNodeView : View {
     }
     
     var body: some View {
-        guard let nodeData = nodeData.filter({$0.key == JelloNodeDataKey.value.rawValue}).first else {
+        guard let colorData = nodeData.filter({$0.key == JelloNodeDataKey.value.rawValue}).first else {
             return AnyView(EmptyView())
         }
-        guard case .float4(let x, let y, let z, let w) = nodeData.value else {
+        guard case .float4(let h, let s, let b, let a) = colorData.value else {
             return AnyView(EmptyView())
         }
+        
+        
+        guard let positionData = nodeData.filter({$0.key == JelloNodeDataKey.position.rawValue}).first else {
+            return AnyView(EmptyView())
+        }
+        guard case .float2(let x, let y) = positionData.value else {
+            return AnyView(EmptyView())
+        }
+        
+        
+        let hueBinding: Binding<Double> = .init(get: { Double(h) }, set: { value in
+            colorData.value = .float4(Float(value), Float(s), Float(b), Float(a))
+        })
+        
+        let alphaBinding: Binding<Double> = .init(get: { Double(a) }, set: { value in
+            colorData.value = .float4(Float(h), Float(s), Float(b), Float(value))
+        })
+        let saturationBrightnessPositionBinding: Binding<(x: Double, y: Double)> = .init(get: { (x: Double(x), y: Double(y)) }, set: { value in
+            let saturationBrightness = ColorSaturationBrightnessCircle.convertToSaturationBrightness(x: value.x, y: value.y)
+            positionData.value = .float2(Float(value.x), Float(value.y))
+            colorData.value = .float4(h, Float(saturationBrightness.b), Float(saturationBrightness.s), a)
+        })
         
         return AnyView(ZStack {
             VStack {
@@ -36,14 +58,16 @@ struct ColorNodeView : View {
                     .monospaced()
                     .foregroundStyle(.white)
                 Spacer()
-                HStack {
-                    ArcKnob("R", value: .init(get: {x}, set: { value in nodeData.value = .float4(value, y, z, w) }), range: 0...1.0, foreground: Gradient(colors: [.red]), background: .gray)
-                    ArcKnob("G", value: .init(get: {y}, set: { value in nodeData.value = .float4(x, value, z, w) }), range: 0...1.0, foreground: Gradient(colors: [.green]), background: .gray)
-                }.contentShape(Rectangle()).gesture(DragGesture())
-                HStack {
-                    ArcKnob("B", value: .init(get: {z}, set: { value in nodeData.value = .float4(x, y, value, w) }), range: 0...1, foreground: Gradient(colors: [.blue]), background: .gray)
-                    ArcKnob("A", value: .init(get: {w}, set: { value in nodeData.value = .float4(x, y, z, value) }), range: 0...1, foreground: Gradient(colors: [.white]), background: .gray)
-                }.contentShape(Rectangle()).gesture(DragGesture())
+                VStack {
+                    ZStack {
+                        GeometryReader { geometry in
+                            ColorWheel(hue: hueBinding, frame: geometry.frame(in: .local), strokeWidth: 25)
+                            ColorSaturationBrightnessCircle(hue: Double(h), position: saturationBrightnessPositionBinding, frame: geometry.frame(in: .local), strokeWidth: 25)
+                        }.frame(width: 250, height: 250)
+                    }
+                    Spacer(minLength: 10)
+                    OpacitySlider(color: (h: Double(h), s: Double(s), b: Double(b)), alpha: alphaBinding).frame(width: 250, height: 50).offset(.zero)
+                }
             }
             .padding(.all, JelloNode.padding)
         })
