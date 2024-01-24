@@ -127,7 +127,6 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
     
     
     private(set) var lastInteractionTime: SuspendingClock.Instant = .now
-    private(set) var lastPublishTime: SuspendingClock.Instant = .now
 
     
     var draw: SimulationDrawable.DrawOperation? = nil
@@ -173,9 +172,7 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
         
         set {
             endPositionCell.position = newValue
-            
             lastInteractionTime = SuspendingClock.now
-            lastPublishTime = lastInteractionTime - Duration.milliseconds(12)
         }
     }
     
@@ -236,12 +233,7 @@ class RopeVertletSimulation: ObservableObject, SimulationDrawable {
     
     
     func sync(operation: @escaping DrawOperation) {
-        let drawWasNil = draw == nil
         draw = operation
-        if drawWasNil || SuspendingClock.now - lastPublishTime > Duration.milliseconds(6) {
-            objectWillChange.send()
-            lastPublishTime = .now
-        }
     }
     
     

@@ -14,10 +14,10 @@ import UniformTypeIdentifiers
 struct JelloApp: App {
     @State private var navigation: ProjectNavigation = ProjectNavigation()
     var body: some Scene {
-        DocumentGroup(editing: .jelloProject, migrationPlan: JelloMigrationPlan.self, editor: {
+        DocumentGroup(editing: .jelloProject, migrationPlan: JelloMigrationPlan.self) {
             ContentView()
                 .environment(navigation)
-        })
+        }
     }
 }
 

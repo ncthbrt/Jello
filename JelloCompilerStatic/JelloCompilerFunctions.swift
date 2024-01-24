@@ -34,10 +34,6 @@ public func pruneGraph(input: JelloCompilerInput){
 }
 
 
-func getInputEdgeCount(node: CompilerNode) -> UInt {
-    UInt(node.inputPorts.filter({$0.incomingEdge != nil}).count)
-}
-
 public func topologicallyOrderGraph(input: JelloCompilerInput){
     var visitedNodes: Set<UUID> = []
     func hasNoDependencies(node: CompilerNode) -> Bool {
@@ -216,15 +212,6 @@ public func decomposeGraph(input: JelloCompilerInput) {
             branchNode.subNodes[branch] = branchNodes
         }
     }
-}
-
-
-func prepareInput(input: JelloCompilerInput) throws {
-    labelBranches(input: input)
-    pruneGraph(input: input)
-    topologicallyOrderGraph(input: input)
-    try concretiseTypesInGraph(input: input)
-    decomposeGraph(input: input)
 }
 
 

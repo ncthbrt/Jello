@@ -14,7 +14,6 @@ struct GraphView<AddNodeMenu: View> : View {
     @Query var freeEdges: [JelloEdge]
 
     @Environment(\.modelContext) var modelContext
-    @Environment(JelloCompilerService.self) var compiler
     @ViewBuilder var onOpenAddNodeMenu: (CGPoint) -> AddNodeMenu
     
     @State private var showNodeInspector : Bool = false
@@ -22,7 +21,7 @@ struct GraphView<AddNodeMenu: View> : View {
     @State private var tapLocation: CGPoint = .zero
     @State private var scale : CGFloat = 1
     @State private var newEdge : JelloEdge? = nil
-    @State private var simulationRunner: SimulationRunner = SimulationRunner()
+    @StateObject private var simulationRunner: SimulationRunner = SimulationRunner()
     @State private var freeEdgesEnvironmentValue: [(edge: JelloEdge, dependencies: Set<UUID>)] = []
     @State private var canvasTransform = CanvasTransform(scale: 1, position: .zero, viewPortSize: .zero)
     @State private var currentZoom = 0.0

@@ -18,8 +18,9 @@ final class JelloOutputPort {
     
     @Attribute(.unique) var uuid: UUID
 
-    var dataType: JelloGraphDataType
-    
+    var baseDataType: JelloGraphDataType
+    var currentDataType: JelloGraphDataType
+
     var node: JelloNode?
     var index: UInt8
 
@@ -33,6 +34,7 @@ final class JelloOutputPort {
     fileprivate(set) var nodeOffsetX: Float
     fileprivate(set) var nodeOffsetY: Float
     
+    @Transient
     var nodeOffset : CGPoint {
         CGPoint(x: CGFloat(nodeOffsetX), y: CGFloat(nodeOffsetY))
     }
@@ -57,7 +59,8 @@ final class JelloOutputPort {
         self.uuid = uuid
         self.name = name
         self.index = index
-        self.dataType = dataType
+        self.baseDataType = dataType
+        self.currentDataType = dataType
         self.edges = []
         self.node = node
         self.nodeOffsetX = nodeOffsetX
@@ -75,7 +78,8 @@ final class JelloInputPort {
     var index: UInt8
     
     var name: String
-    var dataType: JelloGraphDataType
+    var baseDataType: JelloGraphDataType
+    var currentDataType: JelloGraphDataType
     
     var node: JelloNode?
 
@@ -88,6 +92,7 @@ final class JelloInputPort {
     fileprivate(set) var nodeOffsetX: Float
     fileprivate(set) var nodeOffsetY: Float
     
+    @Transient
     var nodeOffset : CGPoint {
         CGPoint(x: CGFloat(nodeOffsetX), y: CGFloat(nodeOffsetY))
     }
@@ -112,7 +117,8 @@ final class JelloInputPort {
         self.uuid = uuid
         self.index = index
         self.name = name
-        self.dataType = dataType
+        self.baseDataType = dataType
+        self.currentDataType = dataType
         self.node = node
         self.positionX = nodePositionX + nodeOffsetX
         self.positionY = nodePositionY + nodeOffsetY
@@ -127,6 +133,7 @@ final class JelloInputPort {
 @Model
 final class JelloNode  {
 
+    @Transient
     var name: String? {
         switch type {
         case .builtIn(let builtInType):
@@ -290,7 +297,7 @@ final class JelloEdge {
                 dependencies = getDependencies()
             }
             for port in inputPorts {
-                if port.node?.graph?.uuid == graphId && JelloGraphDataType.isPortTypeCompatible(edge: dataType, port: port.dataType) && (port.edge == nil || port.edge == self) && !dependencies.contains(port.node?.uuid ?? UUID()) {
+                if port.node?.graph?.uuid == graphId && JelloGraphDataType.isPortTypeCompatible(edge: dataType, port: port.currentDataType) && (port.edge == nil || port.edge == self) && !dependencies.contains(port.node?.uuid ?? UUID()) {
                     let portPosition = port.worldPosition
                     let dist = (newValue - portPosition).magnitude()
                     if dist < minDist {
@@ -329,8 +336,10 @@ final class JelloEdge {
                     newEndNodeController.onInputPortConnected(port: port, edge: self)
 
                     withAnimation(.easeIn.speed(0.5)) {
-                        self.dataType = self.outputPort?.dataType ?? .any
-                        self.dataType = JelloGraphDataType.getMostSpecificType(a: outputPort.dataType, b: port.dataType)
+                        if let graphId = graph?.uuid, let modelContext = modelContext {
+                            try! updateTypesInGraph(modelContext: modelContext, graphId: graphId)
+                        }
+                        self.dataType = JelloGraphDataType.getMostSpecificType(a: outputPort.currentDataType, b: port.currentDataType)
                     }
                 }
             } else {
@@ -346,7 +355,10 @@ final class JelloEdge {
                     oldEndNodeController.onInputPortDisconnected(port: oldInputPort, edge: self)
                     self.inputPort = nil
                     withAnimation(.easeIn) {
-                        self.dataType = self.outputPort?.dataType ?? .any
+                        if let graphId = graph?.uuid, let modelContext = modelContext {
+                            try! updateTypesInGraph(modelContext: modelContext, graphId: graphId)
+                        }
+                        self.dataType = outputPort.currentDataType
                     }
                 }
             }
@@ -380,11 +392,11 @@ final class JelloEdge {
     }
 
     convenience init(graph: JelloGraph, outputPort: JelloOutputPort, inputPort: JelloInputPort) {
-        self.init(graph: graph, uuid: UUID(), dataType: JelloGraphDataType.getMostSpecificType(a: outputPort.dataType, b: inputPort.dataType), outputPort: outputPort, inputPort: inputPort, startPositionX: outputPort.positionX, startPositionY: outputPort.positionY, endPositionX: inputPort.positionX, endPositionY: inputPort.positionY)
+        self.init(graph: graph, uuid: UUID(), dataType: JelloGraphDataType.getMostSpecificType(a: outputPort.currentDataType, b: inputPort.currentDataType), outputPort: outputPort, inputPort: inputPort, startPositionX: outputPort.positionX, startPositionY: outputPort.positionY, endPositionX: inputPort.positionX, endPositionY: inputPort.positionY)
     }
     
     convenience init(graph: JelloGraph, outputPort: JelloOutputPort) {
-        self.init(graph: graph, uuid: UUID(), dataType: JelloGraphDataType.getMostSpecificType(a: outputPort.dataType, b: .any), outputPort: outputPort, inputPort: nil, startPositionX: outputPort.positionX, startPositionY: outputPort.positionY, endPositionX: outputPort.positionX, endPositionY: outputPort.positionY)
+        self.init(graph: graph, uuid: UUID(), dataType: JelloGraphDataType.getMostSpecificType(a: outputPort.currentDataType, b: .any), outputPort: outputPort, inputPort: nil, startPositionX: outputPort.positionX, startPositionY: outputPort.positionY, endPositionX: outputPort.positionX, endPositionY: outputPort.positionY)
     }
     
     init(graph: JelloGraph, uuid: UUID, dataType: JelloGraphDataType, outputPort: JelloOutputPort, inputPort: JelloInputPort?, startPositionX: Float, startPositionY: Float, endPositionX: Float, endPositionY: Float) {

@@ -15,12 +15,14 @@ fileprivate struct RopeRendererView: View {
     let fill: Gradient
 
     var body: some View {
-        Path {
-            path in
-            self.ropeSim.doDraw(path: &path)
+        TimelineView(.animation) { context in
+            Path {
+                path in
+                self.ropeSim.doDraw(path: &path)
+            }
+            .stroke(style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round, miterLimit: 10))
+            .fill(fill)
         }
-        .stroke(style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round, miterLimit: 10))
-        .fill(fill)
     }
 }
 
@@ -109,11 +111,8 @@ fileprivate struct RopeView: View {
 
 struct EdgeView: View {
     let edge: JelloEdge
-    @State var ropeSim: RopeVertletSimulation = RopeVertletSimulation()
+    @StateObject var ropeSim: RopeVertletSimulation = RopeVertletSimulation()
 
-    
-   
-    
     var body: some View {
         if !edge.isDeleted {
             RopeView(edge: edge, fill: edge.dataType.getTypeGradient(), ropeSim: ropeSim)

@@ -75,7 +75,6 @@
 		BCCE160C2B1723F3000370CB /* PlanarGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */; };
 		BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE160F2B172426000370CB /* TwoParameterControl.swift */; };
 		BCCE161F2B1724C4000370CB /* ArcKnob.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16172B1724C4000370CB /* ArcKnob.swift */; };
-		BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */; };
 		BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */; };
 		BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067552AF8B8C10066F8D4 /* JelloBox.swift */; };
 		BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */; };
@@ -198,7 +197,6 @@
 		BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanarGeometry.swift; sourceTree = "<group>"; };
 		BCCE160F2B172426000370CB /* TwoParameterControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoParameterControl.swift; sourceTree = "<group>"; };
 		BCCE16172B1724C4000370CB /* ArcKnob.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArcKnob.swift; sourceTree = "<group>"; };
-		BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloProjectReference.swift; sourceTree = "<group>"; };
 		BCDA24372B220851002DCFCB /* SpirvGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpirvGenerator.swift; sourceTree = "<group>"; };
 		BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerTypes.swift; sourceTree = "<group>"; };
 		BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationRunner.swift; sourceTree = "<group>"; };
@@ -388,7 +386,6 @@
 				BC9BBFED2AEFF02100FC068C /* JelloGraph.swift */,
 				BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */,
 				BC2BDF772AF257C400E2A242 /* JelloDocument.swift */,
-				BCD5404A2AF3922A00D82714 /* JelloProjectReference.swift */,
 				BC31EB702B035F52004401FC /* JelloNodeController.swift */,
 				BC31EB722B039291004401FC /* JelloTypes.swift */,
 				BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */,
@@ -668,7 +665,6 @@
 				BCEE1C772AFE44440012F619 /* JelloCanvas.swift in Sources */,
 				BC07D10A2AFFCB7500EFA199 /* GraphView.swift in Sources */,
 				BC258A882B469AD600FEB690 /* ShaderPreviewView.swift in Sources */,
-				BCD5404B2AF3922A00D82714 /* JelloProjectReference.swift in Sources */,
 				BC876D9A2B5A716300B8E62F /* SwizzleNodeView.swift in Sources */,
 				BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */,
 				BC8618132B5C315200AF6EE8 /* HSBEffect.metal in Sources */,
@@ -783,7 +779,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++23";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -816,7 +812,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_C_LANGUAGE_STANDARD = c17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -850,7 +846,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++23";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -883,7 +879,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_C_LANGUAGE_STANDARD = c17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;

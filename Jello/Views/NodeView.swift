@@ -29,13 +29,17 @@ fileprivate struct NodeRendererView: View {
 
     var body: some View {
         ZStack {
-            Path(sim.doDraw)
-                .fill(gradient)
-            Path(sim.doDraw)
-                .fill(.ultraThickMaterial)
-            innerBody(sim.doDraw)
-            Path(sim.doDraw)
-                    .stroke(gradient, lineWidth: 3)
+            TimelineView(.animation) { context in
+                ZStack {
+                    Path(sim.doDraw)
+                        .fill(gradient)
+                    Path(sim.doDraw)
+                        .fill(.ultraThickMaterial)
+                    innerBody(sim.doDraw)
+                    Path(sim.doDraw)
+                        .stroke(gradient, lineWidth: 3)
+                }
+            }
             NodeInputPortsView(nodeId: node.uuid)
             NodeOutputPortsView(nodeId: node.uuid)
         }
@@ -49,13 +53,13 @@ fileprivate struct NodeRendererView: View {
             Button(role: .destructive) {
                 let nodeId = node.uuid
                 try! modelContext.transaction {
-                    let inputPorts = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.uuid == nodeId }))
+                    let inputPorts = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.uuid == nodeId }))
                     for inputPort in inputPorts {
                         if let edge = inputPort.edge {
                             modelContext.delete(edge)
                         }
                     }
-                    let outputPorts = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.uuid == nodeId }))
+                    let outputPorts = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.uuid == nodeId }))
                     for outputPort in outputPorts {
                         let outputPortId = outputPort.uuid
                         let edges = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloEdge>{ $0.outputPort?.uuid == outputPortId }))
@@ -63,8 +67,11 @@ fileprivate struct NodeRendererView: View {
                             modelContext.delete(edge)
                         }
                     }
+                    modelContext.delete(node)
+                    if let graphId = node.graph?.uuid {
+                        try updateTypesInGraph(modelContext: modelContext, graphId: graphId)
+                    }
                 }
-                modelContext.delete(node)
             } label: {
                 Label("Delete", systemImage: "trash.fill")
             }
@@ -132,7 +139,7 @@ struct NodeView: View {
     let hasSettings: Bool
 
     
-    @State var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
+    @StateObject var sim : JellyBoxVertletSimulation = JellyBoxVertletSimulation()
     var body: some View {
         NodeRendererView(node: node, sim: sim, innerBody: innerBody, gradient: gradient, showInspector: $showInspector, hasSettings: hasSettings)
     }
@@ -142,7 +149,6 @@ struct NodeControllerView : View {
     let node: JelloNode
     let controller: any JelloNodeController
     @Binding var showInspector: Bool
-    @Environment(JelloCompilerService.self) private var compiler
     
     init(node: JelloNode, showInspector: Binding<Bool>) {
         self.node = node

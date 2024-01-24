@@ -19,7 +19,7 @@ public enum ConstraintApplicationResult {
 
 public protocol PortConstraint {
     var ports: Set<UUID> {get}
-    func apply(assignments: inout [UUID: JelloConcreteDataType], domains: [UUID: [JelloConcreteDataType]], port: UUID, type: JelloConcreteDataType) -> ConstraintApplicationResult
+    func apply<T: Equatable>(assignments: inout [UUID: T], domains: [UUID: [T]], port: UUID, type: T) -> ConstraintApplicationResult
 }
 
 
@@ -30,7 +30,7 @@ public class SameTypesConstraint: PortConstraint {
         self.ports = ports
     }
     
-    public func apply(assignments: inout [UUID: JelloConcreteDataType], domains: [UUID: [JelloConcreteDataType]], port: UUID, type: JelloConcreteDataType) -> ConstraintApplicationResult {
+    public func apply<T: Equatable>(assignments: inout [UUID: T], domains: [UUID: [T]], port: UUID, type: T) -> ConstraintApplicationResult {
         var changed: [UUID] = []
         for p in ports {
             let a = assignments[p]
@@ -77,7 +77,7 @@ public enum JelloConstantValue {
 }
 
 
-public enum JelloGraphDataType: Int, Codable, CaseIterable {
+public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable {
     case any = 0
     case anyFloat = 1
     case float4 = 2

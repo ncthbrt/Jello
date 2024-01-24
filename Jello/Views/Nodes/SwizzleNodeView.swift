@@ -28,7 +28,7 @@ struct SwizzleNodeView : View {
     
     private func getSelectorList() -> [String] {
         let inputPort = inputPorts.first!
-        switch(inputPort.dataType) {
+        switch(inputPort.currentDataType) {
         case .float:
             return ["0", "x"]
         case .float2:
@@ -55,10 +55,6 @@ struct SwizzleNodeView : View {
             return AnyView(EmptyView())
         }
         
-        guard case .float4(let x, let y, let z, let w) = componentsData.value else {
-            return AnyView(EmptyView())
-        }
-
         let sliderDisabled: Bool = (nodeData.filter({$0.key == JelloNodeDataKey.componentSliderDisabled.rawValue}).first?.value ?? .bool(false)) == .bool(true)
         
         guard case .float4(let x, let y, let z, let w) = componentsData.value else {
@@ -85,13 +81,13 @@ struct SwizzleNodeView : View {
                     let outputPort = outputPorts.first!
                     switch(value + 1) {
                     case 1:
-                        outputPort.dataType = .float
+                        outputPort.currentDataType = .float
                     case 2:
-                        outputPort.dataType = .float2
+                        outputPort.currentDataType = .float2
                     case 3:
-                        outputPort.dataType = .float3
+                        outputPort.currentDataType = .float3
                     case 4:
-                        outputPort.dataType = .float4
+                        outputPort.currentDataType = .float4
                     default:
                         fatalError("Unsupported component count")
                     }

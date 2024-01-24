@@ -12,14 +12,9 @@ import JelloCompilerStatic
 import simd
 import SPIRV_Headers_Swift
 
-@Observable class JelloCompilerService {
-    @ObservationIgnored private var modelContext: ModelContext?
+class JelloCompilerService {
     
-    func initialize(modelContext: ModelContext){
-        self.modelContext = modelContext
-    }
-    
-    func compileMSL(input: JelloCompilerInput) throws -> (vertex: String?, fragment: String?) {
+    static func compileMSL(input: JelloCompilerInput) throws -> (vertex: String?, fragment: String?) {
         let result = try JelloCompilerStatic.compileToSpirv(input: input)
         
         var vertex : String? = nil
@@ -34,7 +29,7 @@ import SPIRV_Headers_Swift
         return (vertex: vertex, fragment: fragment)
     }
     
-    func buildGraph(outputNode: JelloNode, jelloGraph: JelloGraph, jelloNodes: [JelloNode], jelloNodeData: [JelloNodeData], jelloEdges: [JelloEdge], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> JelloCompilerInput {
+    static func buildGraph(jelloGraph: JelloGraph, jelloNodes: [JelloNode], jelloNodeData: [JelloNodeData], jelloEdges: [JelloEdge], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort], useBaseDataTypes: Bool) -> CompilerGraph {
         let graph = CompilerGraph()
         let inputPortsDict: [UUID: [JelloInputPort]] = jelloInputPorts.reduce(into: [UUID:[JelloInputPort]](), { (result, port) in
             if let nodeUUID = port.node?.uuid {
@@ -51,7 +46,7 @@ import SPIRV_Headers_Swift
         let jelloNodeData = jelloNodeData.grouped(by: { $0.node!.uuid }).reduce(into: [UUID: [String:JelloNodeDataValue]](), { result, kv in
             result[kv.key] = kv.value.reduce(into: [String: JelloNodeDataValue](), { dict, value in dict[value.key] = value.value })
         })
-        let compilerNodes = jelloNodes.map({ buildCompilerNode(jelloNode: $0, jelloNodeData: jelloNodeData[$0.uuid] ?? [String:JelloNodeDataValue](), jelloInputPorts: inputPortsDict[$0.uuid] ?? [], jelloOutputPorts: outputPortsDict[$0.uuid] ?? [])}).filter({$0 != nil}).map({$0!})
+        let compilerNodes = jelloNodes.map({ JelloCompilerService.buildCompilerNode(jelloNode: $0, jelloNodeData: jelloNodeData[$0.uuid] ?? [String:JelloNodeDataValue](), jelloInputPorts: inputPortsDict[$0.uuid] ?? [], jelloOutputPorts: outputPortsDict[$0.uuid] ?? [], useBaseDataTypes: useBaseDataTypes)}).filter({$0 != nil}).map({$0!})
         
         let compilerOutputPorts = compilerNodes.flatMap({$0.outputPorts}).reduce(into: [UUID:OutputCompilerPort](), {result, port in result[port.id] = port })
         let edgesDictionary = jelloEdges.reduce(into: [UUID: JelloEdge](), {result, edge in result[edge.inputPort?.uuid] = edge })
@@ -65,19 +60,23 @@ import SPIRV_Headers_Swift
             }
         }
         
+        return graph
+    }
+    
+    static func buildGraphInput(outputNode: JelloNode, jelloGraph: JelloGraph, jelloNodes: [JelloNode], jelloNodeData: [JelloNodeData], jelloEdges: [JelloEdge], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> JelloCompilerInput {
+        let graph = buildGraph(jelloGraph: jelloGraph, jelloNodes: jelloNodes, jelloNodeData: jelloNodeData, jelloEdges: jelloEdges, jelloInputPorts: jelloInputPorts, jelloOutputPorts: jelloOutputPorts, useBaseDataTypes: false)
         if outputNode.type == .builtIn(.preview) {
-            return JelloCompilerInput(output: .previewOutput(compilerNodes.first(where: {$0.id == outputNode.uuid})! as! PreviewOutputCompilerNode), graph: graph)
+            return JelloCompilerInput(output: .previewOutput(graph.nodes.first(where: {$0.id == outputNode.uuid})! as! PreviewOutputCompilerNode), graph: graph)
         } else if outputNode.type == .builtIn(.materialOutput) {
-            return JelloCompilerInput(output: .materialOutput(compilerNodes.first(where: {$0.id == outputNode.uuid})! as! MaterialOutputCompilerNode), graph: graph)
+            return JelloCompilerInput(output: .materialOutput(graph.nodes.first(where: {$0.id == outputNode.uuid})! as! MaterialOutputCompilerNode), graph: graph)
         } else {
             fatalError("Unexpected output node type")
         }
-        
     }
     
-    private func buildCompilerNode(jelloNode: JelloNode, jelloNodeData: [String: JelloNodeDataValue], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> CompilerNode? {
-        let compilerInputPorts = jelloInputPorts.map({ InputCompilerPort(id: $0.uuid, dataType: $0.dataType) })
-        let compilerOutputPorts = jelloOutputPorts.map({ OutputCompilerPort(id: $0.uuid, dataType: $0.dataType) })
+    private static func buildCompilerNode(jelloNode: JelloNode, jelloNodeData: [String: JelloNodeDataValue], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort], useBaseDataTypes: Bool) -> CompilerNode? {
+        let compilerInputPorts = jelloInputPorts.map({ InputCompilerPort(id: $0.uuid, dataType: useBaseDataTypes ? $0.baseDataType :  $0.currentDataType) })
+        let compilerOutputPorts = jelloOutputPorts.map({ OutputCompilerPort(id: $0.uuid, dataType: useBaseDataTypes ? $0.baseDataType :  $0.currentDataType) })
         switch(jelloNode.type) {
         case .builtIn(.add):
             return AddCompilerNode(id: jelloNode.uuid, inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)
@@ -88,11 +87,11 @@ import SPIRV_Headers_Swift
         case .builtIn(.multiply):
             return MultiplyCompilerNode(id: jelloNode.uuid, inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)
         case .builtIn(.fract):
-            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Fract)
+            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Fract, uniformIO: true)
         case .builtIn(.normalize):
-            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Normalize)
+            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Normalize, uniformIO: true)
         case .builtIn(.length):
-            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Length)
+            return UnaryGLSL450OperatorCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, glsl450Operator: GLSLstd450Length, uniformIO: false)
         case .builtIn(.preview):
             return PreviewOutputCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!)
         case .builtIn(.slabShader):

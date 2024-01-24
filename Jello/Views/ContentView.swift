@@ -21,7 +21,6 @@ struct ContentView: View {
         .navigationSplitViewStyle(.balanced)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear() {
-            compiler.initialize(modelContext: modelContext)
             guard let nodes = try? modelContext.fetch(FetchDescriptor<JelloNode>()) else {
                 return
             }
@@ -31,14 +30,8 @@ struct ContentView: View {
                 controller.migrate(node: node)
             }
         }
-        .environment(compiler)
     }
  
     
 }
 
-#Preview {
-    ContentView()
-        .modelContainer(for: [JelloMaterial.self, JelloFunction.self], inMemory: true)
-
-}

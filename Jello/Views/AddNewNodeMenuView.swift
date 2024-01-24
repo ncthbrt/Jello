@@ -91,7 +91,6 @@ struct AddNewNodeMenuView: View {
     
     @Query var functions: [JelloFunction]
     @Query var materials: [JelloMaterial]
-    @Environment(JelloCompilerService.self) private var compiler
     
 
     var selectionBinding : Binding<JelloNodeType?> {

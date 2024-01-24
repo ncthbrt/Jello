@@ -18,11 +18,10 @@ fileprivate struct PreviewNodeViewImpl: View {
     let nodeData: [JelloNodeData]
     let inputPorts: [JelloInputPort]
     let outputPorts: [JelloOutputPort]
-    @Environment(JelloCompilerService.self) var compiler
 
     var body: some View {
-        let graphInput = compiler.buildGraph(outputNode: node, jelloGraph: graphs.first!, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}))
-        let result = try! compiler.compileMSL(input: graphInput)
+        let graphInput = JelloCompilerService.buildGraphInput(outputNode: node, jelloGraph: graphs.first!, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}))
+        let result = try! JelloCompilerService.compileMSL(input: graphInput)
         ShaderPreviewView(vertexShader: result.vertex!, fragmentShader: result.fragment!, previewGeometry: .sphere)
     }
 }

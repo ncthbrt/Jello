@@ -653,7 +653,6 @@ public class SwizzleCompilerNode : CompilerNode {
 public class UnaryOperatorCompilerNode : CompilerNode {
     public var id: UUID
     private let spirvOperator: SpirvOp
-    private let resultType: JelloConcreteDataType
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
     
@@ -661,7 +660,7 @@ public class UnaryOperatorCompilerNode : CompilerNode {
     }
     
     public func write() {
-        let typeId = declareType(dataType: resultType)
+        let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
         let resultId = #id
         if let inputId = inputPorts.first!.incomingEdge?.outputPort.getOrReserveId() {
             #functionBody(opCode: spirvOperator, [typeId, resultId, inputId])
@@ -674,15 +673,23 @@ public class UnaryOperatorCompilerNode : CompilerNode {
     
     public var branchTags: Set<UUID> = []
     public var branches: [UUID] = []
-    public var constraints: [PortConstraint] { [] }
+    private let uniformIO: Bool
+    public var constraints: [PortConstraint] {
+        if uniformIO {
+            var ports = inputPorts.map({$0.id})
+            ports.append(contentsOf: outputPorts.map({$0.id}))
+            return [SameTypesConstraint(ports: Set(ports))]
+        } else {
+            return []
+        }
+    }
     
-    
-    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPort: OutputCompilerPort, spirvOperator: SpirvOp, resultType: JelloConcreteDataType) {
+    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPort: OutputCompilerPort, spirvOperator: SpirvOp, uniformIO: Bool) {
         self.id = id
         self.inputPorts =  [inputPort]
         self.outputPorts = [outputPort]
         self.spirvOperator = spirvOperator
-        self.resultType = resultType
+        self.uniformIO = uniformIO
         inputPort.node = self
         outputPort.node = self
     }
@@ -691,6 +698,7 @@ public class UnaryOperatorCompilerNode : CompilerNode {
 public class UnaryGLSL450OperatorCompilerNode : CompilerNode {
     public var id: UUID
     private let glsl450Operator: GLSLstd450
+    
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
     
@@ -712,14 +720,24 @@ public class UnaryGLSL450OperatorCompilerNode : CompilerNode {
     
     public var branchTags: Set<UUID> = []
     public var branches: [UUID] = []
-    public var constraints: [PortConstraint] { [] }
+    private let uniformIO: Bool
+    public var constraints: [PortConstraint] {
+        if uniformIO {
+            var ports = inputPorts.map({$0.id})
+            ports.append(contentsOf: outputPorts.map({$0.id}))
+            return [SameTypesConstraint(ports: Set(ports))]
+        } else {
+            return []
+        }
+    }
     
     
-    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPort: OutputCompilerPort, glsl450Operator: GLSLstd450) {
+    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPort: OutputCompilerPort, glsl450Operator: GLSLstd450, uniformIO: Bool) {
         self.id = id
         self.inputPorts =  [inputPort]
         self.outputPorts = [outputPort]
         self.glsl450Operator = glsl450Operator
+        self.uniformIO = uniformIO
         inputPort.node = self
         outputPort.node = self
     }
@@ -746,14 +764,21 @@ public class BinaryGLSL450OperatorCompilerNode : CompilerNode {
     
     public var branchTags: Set<UUID> = []
     public var branches: [UUID] = []
-    public var constraints: [PortConstraint] { [] }
+    private let uniformIO: Bool
+    public var constraints: [PortConstraint] {
+        var ports = inputPorts.map({$0.id})
+        if uniformIO {
+            ports.append(contentsOf: outputPorts.map({$0.id}))
+        }
+        return [SameTypesConstraint(ports: Set(ports))]
+    }
     
-    
-    public init(id: UUID = UUID(), inputPort1: InputCompilerPort, inputPort2: InputCompilerPort, outputPort: OutputCompilerPort, glsl450Operator: GLSLstd450) {
+    public init(id: UUID = UUID(), inputPort1: InputCompilerPort, inputPort2: InputCompilerPort, outputPort: OutputCompilerPort, glsl450Operator: GLSLstd450, uniformIO: Bool) {
         self.id = id
         self.inputPorts =  [inputPort1, inputPort2]
         self.outputPorts = [outputPort]
         self.glsl450Operator = glsl450Operator
+        self.uniformIO = uniformIO
         inputPort1.node = self
         inputPort2.node = self
         outputPort.node = self
@@ -781,14 +806,22 @@ public class BinaryOperatorCompilerNode : CompilerNode {
     
     public var branchTags: Set<UUID> = []
     public var branches: [UUID] = []
-    public var constraints: [PortConstraint] { [] }
+    private let uniformIO: Bool
+    public var constraints: [PortConstraint] {
+        var ports = inputPorts.map({$0.id})
+        if uniformIO {
+            ports.append(contentsOf: outputPorts.map({$0.id}))
+        }
+        return [SameTypesConstraint(ports: Set(ports))]
+    }
     
     
-    public init(id: UUID = UUID(), inputPort1: InputCompilerPort, inputPort2: InputCompilerPort, outputPort: OutputCompilerPort, spirvOperator: SpirvOp) {
+    public init(id: UUID = UUID(), inputPort1: InputCompilerPort, inputPort2: InputCompilerPort, outputPort: OutputCompilerPort, spirvOperator: SpirvOp, uniformIO: Bool) {
         self.id = id
         self.inputPorts =  [inputPort1, inputPort2]
         self.outputPorts = [outputPort]
         self.spirvOperator = spirvOperator
+        self.uniformIO = uniformIO
         inputPort1.node = self
         inputPort2.node = self
         outputPort.node = self

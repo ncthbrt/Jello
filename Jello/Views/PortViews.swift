@@ -7,7 +7,7 @@ struct InputPortView : View {
     @Environment(\.freeEdges) var freeEdges: [(edge: JelloEdge, dependencies: Set<UUID>)]
     
     var body: some View {
-        let highlightPort = port.edge == nil && freeEdges.contains(where: { JelloGraphDataType.isPortTypeCompatible(edge: $0.edge.dataType, port: port.dataType) && !$0.dependencies.contains(port.node?.uuid ?? UUID()) })
+        let highlightPort = port.edge == nil && freeEdges.contains(where: { JelloGraphDataType.isPortTypeCompatible(edge: $0.edge.dataType, port: port.currentDataType) && !$0.dependencies.contains(port.node?.uuid ?? UUID()) })
 
         GeometryReader { geometry in
             HStack {
@@ -20,7 +20,7 @@ struct InputPortView : View {
                     }
                     let portCircle = Circle()
                         .stroke(lineWidth: JelloNode.inputPortStrokeWidth)
-                        .fill(port.dataType.getTypeGradient())
+                        .fill(port.currentDataType.getTypeGradient())
                         .frame(width: JelloNode.inputPortDiameter, height: JelloNode.inputPortDiameter, alignment: .leading)
                     if highlightPort {
                         portCircle.shadow(color: .green, radius: 4)
@@ -51,7 +51,7 @@ struct OutputPortView : View {
                     .font(.body.monospaced())
                     .italic()
                 Circle()
-                    .fill(port.dataType.getTypeGradient())
+                    .fill(port.currentDataType.getTypeGradient())
                     .frame(width: JelloNode.outputPortDiameter, height: JelloNode.outputPortDiameter, alignment: .center)
             }
             .frame(width:geometry.size.width, height: JelloNode.portHeight, alignment: .topTrailing)
@@ -62,7 +62,7 @@ struct OutputPortView : View {
             .gesture(DragGesture().onChanged({ drag in
                 if newEdge == nil, let graph = port.node?.graph {
                     dragStarted = true
-                    let nEdge = JelloEdge(graph: graph, uuid: UUID(), dataType: port.dataType, outputPort: port, inputPort: nil, startPositionX: port.positionX, startPositionY: port.positionY, endPositionX: port.positionX, endPositionY: port.positionY)
+                    let nEdge = JelloEdge(graph: graph, uuid: UUID(), dataType: port.currentDataType, outputPort: port, inputPort: nil, startPositionX: port.positionX, startPositionY: port.positionY, endPositionX: port.positionX, endPositionY: port.positionY)
                     newEdge = nEdge
                     modelContext.insert(nEdge)
                 }
