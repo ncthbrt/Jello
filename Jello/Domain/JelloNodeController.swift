@@ -95,7 +95,7 @@ fileprivate class JelloConstantFunctionNodeController: JelloNodeController {
         for i in 0..<outputPorts.count {
             let port = outputPorts[i]
             let offset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(i))
-            let portModel = JelloOutputPort(uuid: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, edges: [], nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
+            let portModel = JelloOutputPort(uuid: UUID(), index: UInt8(i), name: port.name, dataType: port.dataType, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
             node.modelContext?.insert(portModel)
         }
         
@@ -134,7 +134,7 @@ fileprivate class JelloUniformOperatorNodeController: JelloNodeController {
         for i in 0..<outputPorts.count {
             let port = outputPorts[i]
             let offset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(i))
-            let portModel = JelloOutputPort(uuid: UUID(), index: UInt8(i), name: port, dataType: baseDataType, node: node, edges: [], nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
+            let portModel = JelloOutputPort(uuid: UUID(), index: UInt8(i), name: port, dataType: baseDataType, node: node,nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(offset.x), nodeOffsetY: Float(offset.y))
             node.modelContext?.insert(portModel)
         }
         
@@ -220,7 +220,7 @@ fileprivate class JelloColorNodeController: JelloNodeController {
     func setup(node: JelloNode)
     {
         let outputPortOffset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(0), width: 300)
-        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .float4, node: node, edges: [], nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
+        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .float4, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
         node.modelContext?.insert(outputPortModel)
         let colorData = JelloNodeData(key: JelloNodeDataKey.value.rawValue, value: .float4(0, 1, 1, 1), node: node)
         node.modelContext?.insert(colorData)
@@ -246,7 +246,7 @@ fileprivate class JelloSwizzleNodeController: JelloNodeController {
     func setup(node: JelloNode)
     {
         let outputPortOffset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(0), width: 325)
-        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .float, node: node, edges: [], nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
+        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
         node.modelContext?.insert(outputPortModel)
         
         let inputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
@@ -311,7 +311,7 @@ struct JelloNodeControllerFactory {
 
 
     static func getController(_ node: JelloNode) -> any JelloNodeController {
-        switch node.type {
+        switch node.nodeType {
         case .builtIn(let f):
             return builtinFunctionControllerMap[f]!
         case .material(_):

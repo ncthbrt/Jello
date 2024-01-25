@@ -13,7 +13,7 @@ enum JelloDocumentType {
 }
 
 
-enum JelloDocumentReference: Hashable, Identifiable {
+enum JelloDocumentReference: Hashable, Identifiable, Codable {
     case material(UUID)
     case function(UUID)
     

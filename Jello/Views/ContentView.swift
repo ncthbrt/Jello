@@ -11,13 +11,14 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @State private var compiler = JelloCompilerService()
-    @Environment(ProjectNavigation.self) private var navigation
     @Environment(\.modelContext) var modelContext
+    @State private var navigation: ProjectNavigation = ProjectNavigation()
     
     var body: some View {
         NavigationSplitView(
             sidebar: { ProjectSidebarView() },
             detail: { JelloDocumentNavigationStackView() })
+        .environment(navigation)
         .navigationSplitViewStyle(.balanced)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear() {

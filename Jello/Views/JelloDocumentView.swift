@@ -24,7 +24,7 @@ fileprivate struct JelloFunctionView: View {
     
     var body: some View {
         if let function = functions.first {
-            GraphView(graphId: function.graph.uuid, onOpenAddNodeMenu: { position in AddNewNodeMenuView(graph: function.graph, position: position, includeMaterials: false) }, bounds: $viewBounds)
+            GraphView(graphId: function.graph!.uuid, onOpenAddNodeMenu: { position in AddNewNodeMenuView(graph: function.graph!, position: position, includeMaterials: false) }, bounds: $viewBounds)
                 .toolbarTitleDisplayMode(.inline)
                 .navigationTitle(.init(get: { function.name }, set: {  function.name = $0 }))
                 .navigationViewStyle(.stack)
@@ -50,7 +50,7 @@ fileprivate struct JelloMaterialView: View {
     
     var body: some View {
         if let material = materials.first {
-            GraphView(graphId: material.graph.uuid, onOpenAddNodeMenu: { position in AddNewNodeMenuView(graph: material.graph, position: position, includeMaterials: false) }, bounds: $viewBounds)
+            GraphView(graphId: material.graph!.uuid, onOpenAddNodeMenu: { position in AddNewNodeMenuView(graph: material.graph!, position: position, includeMaterials: false) }, bounds: $viewBounds)
                 .toolbarTitleDisplayMode(.inline)
                 .navigationTitle(.init(get: { material.name }, set: { material.name = $0 }))
                 .navigationViewStyle(.stack)

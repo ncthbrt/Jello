@@ -8,7 +8,7 @@
 import Foundation
 
 
-enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable {
+enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable, Equatable {
     // Functions
     case add = 0
     case subtract = 1
@@ -39,10 +39,7 @@ enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable {
     var name : String {
         return String(describing: self).capitalized
     }
-    
-    static func == (lhs: JelloBuiltInNodeSubtype, rhs: JelloBuiltInNodeSubtype) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
+
 }
 
 enum JelloNodeType: Equatable, Hashable, Codable {
@@ -58,20 +55,6 @@ enum JelloNodeType: Equatable, Hashable, Codable {
             hasher.combine(id)
         case .material(let id):
             hasher.combine(id)
-        }
-    }
-    
-    
-    static func == (lhs: JelloNodeType, rhs: JelloNodeType) -> Bool {
-        switch (lhs, rhs) {
-        case (.builtIn(let a), .builtIn(let b)):
-            return a == b
-        case (.userFunction(let a), .userFunction(let b)):
-            return a == b
-        case (.material(let a), .material(let b)):
-            return a == b
-        default:
-            return false
         }
     }
 }

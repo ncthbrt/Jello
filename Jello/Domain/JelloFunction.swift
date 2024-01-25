@@ -13,28 +13,22 @@ final class JelloFunction {
     
     @Attribute(.unique) var uuid: UUID
     
-    
-    @Relationship(deleteRule: .cascade, inverse: \JelloNode.function)
-    private var dependants: [JelloNode]
-    
     var name: String
 
     var userDescription: String
 
 
-    @Relationship(deleteRule: .cascade)
-    var graph: JelloGraph
+    @Relationship(deleteRule: .cascade, inverse: \JelloGraph.function)
+    var graph: JelloGraph? = nil
     
 
-    init(uuid: UUID, name: String, userDescription: String, graph: JelloGraph, dependants: [JelloNode]) {
+    init(uuid: UUID, name: String, userDescription: String) {
         self.uuid = uuid
         self.name = name
-        self.graph = graph
         self.userDescription = userDescription
-        self.dependants = dependants
     }
     
     convenience init(){
-        self.init(uuid: UUID(), name: "Untitled Function", userDescription: "", graph: JelloGraph(), dependants: [])
+        self.init(uuid: UUID(), name: "Untitled Function", userDescription: "")
     }
 }

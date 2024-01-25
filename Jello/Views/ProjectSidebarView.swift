@@ -220,15 +220,11 @@ struct ProjectSidebarView: View {
     private func addFunction(){
         let jelloFunction = JelloFunction()
         modelContext.insert(jelloFunction)
+        let graph = JelloGraph(function: jelloFunction)
+        jelloFunction.graph = graph
+        modelContext.insert(graph)
         navigation.selectedItem = .function(jelloFunction.uuid)
     }
 }
 
 
-
-#Preview {
-    ProjectSidebarView()
-        .environment(ProjectNavigation())
-        .modelContainer(for: [JelloMaterial.self, JelloFunction.self], inMemory: true)
-
-}

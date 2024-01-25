@@ -54,7 +54,7 @@ public class SameTypesConstraint: PortConstraint {
 }
 
 
-public enum JelloConcreteDataType: Int, Codable, CaseIterable {
+public enum JelloConcreteDataType: Int, Codable, CaseIterable, Equatable {
     case float4 = 1
     case float3 = 2
     case float2 = 3
@@ -67,7 +67,7 @@ public enum JelloConcreteDataType: Int, Codable, CaseIterable {
     case slabMaterial = 10
 }
 
-public enum JelloConstantValue {
+public enum JelloConstantValue: Codable, Equatable {
     case float(Float)
     case float2(vector_float2)
     case float3(vector_float3)

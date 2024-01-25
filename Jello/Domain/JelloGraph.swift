@@ -25,7 +25,7 @@ final class JelloOutputPort {
     var index: UInt8
 
     @Relationship(inverse: \JelloEdge.outputPort)
-    private var edges: [JelloEdge]
+    private var edges: [JelloEdge] = []
     
     fileprivate(set) var positionX: Float
     fileprivate(set) var positionY: Float
@@ -55,7 +55,7 @@ final class JelloOutputPort {
         }
     }
 
-    init(uuid: UUID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, edges: [JelloEdge], nodePositionX: Float, nodePositionY: Float, nodeOffsetX: Float, nodeOffsetY: Float) {
+    init(uuid: UUID, index: UInt8, name: String, dataType: JelloGraphDataType, node: JelloNode, nodePositionX: Float, nodePositionY: Float, nodeOffsetX: Float, nodeOffsetY: Float) {
         self.uuid = uuid
         self.name = name
         self.index = index
@@ -86,11 +86,11 @@ final class JelloInputPort {
     @Relationship(inverse: \JelloEdge.inputPort)
     var edge: JelloEdge? = nil
     
-    fileprivate(set) var positionX: Float
-    fileprivate(set) var positionY: Float
+    var positionX: Float
+    var positionY: Float
     
-    fileprivate(set) var nodeOffsetX: Float
-    fileprivate(set) var nodeOffsetY: Float
+    var nodeOffsetX: Float
+    var nodeOffsetY: Float
     
     @Transient
     var nodeOffset : CGPoint {
@@ -135,24 +135,23 @@ final class JelloNode  {
 
     @Transient
     var name: String? {
-        switch type {
+        switch nodeType {
         case .builtIn(let builtInType):
             return String(describing: builtInType)
         case .userFunction(_):
-            return function?.name
+            return "function?.name"
         case .material(_):
-            return material?.name
+            return "material?.name"
         }
     }
 
     @Attribute(.unique) var uuid: UUID
     var graph: JelloGraph?
     var material: JelloMaterial?
-    
     var function: JelloFunction?
     
     @Relationship(deleteRule: .cascade, inverse: \JelloNodeData.node)
-    var data: [JelloNodeData]
+    var data: [JelloNodeData] = []
     
     fileprivate(set) var minX: Float
     fileprivate(set) var minY: Float
@@ -201,46 +200,55 @@ final class JelloNode  {
         }
     }
     
-    var type: JelloNodeType
+    private var builtIn: Int
+    
+    @Transient
+    var nodeType: JelloNodeType {
+        if let m = material {
+            JelloNodeType.material(m.uuid)
+        } else if let f = function {
+            JelloNodeType.userFunction(f.uuid)
+        } else {
+            JelloNodeType.builtIn(JelloBuiltInNodeSubtype.init(rawValue: builtIn)!)
+        }
+    }
+    
     
     @Relationship(deleteRule: .cascade, inverse: \JelloInputPort.node)
-    private var inputPorts: [JelloInputPort]
+    private var inputPorts: [JelloInputPort] = []
     
     @Relationship(deleteRule: .cascade, inverse: \JelloOutputPort.node)
-    private var outputPorts: [JelloOutputPort]
+    private var outputPorts: [JelloOutputPort] = []
     
     
-    private init(type: JelloNodeType, material: JelloMaterial?, function: JelloFunction?, graph: JelloGraph, uuid: UUID, inputPorts: [JelloInputPort], outputPorts: [JelloOutputPort], position: CGPoint, size: CGSize, data: [JelloNodeData]) {
-        self.type = type
+    private init(builtIn: JelloBuiltInNodeSubtype?, material: JelloMaterial?, function: JelloFunction?, graph: JelloGraph, uuid: UUID, positionX: Float, positionY: Float, width: Float, height: Float) {
+        self.builtIn = builtIn?.rawValue ?? 0
         self.graph = graph
         self.uuid = uuid
         self.material = material
         self.function = function
-        self.inputPorts = inputPorts
-        self.outputPorts = outputPorts
-        self.data = data
-        positionX = Float(position.x)
-        positionY = Float(position.y)
-        width = Float(size.width)
-        height = Float(size.height)
-        minX = Float(position.x) - Float(size.width) / 2
-        maxX = Float(position.x) + Float(size.width) / 2
-        minY = Float(position.y) - Float(size.height) / 2
-        maxY = Float(position.y) + Float(size.height) / 2
+        self.positionX = positionX
+        self.positionY = positionY
+        self.width = width
+        self.height = height
+        minX = Float(positionX) - Float(width) / 2
+        maxX = Float(positionX) + Float(width) / 2
+        minY = Float(positionY) - Float(height) / 2
+        maxY = Float(positionY) + Float(height) / 2
     }
     
     
-    convenience init(material: JelloMaterial, graph: JelloGraph, position: CGPoint, data: [JelloNodeData] = []) {
-        self.init(type: .material(material.uuid), material: material, function: nil, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero, data: data)
+    convenience init(material: JelloMaterial, graph: JelloGraph, position: CGPoint) {
+        self.init(builtIn: nil, material: material, function: nil, graph: graph, uuid: UUID(), positionX: Float(position.x), positionY: Float(position.y), width: 0, height: 0)
     }
     
-    convenience init(function: JelloFunction, graph: JelloGraph, position: CGPoint, data: [JelloNodeData] = []) {
-        self.init(type: .userFunction(function.uuid), material: nil, function: function, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero, data: data)
+    convenience init(function: JelloFunction, graph: JelloGraph, position: CGPoint) {
+        self.init(builtIn: nil, material: nil, function: function, graph: graph, uuid: UUID(), positionX: Float(position.x), positionY: Float(position.y), width: 0, height: 0)
     }
     
     
-    convenience init(builtIn: JelloBuiltInNodeSubtype, graph: JelloGraph, position: CGPoint, data: [JelloNodeData] = []) {
-        self.init(type: .builtIn(builtIn), material: nil, function: nil, graph: graph, uuid: UUID(), inputPorts: [], outputPorts: [], position: position, size: .zero, data: data)
+    convenience init(builtIn: JelloBuiltInNodeSubtype, graph: JelloGraph, position: CGPoint) {
+        self.init(builtIn: builtIn, material: nil, function: nil, graph: graph, uuid: UUID(), positionX: Float(position.x), positionY: Float(position.y), width: 0, height: 0)
     }
 
 }
@@ -423,19 +431,26 @@ final class JelloGraph {
     @Attribute(.unique) var uuid: UUID
     
     @Relationship(deleteRule: .cascade, inverse: \JelloNode.graph)
-    private var nodes: [JelloNode]
-
-    @Relationship(inverse: \JelloNode.graph)
-    private var edges: [JelloEdge]
-
-    init(uuid: UUID, nodes: [JelloNode], edges: [JelloEdge]) {
+    private var nodes: [JelloNode] = []
+    
+    @Relationship(deleteRule: .cascade, inverse: \JelloNode.graph)
+    private var edges: [JelloEdge] = []
+    
+    var material: JelloMaterial?
+    var function: JelloFunction?
+    
+    init(uuid: UUID, material: JelloMaterial?, function: JelloFunction?) {
         self.uuid = uuid
-        self.nodes = nodes
-        self.edges = edges
+        self.material = material
+        self.function = function
     }
     
-    convenience init(){
-        self.init(uuid: UUID(), nodes: [], edges: [])
+    convenience init(material: JelloMaterial){
+        self.init(uuid: UUID(), material: material, function: nil)
+    }
+    
+    convenience init(function: JelloFunction){
+        self.init(uuid: UUID(), material: nil, function: function)
     }
 }
 

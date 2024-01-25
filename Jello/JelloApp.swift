@@ -12,11 +12,9 @@ import UniformTypeIdentifiers
 
 @main
 struct JelloApp: App {
-    @State private var navigation: ProjectNavigation = ProjectNavigation()
     var body: some Scene {
         DocumentGroup(editing: .jelloProject, migrationPlan: JelloMigrationPlan.self) {
             ContentView()
-                .environment(navigation)
         }
     }
 }
@@ -29,7 +27,7 @@ extension UTType {
 
 struct JelloMigrationPlan: SchemaMigrationPlan {
     static var schemas: [VersionedSchema.Type] = [
-        JelloVersionedSchema.self
+        JelloVersionedSchemaV1.self
     ]
 
     static var stages: [MigrationStage] = [
@@ -37,7 +35,8 @@ struct JelloMigrationPlan: SchemaMigrationPlan {
     ]
 }
 
-struct JelloVersionedSchema: VersionedSchema {
+
+struct JelloVersionedSchemaV1: VersionedSchema {
     static var versionIdentifier = Schema.Version(1, 0, 0)
 
     static var models: [any PersistentModel.Type] = [

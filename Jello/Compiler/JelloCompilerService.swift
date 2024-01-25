@@ -65,9 +65,9 @@ class JelloCompilerService {
     
     static func buildGraphInput(outputNode: JelloNode, jelloGraph: JelloGraph, jelloNodes: [JelloNode], jelloNodeData: [JelloNodeData], jelloEdges: [JelloEdge], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> JelloCompilerInput {
         let graph = buildGraph(jelloGraph: jelloGraph, jelloNodes: jelloNodes, jelloNodeData: jelloNodeData, jelloEdges: jelloEdges, jelloInputPorts: jelloInputPorts, jelloOutputPorts: jelloOutputPorts, useBaseDataTypes: false)
-        if outputNode.type == .builtIn(.preview) {
+        if outputNode.nodeType == .builtIn(.preview) {
             return JelloCompilerInput(output: .previewOutput(graph.nodes.first(where: {$0.id == outputNode.uuid})! as! PreviewOutputCompilerNode), graph: graph)
-        } else if outputNode.type == .builtIn(.materialOutput) {
+        } else if outputNode.nodeType == .builtIn(.materialOutput) {
             return JelloCompilerInput(output: .materialOutput(graph.nodes.first(where: {$0.id == outputNode.uuid})! as! MaterialOutputCompilerNode), graph: graph)
         } else {
             fatalError("Unexpected output node type")
@@ -77,7 +77,7 @@ class JelloCompilerService {
     private static func buildCompilerNode(jelloNode: JelloNode, jelloNodeData: [String: JelloNodeDataValue], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort], useBaseDataTypes: Bool) -> CompilerNode? {
         let compilerInputPorts = jelloInputPorts.map({ InputCompilerPort(id: $0.uuid, dataType: useBaseDataTypes ? $0.baseDataType :  $0.currentDataType) })
         let compilerOutputPorts = jelloOutputPorts.map({ OutputCompilerPort(id: $0.uuid, dataType: useBaseDataTypes ? $0.baseDataType :  $0.currentDataType) })
-        switch(jelloNode.type) {
+        switch(jelloNode.nodeType) {
         case .builtIn(.add):
             return AddCompilerNode(id: jelloNode.uuid, inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)
         case .builtIn(.subtract):
