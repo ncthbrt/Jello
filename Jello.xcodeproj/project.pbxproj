@@ -65,6 +65,8 @@
 		BC9BBFEE2AEFF02100FC068C /* JelloGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFED2AEFF02100FC068C /* JelloGraph.swift */; };
 		BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFF32AF00C2400FC068C /* ProjectSidebarView.swift */; };
 		BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */; };
+		BCAAD3FC2B625DF2007BDCFC /* CalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAAD3FB2B625DF2007BDCFC /* CalculatorView.swift */; };
+		BCAAD3FE2B628677007BDCFC /* RadialMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAAD3FD2B628677007BDCFC /* RadialMenu.swift */; };
 		BCB9E5EC2B41BCC200472DB8 /* SPIRV-Headers-Swift in Frameworks */ = {isa = PBXBuildFile; productRef = BCB9E5EB2B41BCC200472DB8 /* SPIRV-Headers-Swift */; };
 		BCB9E5EE2B41BCDB00472DB8 /* SPIRV-Cross in Frameworks */ = {isa = PBXBuildFile; productRef = BCB9E5ED2B41BCDB00472DB8 /* SPIRV-Cross */; };
 		BCB9E5EF2B41BDD600472DB8 /* libJelloCompilerStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */; };
@@ -191,6 +193,8 @@
 		BC9BBFF32AF00C2400FC068C /* ProjectSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSidebarView.swift; sourceTree = "<group>"; };
 		BC9BBFF52AF00C6D00FC068C /* ProjectNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectNavigation.swift; sourceTree = "<group>"; };
 		BC9F96E62B35B7970041FCCE /* Jello.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Jello.xctestplan; sourceTree = "<group>"; };
+		BCAAD3FB2B625DF2007BDCFC /* CalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorView.swift; sourceTree = "<group>"; };
+		BCAAD3FD2B628677007BDCFC /* RadialMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadialMenu.swift; sourceTree = "<group>"; };
 		BCCE16052B172394000370CB /* Control.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Control.swift; sourceTree = "<group>"; };
 		BCCE16072B1723A8000370CB /* ControlGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlGeometry.swift; sourceTree = "<group>"; };
 		BCCE16092B1723D5000370CB /* ControlHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlHelpers.swift; sourceTree = "<group>"; };
@@ -294,6 +298,8 @@
 				BCCE16092B1723D5000370CB /* ControlHelpers.swift */,
 				BCCE160B2B1723F3000370CB /* PlanarGeometry.swift */,
 				BCCE160F2B172426000370CB /* TwoParameterControl.swift */,
+				BCAAD3FB2B625DF2007BDCFC /* CalculatorView.swift */,
+				BCAAD3FD2B628677007BDCFC /* RadialMenu.swift */,
 			);
 			path = Controls;
 			sourceTree = "<group>";
@@ -688,12 +694,14 @@
 				BCEE1C6F2AFE2DE40012F619 /* GraphLayout.swift in Sources */,
 				BC876D982B5A70DE00B8E62F /* DiscreteSliderView.swift in Sources */,
 				BCFC21102B42EFDB004FF404 /* ColorNodeView.swift in Sources */,
+				BCAAD3FC2B625DF2007BDCFC /* CalculatorView.swift in Sources */,
 				BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */,
 				BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */,
 				BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */,
 				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
 				BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */,
 				BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */,
+				BCAAD3FE2B628677007BDCFC /* RadialMenu.swift in Sources */,
 				BCCE160A2B1723D5000370CB /* ControlHelpers.swift in Sources */,
 				BCE0675B2AF934820066F8D4 /* NodeView.swift in Sources */,
 				BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */,
