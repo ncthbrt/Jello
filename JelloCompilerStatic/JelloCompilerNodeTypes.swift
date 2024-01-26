@@ -828,3 +828,126 @@ public class BinaryOperatorCompilerNode : CompilerNode {
     }
 }
 
+
+
+public class MathExpressionCompilerNode : CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        if let mathExpression = expression {
+            outputPorts.first!.setReservedId(reservedId: processMathExpression(expression: mathExpression))
+        } else {
+            let valueId = declareNullValueConstant(dataType: .float)
+            outputPorts.first!.setReservedId(reservedId: valueId)
+        }
+    }
+    
+    private func processMathExpression(expression: MathExpression) -> UInt32 {
+        switch(expression) {
+        case .literal(let value):
+            let floatId = declareType(dataType: .float)
+            let resultId = #id
+            #globalDeclaration(opCode: SpirvOpConstant, [floatId, resultId], float(value))
+            return resultId
+        case .variable(let v):
+            let inputPort = inputPorts[v.rawValue]
+            if let edge = inputPort.incomingEdge {
+                return edge.outputPort.getOrReserveId()
+            } else {
+                let valueId = declareNullValueConstant(dataType: .float)
+                return valueId
+            }
+        case .unaryOperator(let op, let subExpr):
+            return processUnaryOperator(op: op, subExpr: subExpr)
+        case .binaryOperator(let op, let subExpr1, let subExpr2):
+            return processBinaryOperator(op: op, subExpr1: subExpr1, subExpr2: subExpr2)
+        }
+    }
+    
+    private func processUnaryOperator(op: MathExpressionUnaryOperator, subExpr: MathExpression) -> UInt32 {
+        let subExprResultId = processMathExpression(expression: subExpr)
+        let typeId = declareType(dataType: .float)
+        let resultId = #id
+        switch op {
+            case .sqrt:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Sqrt.rawValue, subExprResultId])
+            break
+            case .floor:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Floor.rawValue, subExprResultId])
+            break
+            case .ceil:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Ceil.rawValue, subExprResultId])
+            break
+            case .round:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Round.rawValue, subExprResultId])
+            break
+            case .cos:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Cos.rawValue, subExprResultId])
+            case .acos:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Acos.rawValue, subExprResultId])
+            case .sin:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Sin.rawValue, subExprResultId])
+            case .asin:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Asin.rawValue, subExprResultId])
+            case .tan:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Tan.rawValue, subExprResultId])
+            case .atan:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Atan.rawValue, subExprResultId])
+            case .abs:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FAbs.rawValue, subExprResultId])
+            break
+            case .log:
+            #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Log.rawValue, subExprResultId])
+            break
+            case .negate:
+            #functionBody(opCode: SpirvOpFNegate, [typeId, resultId, subExprResultId])
+            break
+        }
+        return resultId
+    }
+    
+    
+    private func processBinaryOperator(op: MathExpressionBinaryOperator, subExpr1: MathExpression, subExpr2: MathExpression) -> UInt32 {
+        let subExprResultId1 = processMathExpression(expression: subExpr1)
+        let subExprResultId2 = processMathExpression(expression: subExpr2)
+        let resultId = #id
+        let typeId = declareType(dataType: .float)
+        switch op {
+            case .add:
+                #functionBody(opCode: SpirvOpFAdd, [typeId, resultId, subExprResultId1, subExprResultId2])
+                break
+            case .subtract:
+                #functionBody(opCode: SpirvOpFSub, [typeId, resultId, subExprResultId1, subExprResultId2])
+                break
+            case .divide:
+                #functionBody(opCode: SpirvOpFDiv, [typeId, resultId, subExprResultId1, subExprResultId2])
+                break
+            case .multiply:
+            #functionBody(opCode: SpirvOpFMul, [typeId, resultId, subExprResultId1, subExprResultId2])
+            break
+        }
+        return resultId
+    }
+    
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    private let expression: MathExpression?
+    public var constraints: [PortConstraint] { [] }
+    
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPort: OutputCompilerPort, expression: MathExpression?) {
+        self.id = id
+        self.inputPorts =  inputPorts
+        self.outputPorts = [outputPort]
+        self.expression = expression
+        for port in inputPorts {
+            port.node = self
+        }
+        outputPort.node = self
+    }
+}

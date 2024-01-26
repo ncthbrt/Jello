@@ -138,7 +138,6 @@ struct RadialMenu<Label, Entry, EntryView>: View where Label : View, Entry: Hash
     
     func endSelection(){
         if let selection = self.selection {
-            print(selection)
             onSelection(entries[selection])
         }
     }
