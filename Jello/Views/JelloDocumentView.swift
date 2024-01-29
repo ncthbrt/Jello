@@ -80,17 +80,14 @@ struct JelloDocumentNavigationStackView: View {
  
     
     var body: some View {
-        NavigationStack(path: .init(get: { navigation.navPath }, set: { navigation.navPath = $0 }), root: {
-            if let item = navigation.selectedItem {
-                JelloDocumentView(reference: item)
-                    .navigationBarTitleDisplayMode(.automatic)
-                    .navigationDestination(for: JelloDocumentReference.self, destination: { reference in
-                        JelloDocumentView(reference: reference)
-                    })
-            } else {
-                NoSelectedItemView()
-            }
-             
-        })
+        if let item = navigation.selectedItem {
+            JelloDocumentView(reference: item)
+                .navigationBarTitleDisplayMode(.automatic)
+                .navigationDestination(for: JelloDocumentReference.self, destination: { reference in
+                    JelloDocumentView(reference: reference)
+                })
+        } else {
+            NoSelectedItemView()
+        }
     }
 }
