@@ -10,6 +10,34 @@ import OrderedCollections
 import SwiftData
 import simd
 
+// Commented out code for deleting a node!
+//Button(role: .destructive) {
+//    let nodeId = node.uuid
+//    try! modelContext.transaction {
+//        let inputPorts = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.uuid == nodeId }))
+//        for inputPort in inputPorts {
+//            if let edge = inputPort.edge {
+//                modelContext.delete(edge)
+//            }
+//        }
+//        let outputPorts = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.uuid == nodeId }))
+//        for outputPort in outputPorts {
+//            let outputPortId = outputPort.uuid
+//            let edges = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloEdge>{ $0.outputPort?.uuid == outputPortId }))
+//            for edge in edges {
+//                modelContext.delete(edge)
+//            }
+//        }
+//        modelContext.delete(node)
+//        if let graphId = node.graph?.uuid {
+//            try updateTypesInGraph(modelContext: modelContext, graphId: graphId)
+//        }
+//    }
+//} label: {
+//    Label("Delete", systemImage: "trash.fill")
+//}
+
+
 fileprivate struct NodeRendererView: View {
     @Environment(\.modelContext) var modelContext
     @State var lastTranslation: CGSize = .zero
@@ -35,51 +63,15 @@ fileprivate struct NodeRendererView: View {
                         .fill(gradient)
                     Path(sim.doDraw)
                         .fill(.ultraThickMaterial)
-                    innerBody(sim.doDraw)
                     Path(sim.doDraw)
                         .stroke(gradient, lineWidth: 3)
+                    innerBody(sim.doDraw)
                 }
             }
             NodeInputPortsView(nodeId: node.uuid)
             NodeOutputPortsView(nodeId: node.uuid)
         }
         .shadow(color: boxSelection.selectedNodes.contains(node.uuid) ? Color.white : Color.clear, radius: 10)
-        .contextMenu {
-            Button {
-                // Add this item to a list of favorites.
-            } label: {
-                Label("Pin Preview", systemImage: "eye")
-            }
-            Button(role: .destructive) {
-                let nodeId = node.uuid
-                try! modelContext.transaction {
-                    let inputPorts = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloInputPort>{ $0.node?.uuid == nodeId }))
-                    for inputPort in inputPorts {
-                        if let edge = inputPort.edge {
-                            modelContext.delete(edge)
-                        }
-                    }
-                    let outputPorts = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloOutputPort>{ $0.node?.uuid == nodeId }))
-                    for outputPort in outputPorts {
-                        let outputPortId = outputPort.uuid
-                        let edges = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloEdge>{ $0.outputPort?.uuid == outputPortId }))
-                        for edge in edges {
-                            modelContext.delete(edge)
-                        }
-                    }
-                    modelContext.delete(node)
-                    if let graphId = node.graph?.uuid {
-                        try updateTypesInGraph(modelContext: modelContext, graphId: graphId)
-                    }
-                }
-            } label: {
-                Label("Delete", systemImage: "trash.fill")
-            }
-            Button(role: .destructive) {
-            } label: {
-                Label("Dissolve", systemImage: "wand.and.rays")
-            }
-        }
         .frame(width: CGFloat(node.width), height: CGFloat(node.height), alignment: .center)
         .contentShape(Rectangle())
         .position(node.position + CGPoint(x: CGFloat(node.width/2), y: CGFloat(node.height/2)))
