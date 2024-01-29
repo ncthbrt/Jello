@@ -55,7 +55,7 @@ struct SwizzleNodeView : View {
             return AnyView(EmptyView())
         }
         
-        let sliderDisabled: Bool = (nodeData.filter({$0.key == JelloNodeDataKey.componentSliderDisabled.rawValue}).first?.value ?? .bool(false)) == .bool(true)
+        let sliderDisabled: Bool = (outputPorts.first?.edges.count ?? 0) > 0
         
         guard case .float4(let x, let y, let z, let w) = componentsData.value else {
             return AnyView(EmptyView())
@@ -72,7 +72,7 @@ struct SwizzleNodeView : View {
                     .monospaced()
                     .foregroundStyle(.white)
                 Spacer()
-                DiscreteSliderView(labels: ["v1", "v2", "v3", "v4"], fillPriors: true, fill: Gradient(colors: [.blue, .orange]), disabled: false, item: .init(get: {componentCount - 1}, set: {
+                DiscreteSliderView(labels: ["v1", "v2", "v3", "v4"], fillPriors: true, fill: Gradient(colors: [.blue, .orange]), disabled: sliderDisabled, item: .init(get: {componentCount - 1}, set: {
                     value in
                     componentCountData.value = .int(value + 1)
                     let sliderHeight: Float = Float(80 * (Float(Float(value) + Float(1.0))))

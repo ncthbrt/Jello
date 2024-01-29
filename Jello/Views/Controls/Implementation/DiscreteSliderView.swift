@@ -152,24 +152,30 @@ struct DiscreteSliderView: View {
                 }
             }.frame(width: width, height: radius * 2.5).gesture(DragGesture().onChanged({
                 event in
-                withAnimation(.interactiveSpring){
-                    position += (event.translation.width - offset)
-                    position = min(max(0, CGFloat(position)), width - radius)
-                    offset = event.translation.width
-                    let distancePerItem = (width - radius) /  CGFloat(labels.count - 1)
-                    item = clamp0N(value: Int(round(position / distancePerItem)), labels.count - 1)
+                if !disabled {
+                    withAnimation(.interactiveSpring){
+                        position += (event.translation.width - offset)
+                        position = min(max(0, CGFloat(position)), width - radius)
+                        offset = event.translation.width
+                        let distancePerItem = (width - radius) /  CGFloat(labels.count - 1)
+                        item = clamp0N(value: Int(round(position / distancePerItem)), labels.count - 1)
+                    }
                 }
             }).onEnded({ event in
-                withAnimation(.spring) {
-                    offset = 0
-                    item = clamp0N(value: Int(round(position / distancePerItem)), labels.count - 1)
-                    position = CGFloat(CGFloat(item) * distancePerItem)
+                if !disabled {
+                    withAnimation(.spring) {
+                        offset = 0
+                        item = clamp0N(value: Int(round(position / distancePerItem)), labels.count - 1)
+                        position = CGFloat(CGFloat(item) * distancePerItem)
+                    }
                 }
             })).gesture(SpatialTapGesture().onEnded({ event in
-                withAnimation(.interactiveSpring(response: 0.9, dampingFraction: 0.55, blendDuration: 0.15)){
-                    position = event.location.x
-                    item = clamp0N(value: Int(round(position / distancePerItem)), labels.count - 1)
-                    position = CGFloat(CGFloat(item) * distancePerItem)
+                if !disabled {
+                    withAnimation(.interactiveSpring(response: 0.9, dampingFraction: 0.55, blendDuration: 0.15)){
+                        position = event.location.x
+                        item = clamp0N(value: Int(round(position / distancePerItem)), labels.count - 1)
+                        position = CGFloat(CGFloat(item) * distancePerItem)
+                    }
                 }
             })).onChange(of: item, { _, current in
                 withAnimation(.interactiveSpring(response: 0.9, dampingFraction: 0.55, blendDuration: 0.15)){

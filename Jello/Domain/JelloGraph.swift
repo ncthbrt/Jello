@@ -25,7 +25,7 @@ final class JelloOutputPort {
     var index: UInt8
 
     @Relationship(inverse: \JelloEdge.outputPort)
-    private var edges: [JelloEdge] = []
+    var edges: [JelloEdge] = []
     
     fileprivate(set) var positionX: Float
     fileprivate(set) var positionY: Float
