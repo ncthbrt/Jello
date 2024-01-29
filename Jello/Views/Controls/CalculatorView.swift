@@ -73,15 +73,15 @@ fileprivate struct KeyboardButtonStyle: ButtonStyle {
             if configuration.role != .destructive {
                 RoundedRectangle(cornerRadius: .infinity).fill(.ultraThinMaterial).shadow(radius: -4).overlay(content: {
                     if configuration.isPressed {
-                        RoundedRectangle(cornerRadius: .infinity).fill(.white.opacity(0.2)).shadow(radius: 8)
+                        RoundedRectangle(cornerRadius: .infinity).fill(.white.opacity(0.2))
                     }
-                }).allowsHitTesting(false)
+                })
             } else {
                 RoundedRectangle(cornerRadius: .infinity).fill(.red).shadow(radius: -4).overlay(content: {
                     if configuration.isPressed {
                         RoundedRectangle(cornerRadius: .infinity).fill(.white.opacity(0.2)).shadow(radius: 8)
                     }
-                }).allowsHitTesting(false)
+                })
             }
             configuration.label
                 .foregroundStyle(.white)
@@ -89,20 +89,6 @@ fileprivate struct KeyboardButtonStyle: ButtonStyle {
     }
 }
 
-
-fileprivate struct SubmitButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: .infinity).fill(.indigo).shadow(radius: -4).overlay(content: {
-                    if configuration.isPressed {
-                        RoundedRectangle(cornerRadius: .infinity).fill(.white.opacity(0.2)).shadow(radius: 8)
-                    }
-                }).allowsHitTesting(false)
-            configuration.label
-                .foregroundStyle(.white)
-        }
-    }
-}
 
 
 
@@ -186,8 +172,13 @@ fileprivate struct KeyboardView: View {
                             Image(systemName: "divide")
                         }
                     }.font(.footnote)
-                }, entries: ["plus", "minus", "divide", "multiply"], entryBuilder: {
-                    entry in Image(systemName: entry)
+                }, entries: ["plus", "minus", "divide", "multiply", "power"], entryBuilder: {
+                    entry in
+                    if entry != "power" {
+                        Image(systemName: entry)
+                    } else {
+                        Text("^")
+                    }
                 }, onSelection: { entry in
                     if entry == "plus" {
                         appendString("+")
@@ -215,22 +206,18 @@ fileprivate struct KeyboardView: View {
                 }, onSelection: { entry in appendString(entry) }, onOpen: { currentSelectedOverlay = 2 }, onClose: { currentSelectedOverlay = nil }).zIndex(currentSelectedOverlay == 2 ? 100 : 0)
                 RadialMenu(label: { Text("π").italic() }, entries: ["pi", "e", "tau", "phi"], entryBuilder: {
                     entry in Text(entry)
-                }, onSelection: { entry in
+                }, onSelection: { entry in appendString(entry)
                 }, onOpen: { currentSelectedOverlay = 3 }, onClose: { currentSelectedOverlay = nil }).zIndex(currentSelectedOverlay == 3 ? 100 : 0)
             }.zIndex(currentSelectedOverlay == 2 || currentSelectedOverlay == 3 ? 100 : 0)
             HStack(spacing: 10) {
                 KeyboardButton(label: {Text(".")}, onClick: {appendString(".")})
                 KeyboardButton(label: {Text("0")}, onClick: {appendString("0")})
-                RadialMenu(label: { Text("()").monospaced()}, entries: [")", "("], entryBuilder: {
-                    entry in Text(entry)
-                }, onSelection: { entry in
-                    appendString(entry)
-                }, onOpen: { currentSelectedOverlay = 4 }, onClose: { currentSelectedOverlay = nil }).zIndex(currentSelectedOverlay == 4 ? 100 : 0)
+                KeyboardButton(label: {Text("(").monospaced()}, onClick: {appendString("(")})
+                KeyboardButton(label: {Text(")").monospaced()}, onClick: {appendString(")")})
                 RadialMenu(label: { Image(systemName: "angle")}, entries: ["sin", "cos", "tan", "atan", "acos", "asin"], entryBuilder: {
                     entry in Text(entry)
                 }, onSelection: { entry in appendString("\(entry)(")
                 }, onOpen: { currentSelectedOverlay = 5 }, onClose: { currentSelectedOverlay = nil }).zIndex(currentSelectedOverlay == 5 ? 99 : 0)
-                Button(action:  { print("magic") }, label: { Image(systemName: "wand.and.stars")}).frame(width: 50, height: 50).buttonStyle(SubmitButtonStyle()).zIndex(-1).disabled(!valid).opacity(valid ? 1 : 0.4)
             }
         }
     }
@@ -264,6 +251,6 @@ struct CalculatorPreviewView: View {
 
 #Preview {
     VStack {
-        CalculatorPreviewView().frame(width: 300, height: 500)
+        CalculatorPreviewView().frame(width: 300, height: 360)
     }
 }

@@ -283,6 +283,66 @@ fileprivate class JelloSwizzleNodeController: JelloNodeController {
     }
 }
 
+
+fileprivate class JelloCalculatorNodeController: JelloNodeController {
+    init(){}
+    
+    var category: JelloNodeCategory { .math }
+    
+    func setup(node: JelloNode)
+    {
+        let outputPortOffset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(0), width: 400)
+        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
+        node.modelContext?.insert(outputPortModel)
+        
+        
+        let xInputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
+        let xInputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "x", dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(xInputPortOffset.x), nodeOffsetY: Float(xInputPortOffset.y))
+        node.modelContext?.insert(xInputPortModel)
+        
+        let yInputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(1))
+        let yInputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(1), name: "y", dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(yInputPortOffset.x), nodeOffsetY: Float(yInputPortOffset.y))
+        node.modelContext?.insert(yInputPortModel)
+        
+        
+        let zInputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(2))
+        let zInputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(2), name: "z", dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(zInputPortOffset.x), nodeOffsetY: Float(zInputPortOffset.y))
+        node.modelContext?.insert(zInputPortModel)
+        
+        let wInputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(3))
+        let wInputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(3), name: "w", dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(wInputPortOffset.x), nodeOffsetY: Float(wInputPortOffset.y))
+        node.modelContext?.insert(wInputPortModel)
+
+        let componentCountData = JelloNodeData(key: JelloNodeDataKey.componentCount.rawValue, value: .int(1), node: node)
+        node.modelContext?.insert(componentCountData)
+        
+        let componentData = JelloNodeData(key: JelloNodeDataKey.value.rawValue, value: .stringArray(StringArray(value:[])), node: node)
+        node.modelContext?.insert(componentData)
+        
+        node.size = CGSize(width: 400, height: 360 + JelloNode.headerHeight)
+    }
+    
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge) {
+        withAnimation(.spring) {
+            port.currentDataType = edge.dataType
+        }
+    }
+    
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge) {
+        withAnimation(.spring) {
+            port.currentDataType = .anyFloat
+        }
+    }
+    
+    var hasSettings: Bool { false }
+    
+    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
+        AnyView(
+            CalculatorNodeView(node: node, drawBounds: drawBounds)
+        )
+    }
+}
+
 struct JelloNodeControllerFactory {
     private static let materialNodeController : any JelloNodeController = JelloMaterialNodeController()
     private static let userFunctionNodeController : any JelloNodeController = JelloUserFunctionNodeController()
@@ -299,6 +359,7 @@ struct JelloNodeControllerFactory {
         .fract: JelloUniformOperatorNodeController(builtIn: .fract, category: .math, inputPorts: [""], outputPorts: [""], baseDataType: .anyFloat),
         .length: JelloConstantFunctionNodeController(builtIn: .length, category: .math, inputPorts: [PortDefinition(dataType: .anyFloat, name: "")], outputPorts: [PortDefinition(dataType: .float, name: "")]),
         .normalize: JelloUniformOperatorNodeController(builtIn: .normalize, category: .math, inputPorts: [""], outputPorts: [""], baseDataType: .anyFloat),
+        .calculator: JelloCalculatorNodeController(),
         
         .color: JelloColorNodeController(),
         

@@ -44,6 +44,7 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
             JelloBuiltInNodeMenuDefinition(description: "The length of a vector", previewImage: "", category: .math, type: .length),
             JelloBuiltInNodeMenuDefinition(description: "Sets the length of a vector to 1", previewImage: "", category: .math, type: .normalize),
             JelloBuiltInNodeMenuDefinition(description: "Returns the fractional part of a number", previewImage: "", category: .math, type: .fract),
+            JelloBuiltInNodeMenuDefinition(description: "Evaluates math expressions of up to 4 inputs", previewImage: "", category: .math, type: .calculator),
         ],
         .material: [
             JelloBuiltInNodeMenuDefinition(description: "Primary BSDF used to shade surfaces", previewImage: "", category: .material, type: .slabShader),

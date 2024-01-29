@@ -866,53 +866,59 @@ public class MathExpressionCompilerNode : CompilerNode {
             return processUnaryOperator(op: op, subExpr: subExpr)
         case .binaryOperator(let op, let subExpr1, let subExpr2):
             return processBinaryOperator(op: op, subExpr1: subExpr1, subExpr2: subExpr2)
+        case .constant(let constant):
+            return processConstant(constant: constant)
         }
     }
     
-    private func processUnaryOperator(op: MathExpressionUnaryOperator, subExpr: MathExpression) -> UInt32 {
+    private func processUnaryOperator(op: MathExpressionPrefixUnaryOperator, subExpr: MathExpression) -> UInt32 {
         let subExprResultId = processMathExpression(expression: subExpr)
+        if op == .unaryPlus {
+            return subExprResultId
+        }
         let typeId = declareType(dataType: .float)
         let resultId = #id
         switch op {
-            case .sqrt:
+        case .sqrt:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Sqrt.rawValue, subExprResultId])
             break
-            case .floor:
+        case .floor:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Floor.rawValue, subExprResultId])
             break
-            case .ceil:
+        case .ceil:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Ceil.rawValue, subExprResultId])
             break
-            case .round:
+        case .round:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Round.rawValue, subExprResultId])
             break
-            case .cos:
+        case .cos:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Cos.rawValue, subExprResultId])
-            case .acos:
+        case .acos:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Acos.rawValue, subExprResultId])
-            case .sin:
+        case .sin:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Sin.rawValue, subExprResultId])
-            case .asin:
+        case .asin:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Asin.rawValue, subExprResultId])
-            case .tan:
+        case .tan:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Tan.rawValue, subExprResultId])
-            case .atan:
+        case .atan:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Atan.rawValue, subExprResultId])
-            case .abs:
+        case .abs:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FAbs.rawValue, subExprResultId])
             break
-            case .log:
+        case .log:
             #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Log.rawValue, subExprResultId])
             break
-            case .negate:
+        case .negate:
             #functionBody(opCode: SpirvOpFNegate, [typeId, resultId, subExprResultId])
-            break
+        case .unaryPlus:
+            return subExprResultId
         }
         return resultId
     }
     
     
-    private func processBinaryOperator(op: MathExpressionBinaryOperator, subExpr1: MathExpression, subExpr2: MathExpression) -> UInt32 {
+    private func processBinaryOperator(op: MathExpressionInfixBinaryOperator, subExpr1: MathExpression, subExpr2: MathExpression) -> UInt32 {
         let subExprResultId1 = processMathExpression(expression: subExpr1)
         let subExprResultId2 = processMathExpression(expression: subExpr2)
         let resultId = #id
@@ -928,8 +934,27 @@ public class MathExpressionCompilerNode : CompilerNode {
                 #functionBody(opCode: SpirvOpFDiv, [typeId, resultId, subExprResultId1, subExprResultId2])
                 break
             case .multiply:
-            #functionBody(opCode: SpirvOpFMul, [typeId, resultId, subExprResultId1, subExprResultId2])
+                #functionBody(opCode: SpirvOpFMul, [typeId, resultId, subExprResultId1, subExprResultId2])
             break
+            case .pow:
+                #functionBody(opCode: SpirvOpExtInst, [typeId, resultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Pow.rawValue, subExprResultId1, subExprResultId2])
+            break
+        }
+        return resultId
+    }
+    
+    private func processConstant(constant: MathExpressionConstant) -> UInt32 {
+        let typeId = declareType(dataType: .float)
+        let resultId = #id
+        switch constant {
+            case .pi:
+            #globalDeclaration(opCode: SpirvOpConstant, [typeId, resultId], float(.pi))
+        case .e:
+            #globalDeclaration(opCode: SpirvOpConstant, [typeId, resultId], float(2.7182818284590452353602874713526624977572))
+        case .tau:
+            #globalDeclaration(opCode: SpirvOpConstant, [typeId, resultId], float(.pi * 2))
+        case .phi:
+            #globalDeclaration(opCode: SpirvOpConstant, [typeId, resultId], float(1.618033988749))
         }
         return resultId
     }

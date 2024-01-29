@@ -11,10 +11,14 @@ import SwiftUI
 import SwiftData
 
 
+struct StringArray: Codable, Equatable {
+    let value: [String]
+}
 
 enum JelloNodeDataValue: Codable, Equatable {
     case null
     case string(String)
+    case stringArray(StringArray)
     case bool(Bool)
     case int(Int)
     case float(Float)

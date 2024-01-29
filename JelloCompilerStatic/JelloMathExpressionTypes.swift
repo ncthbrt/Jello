@@ -7,15 +7,22 @@
 
 import Foundation
 
+public enum MathExpressionConstant {
+    case e
+    case pi
+    case phi
+    case tau
+}
 
-public enum MathExpressionBinaryOperator: String, CaseIterable {
+public enum MathExpressionInfixBinaryOperator: String, CaseIterable {
     case add
     case subtract
     case divide
     case multiply
+    case pow
 }
 
-public enum MathExpressionUnaryOperator: String, CaseIterable {
+public enum MathExpressionPrefixUnaryOperator: String, CaseIterable {
     case sqrt
     case floor
     case ceil
@@ -29,6 +36,7 @@ public enum MathExpressionUnaryOperator: String, CaseIterable {
     case abs
     case log
     case negate
+    case unaryPlus
 }
 
 public enum MathExpressionVariable: Int {
@@ -38,11 +46,12 @@ public enum MathExpressionVariable: Int {
     case w = 3
 }
 
-public indirect enum MathExpression {
+public indirect enum MathExpression: Equatable {
     case literal(Float)
+    case constant(MathExpressionConstant)
     case variable(MathExpressionVariable)
-    case unaryOperator(MathExpressionUnaryOperator, MathExpression)
-    case binaryOperator(MathExpressionBinaryOperator, MathExpression, MathExpression)
+    case unaryOperator(MathExpressionPrefixUnaryOperator, MathExpression)
+    case binaryOperator(MathExpressionInfixBinaryOperator, MathExpression, MathExpression)
 }
 
 

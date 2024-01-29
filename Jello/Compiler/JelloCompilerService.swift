@@ -124,6 +124,12 @@ class JelloCompilerService {
                 return SwizzleCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, selectors: SwizzleCompilerNode.buildSelectors(componentCount: componentCount, components: [x, y, z, w]))
             }
             return nil
+        case .builtIn(.calculator):
+            let value = jelloNodeData[JelloNodeDataKey.value.rawValue] ?? .null
+            if case JelloNodeDataValue.stringArray(let array) = value {
+                return MathExpressionCompilerNode(inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!, expression: try? parseMathExpression(array.value.joined(separator: "")))
+            }
+            return nil
         case .material:
             // TODO: Add support for nested materials
             return nil

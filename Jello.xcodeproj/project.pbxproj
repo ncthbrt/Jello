@@ -47,6 +47,11 @@
 		BC57B9492B5C080300DE6D8A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		BC57B94B2B5C084300DE6D8A /* CheckerboardEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */; };
 		BC614E8C2B0B48F800AA18E5 /* BoxSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */; };
+		BC7036ED2B645A3700EAA108 /* JelloMathExpressionLexerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7036EC2B645A3700EAA108 /* JelloMathExpressionLexerTests.swift */; };
+		BC7036EE2B645DE500EAA108 /* MathExpressionLexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF4E98A2B644B29004B88AB /* MathExpressionLexer.swift */; };
+		BC7036EF2B645DEA00EAA108 /* MathExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC906B782B6403D1003CBBEF /* MathExpressionParser.swift */; };
+		BC7036F12B64F59C00EAA108 /* JelloMathExpressionParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7036F02B64F59C00EAA108 /* JelloMathExpressionParserTests.swift */; };
+		BC7036F32B65040F00EAA108 /* CalculatorNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7036F22B65040F00EAA108 /* CalculatorNodeView.swift */; };
 		BC8618132B5C315200AF6EE8 /* HSBEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC8618122B5C315200AF6EE8 /* HSBEffect.metal */; };
 		BC8618152B5E641B00AF6EE8 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8618142B5E641B00AF6EE8 /* ColorExtensions.swift */; };
 		BC8618172B5E81CA00AF6EE8 /* WaveEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */; };
@@ -54,7 +59,6 @@
 		BC876D9A2B5A716300B8E62F /* SwizzleNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC876D992B5A716300B8E62F /* SwizzleNodeView.swift */; };
 		BC876D9C2B5C063300B8E62F /* ColorPickerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC876D9B2B5C063300B8E62F /* ColorPickerViews.swift */; };
 		BC906B792B6403D1003CBBEF /* MathExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC906B782B6403D1003CBBEF /* MathExpressionParser.swift */; };
-		BC906B7C2B6404C7003CBBEF /* Parsing in Frameworks */ = {isa = PBXBuildFile; productRef = BC906B7B2B6404C7003CBBEF /* Parsing */; };
 		BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */; };
 		BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */; };
 		BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB92AEFDE3D00FC068C /* JelloMaterial.swift */; };
@@ -94,6 +98,7 @@
 		BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C702AFE3F040012F619 /* PortViews.swift */; };
 		BCEE1C732AFE40180012F619 /* TypingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C722AFE40180012F619 /* TypingUtils.swift */; };
 		BCEE1C772AFE44440012F619 /* JelloCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C762AFE44440012F619 /* JelloCanvas.swift */; };
+		BCF4E98B2B644B29004B88AB /* MathExpressionLexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF4E98A2B644B29004B88AB /* MathExpressionLexer.swift */; };
 		BCFC210E2B42B38E004FF404 /* JelloNodeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFC210D2B42B38E004FF404 /* JelloNodeData.swift */; };
 		BCFC21102B42EFDB004FF404 /* ColorNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */; };
 /* End PBXBuildFile section */
@@ -176,6 +181,9 @@
 		BC57B8AC2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoxSelectionEnvironmentKey+PreferenceKey.swift"; sourceTree = "<group>"; };
 		BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CheckerboardEffect.metal; sourceTree = "<group>"; };
 		BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxSelectionView.swift; sourceTree = "<group>"; };
+		BC7036EC2B645A3700EAA108 /* JelloMathExpressionLexerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloMathExpressionLexerTests.swift; sourceTree = "<group>"; };
+		BC7036F02B64F59C00EAA108 /* JelloMathExpressionParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloMathExpressionParserTests.swift; sourceTree = "<group>"; };
+		BC7036F22B65040F00EAA108 /* CalculatorNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorNodeView.swift; sourceTree = "<group>"; };
 		BC8618122B5C315200AF6EE8 /* HSBEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = HSBEffect.metal; sourceTree = "<group>"; };
 		BC8618142B5E641B00AF6EE8 /* ColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
 		BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = WaveEffect.metal; sourceTree = "<group>"; };
@@ -223,6 +231,7 @@
 		BCEE1C722AFE40180012F619 /* TypingUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingUtils.swift; sourceTree = "<group>"; };
 		BCEE1C742AFE43D90012F619 /* GraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphView.swift; sourceTree = "<group>"; };
 		BCEE1C762AFE44440012F619 /* JelloCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCanvas.swift; sourceTree = "<group>"; };
+		BCF4E98A2B644B29004B88AB /* MathExpressionLexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathExpressionLexer.swift; sourceTree = "<group>"; };
 		BCFC210D2B42B38E004FF404 /* JelloNodeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeData.swift; sourceTree = "<group>"; };
 		BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorNodeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -274,6 +283,7 @@
 				BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */,
 				BC258A852B45906B00FEB690 /* PreviewNodeView.swift */,
 				BC876D992B5A716300B8E62F /* SwizzleNodeView.swift */,
+				BC7036F22B65040F00EAA108 /* CalculatorNodeView.swift */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -443,6 +453,7 @@
 			isa = PBXGroup;
 			children = (
 				BC906B782B6403D1003CBBEF /* MathExpressionParser.swift */,
+				BCF4E98A2B644B29004B88AB /* MathExpressionLexer.swift */,
 			);
 			path = ExpressionParser;
 			sourceTree = "<group>";
@@ -502,6 +513,8 @@
 				BC3DD0042B356C7D00F27E8D /* JelloGraphProcessingTests.swift */,
 				BC2F077F2B3C193D00D0A668 /* JelloCompilerTests.swift */,
 				BC258A932B46CBE400FEB690 /* JelloDefaultVertexShaderTest.swift */,
+				BC7036EC2B645A3700EAA108 /* JelloMathExpressionLexerTests.swift */,
+				BC7036F02B64F59C00EAA108 /* JelloMathExpressionParserTests.swift */,
 			);
 			path = JelloCompilerTests;
 			sourceTree = "<group>";
@@ -556,7 +569,6 @@
 				BC9BBFE82AEFE93600FC068C /* OrderedCollections */,
 				BCB9E5EB2B41BCC200472DB8 /* SPIRV-Headers-Swift */,
 				BCB9E5ED2B41BCDB00472DB8 /* SPIRV-Cross */,
-				BC906B7B2B6404C7003CBBEF /* Parsing */,
 			);
 			productName = Jello;
 			productReference = BC9BBFB22AEFDE3D00FC068C /* Jello.app */;
@@ -621,7 +633,6 @@
 				BCC73FE22B31B54C00955212 /* XCRemoteSwiftPackageReference "SwiftSpirvMacros" */,
 				BC0403772B348F460036057D /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				BC3DD01B2B3579FC00F27E8D /* XCRemoteSwiftPackageReference "SPIRV-Headers-Swift" */,
-				BC906B7A2B6404C7003CBBEF /* XCRemoteSwiftPackageReference "swift-parsing" */,
 			);
 			productRefGroup = BC9BBFB32AEFDE3D00FC068C /* Products */;
 			projectDirPath = "";
@@ -684,6 +695,7 @@
 				BC876D9C2B5C063300B8E62F /* ColorPickerViews.swift in Sources */,
 				BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */,
 				BCCE16082B1723A8000370CB /* ControlGeometry.swift in Sources */,
+				BC7036F32B65040F00EAA108 /* CalculatorNodeView.swift in Sources */,
 				BC9BBFF62AF00C6D00FC068C /* ProjectNavigation.swift in Sources */,
 				BCFC210E2B42B38E004FF404 /* JelloNodeData.swift in Sources */,
 				BCEE1C772AFE44440012F619 /* JelloCanvas.swift in Sources */,
@@ -726,6 +738,7 @@
 				BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */,
 				BC07D1092AFF674E00EFA199 /* AddNewNodeMenuView.swift in Sources */,
 				BCEE1C732AFE40180012F619 /* TypingUtils.swift in Sources */,
+				BCF4E98B2B644B29004B88AB /* MathExpressionLexer.swift in Sources */,
 				BC9BBFEE2AEFF02100FC068C /* JelloGraph.swift in Sources */,
 				BC57B8AD2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift in Sources */,
 				BC9BBFEB2AEFEFB400FC068C /* JelloFunction.swift in Sources */,
@@ -738,10 +751,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC7036EE2B645DE500EAA108 /* MathExpressionLexer.swift in Sources */,
+				BC7036ED2B645A3700EAA108 /* JelloMathExpressionLexerTests.swift in Sources */,
+				BC7036EF2B645DEA00EAA108 /* MathExpressionParser.swift in Sources */,
 				BCEBEF4B2B35BE6D00C10617 /* JelloGoodBadSpirvFileGeneratorTest.swift in Sources */,
 				BC258A942B46CBE400FEB690 /* JelloDefaultVertexShaderTest.swift in Sources */,
 				BCEBEF4C2B35BE6D00C10617 /* JelloGraphProcessingTests.swift in Sources */,
 				BC2F07802B3C193D00D0A668 /* JelloCompilerTests.swift in Sources */,
+				BC7036F12B64F59C00EAA108 /* JelloMathExpressionParserTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

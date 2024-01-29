@@ -31,8 +31,8 @@ struct PreviewNodeView: View {
     @Query var nodes: [JelloNode]
     @Query var edges: [JelloEdge]
     @Query var nodeData: [JelloNodeData]
-    @Query var inputPorts: [JelloInputPort]
-    @Query var outputPorts: [JelloOutputPort]
+    @Query(sort: \JelloInputPort.index) var inputPorts: [JelloInputPort]
+    @Query(sort: \JelloOutputPort.index) var outputPorts: [JelloOutputPort]
     let node: JelloNode
     let drawBounds: (inout Path) -> ()
     
