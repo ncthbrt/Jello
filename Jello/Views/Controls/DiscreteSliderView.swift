@@ -177,7 +177,7 @@ struct DiscreteSliderView: View {
                         position = CGFloat(CGFloat(item) * distancePerItem)
                     }
                 }
-            })).onChange(of: item, { _, current in
+            })).onChange(of: item, initial: true, { _, current in
                 withAnimation(.interactiveSpring(response: 0.9, dampingFraction: 0.55, blendDuration: 0.15)){
                     position = CGFloat(CGFloat(item) * distancePerItem)
                 }

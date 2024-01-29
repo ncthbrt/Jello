@@ -20,6 +20,9 @@ protocol JelloNodeController {
     func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge)
     func onOutputPortDisconnected(port: JelloOutputPort, edge: JelloEdge)
     
+    func onInputPortTypeChanged(port: JelloInputPort, prevType: JelloGraphDataType)
+    func onOutputPortTypeChanged(port: JelloOutputPort, prevType: JelloGraphDataType)
+    
     var category: JelloNodeCategory { get }
     @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView
 
@@ -35,7 +38,9 @@ extension JelloNodeController {
     func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge) {}
     func onOutputPortDisconnected(port: JelloOutputPort, edge: JelloEdge) {}
     var hasSettings: Bool { false }
-    
+    func onInputPortTypeChanged(port: JelloInputPort, prevType: JelloGraphDataType) {}
+    func onOutputPortTypeChanged(port: JelloOutputPort, prevType: JelloGraphDataType){}
+
     @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             VStack {
@@ -159,8 +164,6 @@ fileprivate class JelloUniformOperatorNodeController: JelloNodeController {
 
 
 
-
-
 fileprivate class JelloOutputNodeController: JelloNodeController {
     init(){}
     
@@ -259,6 +262,9 @@ fileprivate class JelloSwizzleNodeController: JelloNodeController {
         let componentData = JelloNodeData(key: JelloNodeDataKey.value.rawValue, value: .float4(0, 0, 0, 0), node: node)
         node.modelContext?.insert(componentData)
         
+        let typeSliderDisabledData = JelloNodeData(key: JelloNodeDataKey.typeSliderDisabled.rawValue, value: .bool(false), node: node)
+        node.modelContext?.insert(typeSliderDisabledData)
+        
         node.size = CGSize(width: 325, height: JelloNode.headerHeight * 2 + 80 + JelloNode.padding)
     }
     
@@ -274,11 +280,91 @@ fileprivate class JelloSwizzleNodeController: JelloNodeController {
         }
     }
     
+    
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge) {
+        if let modelContext = port.modelContext {
+            let nodeId = port.node!.uuid
+            let nodeData = try! modelContext.fetch(FetchDescriptor<JelloNodeData>(predicate: #Predicate { data in data.node?.uuid == nodeId })).first(where: {$0.key == JelloNodeDataKey.typeSliderDisabled.rawValue })
+            nodeData!.value = .bool(true)
+        }
+    }
+    
+    func onOutputPortDisconnected(port: JelloOutputPort, edge: JelloEdge) {
+        if let modelContext = port.modelContext {
+            let nodeId = port.node!.uuid
+            let nodeData = try! modelContext.fetch(FetchDescriptor<JelloNodeData>(predicate: #Predicate { data in data.node?.uuid == nodeId })).first(where: {$0.key == JelloNodeDataKey.typeSliderDisabled.rawValue })
+            nodeData!.value = .bool(false)
+        }
+    }
+    
     var hasSettings: Bool { false }
     
     @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
         AnyView(
             SwizzleNodeView(node: node, drawBounds: drawBounds)
+        )
+    }
+}
+
+
+fileprivate class JelloCombineNodeController: JelloNodeController {
+    init(){}
+    
+    var category: JelloNodeCategory { .utility }
+    
+    func setup(node: JelloNode)
+    {
+        let outputPortOffset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(0), width: 325)
+        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
+        node.modelContext?.insert(outputPortModel)
+        
+        let inputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
+        let inputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "x", dataType: .anyFloat, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset.x), nodeOffsetY: Float(inputPortOffset.y))
+        node.modelContext?.insert(inputPortModel)
+
+        let componentCountData = JelloNodeData(key: JelloNodeDataKey.componentCount.rawValue, value: .int(1), node: node)
+        node.modelContext?.insert(componentCountData)
+        
+        let typeSliderDisabledData = JelloNodeData(key: JelloNodeDataKey.typeSliderDisabled.rawValue, value: .bool(false), node: node)
+        node.modelContext?.insert(typeSliderDisabledData)
+        
+        
+        node.size = CGSize(width: 325, height: max(80 + JelloNode.headerHeight, JelloNode.getStandardNodeHeight(inputPortsCount: 1, outputPortsCount: 1)))
+    }
+    
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge) {
+        withAnimation(.spring) {
+            port.currentDataType = edge.dataType
+        }
+    }
+    
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge) {
+        withAnimation(.spring) {
+            port.currentDataType = .anyFloat
+        }
+    }
+    
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge) {
+        if let modelContext = port.modelContext {
+            let nodeId = port.node!.uuid
+            let nodeData = try! modelContext.fetch(FetchDescriptor<JelloNodeData>(predicate: #Predicate { data in data.node?.uuid == nodeId })).first(where: {$0.key == JelloNodeDataKey.typeSliderDisabled.rawValue })
+            nodeData!.value = .bool(true)
+        }
+    }
+    
+    func onOutputPortDisconnected(port: JelloOutputPort, edge: JelloEdge) {
+        if let modelContext = port.modelContext {
+            let nodeId = port.node!.uuid
+            let nodeData = try! modelContext.fetch(FetchDescriptor<JelloNodeData>(predicate: #Predicate { data in data.node?.uuid == nodeId })).first(where: {$0.key == JelloNodeDataKey.typeSliderDisabled.rawValue })
+            nodeData!.value = .bool(false)
+        }
+    }
+    
+    var hasSettings: Bool { false }
+    
+    @ViewBuilder func body(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) -> AnyView {
+        AnyView(
+            CombineNodeView(node: node, drawBounds: drawBounds)
         )
     }
 }
@@ -343,6 +429,98 @@ fileprivate class JelloCalculatorNodeController: JelloNodeController {
     }
 }
 
+
+fileprivate class JelloSeparateNodeController: JelloNodeController {
+    init(){}
+    
+    var category: JelloNodeCategory { .math }
+    
+    func setup(node: JelloNode)
+    {
+        let inputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
+        let inputPortModel = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .anyFloat, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset.x), nodeOffsetY: Float(inputPortOffset.y))
+        node.modelContext?.insert(inputPortModel)
+        node.size = .init(width: JelloNode.standardNodeWidth, height: JelloNode.getStandardNodeHeight(inputPortsCount: 1, outputPortsCount: 0))
+    }
+    
+    func onInputPortConnected(port: JelloInputPort, edge: JelloEdge) {
+        updateInputPortType(port: port)
+    }
+    
+    func updateInputPortType(port: JelloInputPort) {
+        let portCount = switch (port.currentDataType) {
+            case .float: 1
+            case .float2: 2
+            case .float3: 3
+            case .float4: 4
+            default: 0
+        }
+        if let modelContext = port.modelContext, let node = port.node  {
+            let nodeId = port.node?.uuid
+            try! node.modelContext?.transaction {
+                let outputPorts = try! modelContext.fetch(FetchDescriptor<JelloOutputPort>(predicate: #Predicate { port in port.node?.uuid == nodeId },  sortBy: [SortDescriptor(\.index)]))
+                let prevPortCount = outputPorts.count
+                if portCount > prevPortCount {
+                    // Increase the number of input nodes
+                    let indicesToName = ["x", "y", "z", "w"]
+                    func makeOutputPort(index: UInt8) -> JelloOutputPort {
+                        let position = JelloNode.getStandardOutputPortPositionOffset(index: index)
+                        return JelloOutputPort(uuid: UUID(), index: index, name: indicesToName[Int(index)], dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(position.x), nodeOffsetY: Float(position.y))
+                    }
+                    
+                    for index in prevPortCount..<portCount {
+                        let port = makeOutputPort(index: UInt8(index))
+                        node.modelContext?.insert(port)
+                    }
+                }
+                else {
+                    // Decrease the number of input nodes, and delete associated edges
+                    for index in portCount..<prevPortCount {
+                        let outputPort = outputPorts[index]
+                        let outputPortId = outputPort.uuid
+                        let edges = try! modelContext.fetch(FetchDescriptor<JelloEdge>( predicate: #Predicate { edge in edge.outputPort?.uuid == outputPortId  }))
+                        for edge in edges {
+                            modelContext.delete(edge)
+                        }
+                        modelContext.delete(outputPort)
+                    }
+                }
+            }
+        }
+        
+        withAnimation(.spring) {
+            port.node?.size = .init(width: JelloNode.standardNodeWidth, height: JelloNode.getStandardNodeHeight(inputPortsCount: 1, outputPortsCount: portCount))
+        }
+    }
+    
+    func onInputPortTypeChanged(port: JelloInputPort, prevType: JelloGraphDataType) {
+        updateInputPortType(port: port)
+    }
+    
+    func onInputPortDisconnected(port: JelloInputPort, edge: JelloEdge) {
+        if let modelContext = port.modelContext, let nodeId = port.node?.uuid {
+            try! modelContext.transaction {
+                if let outputPorts = try? modelContext.fetch(FetchDescriptor<JelloOutputPort>(predicate: #Predicate { port in port.node?.uuid == nodeId })) {
+                    for port in outputPorts {
+                        let portId = port.uuid
+                        let edges = try! modelContext.fetch(FetchDescriptor<JelloEdge>( predicate: #Predicate { edge in edge.outputPort?.uuid == portId }))
+                        for edge in edges {
+                            modelContext.delete(edge)
+                        }
+                        modelContext.delete(port)
+                    }
+                }
+            }
+        }
+        withAnimation(.spring) {
+            port.node?.size = .init(width: JelloNode.standardNodeWidth, height: JelloNode.getStandardNodeHeight(inputPortsCount: 1, outputPortsCount: 0))
+        }
+    }
+                                    
+    
+    var hasSettings: Bool { false }
+}
+
 struct JelloNodeControllerFactory {
     private static let materialNodeController : any JelloNodeController = JelloMaterialNodeController()
     private static let userFunctionNodeController : any JelloNodeController = JelloUserFunctionNodeController()
@@ -360,7 +538,8 @@ struct JelloNodeControllerFactory {
         .length: JelloConstantFunctionNodeController(builtIn: .length, category: .math, inputPorts: [PortDefinition(dataType: .anyFloat, name: "")], outputPorts: [PortDefinition(dataType: .float, name: "")]),
         .normalize: JelloUniformOperatorNodeController(builtIn: .normalize, category: .math, inputPorts: [""], outputPorts: [""], baseDataType: .anyFloat),
         .calculator: JelloCalculatorNodeController(),
-        
+        .combine: JelloCombineNodeController(),
+        .separate: JelloSeparateNodeController(),
         .color: JelloColorNodeController(),
         
         .worldPosition: JelloConstantFunctionNodeController(builtIn: .worldPosition, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float4, name: "")]),

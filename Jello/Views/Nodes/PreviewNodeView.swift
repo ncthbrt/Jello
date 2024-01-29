@@ -20,9 +20,11 @@ fileprivate struct PreviewNodeViewImpl: View {
     let outputPorts: [JelloOutputPort]
 
     var body: some View {
-        let graphInput = JelloCompilerService.buildGraphInput(outputNode: node, jelloGraph: graphs.first!, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == node.graph?.uuid}))
-        let result = try! JelloCompilerService.compileMSL(input: graphInput)
-        ShaderPreviewView(vertexShader: result.vertex!, fragmentShader: result.fragment!, previewGeometry: .sphere)
+        if let graph = graphs.first, !graph.isDeleted {
+            let graphInput = JelloCompilerService.buildGraphInput(outputNode: node, jelloGraph: graph, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == graph.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == graph.uuid}))
+            let result = try! JelloCompilerService.compileMSL(input: graphInput)
+            ShaderPreviewView(vertexShader: result.vertex!, fragmentShader: result.fragment!, previewGeometry: .sphere)
+        }
     }
 }
 

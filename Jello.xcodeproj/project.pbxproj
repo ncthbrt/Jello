@@ -52,6 +52,7 @@
 		BC7036EF2B645DEA00EAA108 /* MathExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC906B782B6403D1003CBBEF /* MathExpressionParser.swift */; };
 		BC7036F12B64F59C00EAA108 /* JelloMathExpressionParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7036F02B64F59C00EAA108 /* JelloMathExpressionParserTests.swift */; };
 		BC7036F32B65040F00EAA108 /* CalculatorNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7036F22B65040F00EAA108 /* CalculatorNodeView.swift */; };
+		BC7036F52B67993700EAA108 /* CombineNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7036F42B67993700EAA108 /* CombineNodeView.swift */; };
 		BC8618132B5C315200AF6EE8 /* HSBEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC8618122B5C315200AF6EE8 /* HSBEffect.metal */; };
 		BC8618152B5E641B00AF6EE8 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8618142B5E641B00AF6EE8 /* ColorExtensions.swift */; };
 		BC8618172B5E81CA00AF6EE8 /* WaveEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */; };
@@ -184,6 +185,7 @@
 		BC7036EC2B645A3700EAA108 /* JelloMathExpressionLexerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloMathExpressionLexerTests.swift; sourceTree = "<group>"; };
 		BC7036F02B64F59C00EAA108 /* JelloMathExpressionParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloMathExpressionParserTests.swift; sourceTree = "<group>"; };
 		BC7036F22B65040F00EAA108 /* CalculatorNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorNodeView.swift; sourceTree = "<group>"; };
+		BC7036F42B67993700EAA108 /* CombineNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombineNodeView.swift; sourceTree = "<group>"; };
 		BC8618122B5C315200AF6EE8 /* HSBEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = HSBEffect.metal; sourceTree = "<group>"; };
 		BC8618142B5E641B00AF6EE8 /* ColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
 		BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = WaveEffect.metal; sourceTree = "<group>"; };
@@ -284,6 +286,7 @@
 				BC258A852B45906B00FEB690 /* PreviewNodeView.swift */,
 				BC876D992B5A716300B8E62F /* SwizzleNodeView.swift */,
 				BC7036F22B65040F00EAA108 /* CalculatorNodeView.swift */,
+				BC7036F42B67993700EAA108 /* CombineNodeView.swift */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -307,7 +310,12 @@
 		BC33AA902B17007F003471D9 /* Controls */ = {
 			isa = PBXGroup;
 			children = (
-				BCCE16112B17247F000370CB /* Implementation */,
+				BC876D972B5A70DE00B8E62F /* DiscreteSliderView.swift */,
+				BCCE16172B1724C4000370CB /* ArcKnob.swift */,
+				BC876D9B2B5C063300B8E62F /* ColorPickerViews.swift */,
+				BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */,
+				BC8618122B5C315200AF6EE8 /* HSBEffect.metal */,
+				BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */,
 				BCCE16052B172394000370CB /* Control.swift */,
 				BCCE16072B1723A8000370CB /* ControlGeometry.swift */,
 				BCCE16092B1723D5000370CB /* ControlHelpers.swift */,
@@ -456,19 +464,6 @@
 				BCF4E98A2B644B29004B88AB /* MathExpressionLexer.swift */,
 			);
 			path = ExpressionParser;
-			sourceTree = "<group>";
-		};
-		BCCE16112B17247F000370CB /* Implementation */ = {
-			isa = PBXGroup;
-			children = (
-				BC876D972B5A70DE00B8E62F /* DiscreteSliderView.swift */,
-				BCCE16172B1724C4000370CB /* ArcKnob.swift */,
-				BC876D9B2B5C063300B8E62F /* ColorPickerViews.swift */,
-				BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */,
-				BC8618122B5C315200AF6EE8 /* HSBEffect.metal */,
-				BC8618162B5E81CA00AF6EE8 /* WaveEffect.metal */,
-			);
-			path = Implementation;
 			sourceTree = "<group>";
 		};
 		BCDA241A2B21DC17002DCFCB /* Frameworks */ = {
@@ -719,6 +714,7 @@
 				BCEE1C712AFE3F040012F619 /* PortViews.swift in Sources */,
 				BC2BDF782AF257C400E2A242 /* JelloDocument.swift in Sources */,
 				BC31EB712B035F52004401FC /* JelloNodeController.swift in Sources */,
+				BC7036F52B67993700EAA108 /* CombineNodeView.swift in Sources */,
 				BC614E8C2B0B48F800AA18E5 /* BoxSelectionView.swift in Sources */,
 				BC9BBFF42AF00C2400FC068C /* ProjectSidebarView.swift in Sources */,
 				BC2AE5762B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift in Sources */,

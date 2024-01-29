@@ -52,6 +52,8 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
         .utility: [
             JelloBuiltInNodeMenuDefinition(description: "Preview arbitrary values", previewImage: "", category: .utility, type: .preview),
             JelloBuiltInNodeMenuDefinition(description: "Select a set of values from a vector", previewImage: "", category: .utility, type: .swizzle),
+            JelloBuiltInNodeMenuDefinition(description: "Combines floats into a vector", previewImage: "", category: .utility, type: .combine),
+            JelloBuiltInNodeMenuDefinition(description: "Separate a vector into a set of floats", previewImage: "", category: .utility, type: .separate),
         ],
         .value: [
             JelloBuiltInNodeMenuDefinition(description: "Specify a constant color", previewImage: "", category: .value, type: .color),

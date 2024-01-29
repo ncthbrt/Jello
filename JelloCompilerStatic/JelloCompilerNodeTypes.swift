@@ -976,3 +976,105 @@ public class MathExpressionCompilerNode : CompilerNode {
         outputPort.node = self
     }
 }
+
+
+
+public class CombineCompilerNode : CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        let count = inputPorts.count
+        let typeId = switch count {
+        case 1:
+            declareType(dataType: .float)
+        case 2:
+            declareType(dataType: .float2)
+        case 3:
+            declareType(dataType: .float3)
+        case 4:
+            declareType(dataType: .float4)
+        default:
+            fatalError("Only inputs of up to four components allowed")
+        }
+        
+        let zeroId = inputPorts.contains(where: {$0.incomingEdge == nil}) ? declareNullValueConstant(dataType: .float) : nil
+        if inputPorts.count == 1 {
+            let id = if let edge = inputPorts.first!.incomingEdge {
+                edge.outputPort.getOrReserveId()
+            } else {
+                zeroId!
+            }
+            outputPorts.first!.setReservedId(reservedId: id)
+        } else {
+            let components = inputPorts.map {
+                if let edge = $0.incomingEdge {
+                    edge.outputPort.getOrReserveId()
+                } else {
+                    zeroId!
+                }
+            }
+            let resultId = #id
+            #functionBody(opCode: SpirvOpCompositeConstruct, [typeId, resultId], components)
+            outputPorts.first!.setReservedId(reservedId: resultId)
+        }
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    
+    public var constraints: [PortConstraint] { [] }
+    
+    public init(id: UUID = UUID(), inputPorts: [InputCompilerPort], outputPort: OutputCompilerPort) {
+        self.id = id
+        self.inputPorts = inputPorts
+        self.outputPorts = [outputPort]
+        for inputPort in inputPorts {
+            inputPort.node = self
+        }
+        outputPort.node = self
+    }
+}
+
+
+
+public class SeparateCompilerNode : CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    
+    public func install() {
+    }
+    
+    public func write() {
+        let inputPort = inputPorts.first!
+        let floatId = declareType(dataType: .float)
+        for i in outputPorts.indices {
+            let outputPort = outputPorts[i]
+            if outputPort.outgoingEdges.count > 0 {
+                let resultId = #id
+                #functionBody(opCode: SpirvOpCompositeExtract, [floatId, resultId, inputPort.incomingEdge!.outputPort.getOrReserveId(), UInt32(i)])
+                outputPort.setReservedId(reservedId: resultId)
+            }
+        }
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    
+    public var constraints: [PortConstraint] { [] }
+    
+    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPorts: [OutputCompilerPort]) {
+        self.id = id
+        self.inputPorts = [inputPort]
+        self.outputPorts = outputPorts
+        for outputPort in outputPorts {
+            outputPort.node = self
+        }
+        inputPort.node = self
+    }
+}

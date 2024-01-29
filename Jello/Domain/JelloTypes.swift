@@ -19,7 +19,8 @@ enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable, Equatable {
     case normalize = 6
     case length = 7
     case calculator = 8
-    
+    case combine = 9
+    case separate = 10
     
     // Shaders and Outputs
     case materialOutput = 100

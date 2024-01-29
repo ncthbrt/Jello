@@ -130,6 +130,10 @@ class JelloCompilerService {
                 return MathExpressionCompilerNode(inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!, expression: try? parseMathExpression(array.value.joined(separator: "")))
             }
             return nil
+        case .builtIn(.combine):
+            return CombineCompilerNode(inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)
+        case .builtIn(.separate):
+            return SeparateCompilerNode(inputPort: compilerInputPorts.first!, outputPorts: compilerOutputPorts)
         case .material:
             // TODO: Add support for nested materials
             return nil

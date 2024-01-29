@@ -310,21 +310,46 @@ func updateTypesInGraph(modelContext: ModelContext, graphId: UUID) throws {
         
         let assignments = try resolveTypesInGraph(graph: graphInput)
         
+        var changedInputPorts: [UUID: (JelloGraphDataType, JelloInputPort)] = [:]
+        var changedOutputPorts: [UUID: (JelloGraphDataType, JelloOutputPort)] = [:]
+        
         for inputPort in inputPorts {
             if let assignment = assignments[inputPort.uuid] {
-                inputPort.currentDataType = assignment
+                if inputPort.currentDataType != assignment {
+                    changedInputPorts[inputPort.uuid] = (inputPort.currentDataType, inputPort)
+                    inputPort.currentDataType = assignment
+                }
             }
         }
     
         for outputPort in outputPorts {
             if let assignment = assignments[outputPort.uuid] {
-                outputPort.currentDataType = assignment
+                if outputPort.currentDataType != assignment {
+                    changedOutputPorts[outputPort.uuid] = (outputPort.currentDataType, outputPort)
+                    outputPort.currentDataType = assignment
+                }
             }
         }
         
         for edge in edges {
             if let inputPortType = edge.inputPort?.currentDataType, let outputPortType = edge.outputPort?.currentDataType {
                 edge.dataType = JelloGraphDataType.getMostSpecificType(a: inputPortType, b: outputPortType)
+            }
+        }
+        
+        for key in changedInputPorts.keys {
+            let (prevType, inputPort) = changedInputPorts[key]!
+            if let node = inputPort.node {
+                let controller = JelloNodeControllerFactory.getController(node)
+                controller.onInputPortTypeChanged(port: inputPort, prevType: prevType)
+            }
+        }
+        
+        for key in changedOutputPorts.keys {
+            let (prevType, outputPort) = changedOutputPorts[key]!
+            if let node = outputPort.node {
+                let controller = JelloNodeControllerFactory.getController(node)
+                controller.onOutputPortTypeChanged(port: outputPort, prevType: prevType)
             }
         }
     }

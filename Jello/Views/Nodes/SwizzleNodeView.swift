@@ -55,7 +55,7 @@ struct SwizzleNodeView : View {
             return AnyView(EmptyView())
         }
         
-        let sliderDisabled: Bool = (outputPorts.first?.edges.count ?? 0) > 0
+        let sliderDisabled: Bool = nodeData.filter({$0.key == JelloNodeDataKey.typeSliderDisabled.rawValue}).first?.value == .some(.bool(true))
         
         guard case .float4(let x, let y, let z, let w) = componentsData.value else {
             return AnyView(EmptyView())
