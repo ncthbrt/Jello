@@ -60,6 +60,7 @@
 		BC876D9A2B5A716300B8E62F /* SwizzleNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC876D992B5A716300B8E62F /* SwizzleNodeView.swift */; };
 		BC876D9C2B5C063300B8E62F /* ColorPickerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC876D9B2B5C063300B8E62F /* ColorPickerViews.swift */; };
 		BC906B792B6403D1003CBBEF /* MathExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC906B782B6403D1003CBBEF /* MathExpressionParser.swift */; };
+		BC9668932B68092000B0227A /* SplineEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9668922B68092000B0227A /* SplineEditor.swift */; };
 		BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */; };
 		BC9BBFB82AEFDE3D00FC068C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */; };
 		BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFB92AEFDE3D00FC068C /* JelloMaterial.swift */; };
@@ -193,6 +194,7 @@
 		BC876D992B5A716300B8E62F /* SwizzleNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwizzleNodeView.swift; sourceTree = "<group>"; };
 		BC876D9B2B5C063300B8E62F /* ColorPickerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerViews.swift; sourceTree = "<group>"; };
 		BC906B782B6403D1003CBBEF /* MathExpressionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathExpressionParser.swift; sourceTree = "<group>"; };
+		BC9668922B68092000B0227A /* SplineEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplineEditor.swift; sourceTree = "<group>"; };
 		BC9BBFB22AEFDE3D00FC068C /* Jello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC9BBFB52AEFDE3D00FC068C /* JelloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloApp.swift; sourceTree = "<group>"; };
 		BC9BBFB72AEFDE3D00FC068C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -323,6 +325,7 @@
 				BCCE160F2B172426000370CB /* TwoParameterControl.swift */,
 				BCAAD3FB2B625DF2007BDCFC /* CalculatorView.swift */,
 				BCAAD3FD2B628677007BDCFC /* RadialMenu.swift */,
+				BC9668922B68092000B0227A /* SplineEditor.swift */,
 			);
 			path = Controls;
 			sourceTree = "<group>";
@@ -725,6 +728,7 @@
 				BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */,
 				BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */,
 				BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */,
+				BC9668932B68092000B0227A /* SplineEditor.swift in Sources */,
 				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
 				BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */,
 				BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */,
