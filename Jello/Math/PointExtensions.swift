@@ -62,7 +62,7 @@ extension CGPoint {
         self.init(x: size.width, y: size.height)
     }
     
-    init(_ point: SplinePoint) {
+    init(_ point: ClampedSplinePoint) {
         self.init(x: CGFloat(point.x), y: CGFloat(point.y))
     }
 }
@@ -103,34 +103,34 @@ extension vector_float2 {
 
 
 
-extension SplinePoint {
-    static func -(lhs: SplinePoint, rhs: SplinePoint) -> SplinePoint {
-        return SplinePoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+extension ClampedSplinePoint {
+    static func -(lhs: ClampedSplinePoint, rhs: ClampedSplinePoint) -> ClampedSplinePoint {
+        return ClampedSplinePoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
     }
     
-    static func +(lhs: SplinePoint, rhs: SplinePoint) -> SplinePoint  {
-        return SplinePoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+    static func +(lhs: ClampedSplinePoint, rhs: ClampedSplinePoint) -> ClampedSplinePoint  {
+        return ClampedSplinePoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
     
-    static func *(lhs: SplinePoint, rhs: SplinePoint) -> SplinePoint  {
-        return SplinePoint(x: lhs.x * rhs.x, y: lhs.y * rhs.y)
+    static func *(lhs: ClampedSplinePoint, rhs: ClampedSplinePoint) -> ClampedSplinePoint  {
+        return ClampedSplinePoint(x: lhs.x * rhs.x, y: lhs.y * rhs.y)
     }
     
-    static func *(lhs: SplinePoint, rhs: Float) -> SplinePoint  {
-        return SplinePoint(x: lhs.x * rhs, y: lhs.y * rhs)
+    static func *(lhs: ClampedSplinePoint, rhs: Float) -> ClampedSplinePoint  {
+        return ClampedSplinePoint(x: lhs.x * rhs, y: lhs.y * rhs)
     }
     
-    static func /(lhs: SplinePoint, rhs: Float) -> SplinePoint  {
-        return SplinePoint(x: lhs.x / rhs, y: lhs.y / rhs)
+    static func /(lhs: ClampedSplinePoint, rhs: Float) -> ClampedSplinePoint  {
+        return ClampedSplinePoint(x: lhs.x / rhs, y: lhs.y / rhs)
     }
     
     
-    static func /(lhs: SplinePoint, rhs: SplinePoint) -> SplinePoint  {
-        return SplinePoint(x: lhs.x / rhs.x, y: lhs.y / rhs.x)
+    static func /(lhs: ClampedSplinePoint, rhs: ClampedSplinePoint) -> ClampedSplinePoint  {
+        return ClampedSplinePoint(x: lhs.x / rhs.x, y: lhs.y / rhs.x)
     }
     
-    static func *(lhs: Float, rhs: SplinePoint) -> SplinePoint  {
-        return SplinePoint(x: lhs * rhs.x, y: lhs * rhs.y)
+    static func *(lhs: Float, rhs: ClampedSplinePoint) -> ClampedSplinePoint  {
+        return ClampedSplinePoint(x: lhs * rhs.x, y: lhs * rhs.y)
     }
     
     func magnitude() -> Float {
@@ -141,19 +141,19 @@ extension SplinePoint {
         return x*x+y*y
     }
     
-    func setMagnitude(factor: Float) -> SplinePoint {
+    func setMagnitude(factor: Float) -> ClampedSplinePoint {
         (self.normal()) * factor
     }
 
-    func normal() -> SplinePoint {
+    func normal() -> ClampedSplinePoint {
         let mag = self.magnitude()
         if abs(mag) < 0.00001 {
-            return SplinePoint(x: 1, y: 0)
+            return ClampedSplinePoint(x: 1, y: 0)
         }
-        return SplinePoint(x: x / mag, y:  y / mag)
+        return ClampedSplinePoint(x: x / mag, y:  y / mag)
     }
     
-    static func lerp(a: SplinePoint, b: SplinePoint, t: Float) -> SplinePoint {
+    static func lerp(a: ClampedSplinePoint, b: ClampedSplinePoint, t: Float) -> ClampedSplinePoint {
         return (a * (1 - t)) + (t * b)
     }
     

@@ -13,9 +13,12 @@ import UniformTypeIdentifiers
 @main
 struct JelloApp: App {
     var body: some Scene {
-        DocumentGroup(editing: .jelloProject, migrationPlan: JelloMigrationPlan.self) {
-            ContentView()
-        }
+//        DocumentGroup(editing: .jelloProject, migrationPlan: JelloMigrationPlan.self) {
+//            ContentView().preferredColorScheme(.dark)
+//        }.modelContainer(for: FavouriteClampedSpline.self)
+        WindowGroup {
+            SplineEditorPreview()
+        }.modelContainer(for: FavouriteClampedSpline.self, inMemory: true)
     }
 }
 
@@ -32,6 +35,26 @@ struct JelloMigrationPlan: SchemaMigrationPlan {
 
     static var stages: [MigrationStage] = [
         // Stages of migration between VersionedSchema, if required.
+    ]
+}
+
+
+struct JelloPreferenceMigrationPlan: SchemaMigrationPlan {
+    static var schemas: [VersionedSchema.Type] = [
+        JelloPreferenceSchemaV1.self
+    ]
+
+    static var stages: [MigrationStage] = [
+        // Stages of migration between VersionedSchema, if required.
+    ]
+}
+
+
+struct JelloPreferenceSchemaV1: VersionedSchema {
+    static var versionIdentifier = Schema.Version(1, 0, 0)
+
+    static var models: [any PersistentModel.Type] = [
+        FavouriteClampedSpline.self
     ]
 }
 
