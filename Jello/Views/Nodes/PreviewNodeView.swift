@@ -9,6 +9,7 @@ import SwiftUI
 import MetalKit
 import ModelIO
 import SwiftData
+import JelloCompilerStatic
 
 fileprivate struct PreviewNodeViewImpl: View {
     let node: JelloNode
@@ -18,12 +19,39 @@ fileprivate struct PreviewNodeViewImpl: View {
     let nodeData: [JelloNodeData]
     let inputPorts: [JelloInputPort]
     let outputPorts: [JelloOutputPort]
+    
 
     var body: some View {
         if let graph = graphs.first, !graph.isDeleted {
-            let graphInput = JelloCompilerService.buildGraphInput(outputNode: node, jelloGraph: graph, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == graph.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == graph.uuid}))
-            let result = try! JelloCompilerService.compileMSL(input: graphInput)
-            ShaderPreviewView(vertexShader: result.vertex!, fragmentShader: result.fragment!, previewGeometry: .sphere)
+            let graphInput = JelloCompilerBridge.buildGraphInput(outputNode: node, jelloGraph: graph, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == graph.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == graph.uuid}))
+            if let result = try? JelloCompilerStatic.compileToSpirv(input: graphInput), let lastStage = result.stages.last {
+                
+                let maybeVertex = lastStage.shaders.filter({shader in
+                    switch shader {
+                    case .vertex(_, _):
+                        return true
+                    default:
+                        return true
+                    }
+                }).first
+                
+                
+                let maybeFragment = lastStage.shaders.filter({shader in
+                    switch shader {
+                    case .fragment(_, _):
+                        return true
+                    default:
+                        return false
+                    }
+                }).first
+                
+                if case .vertex(let vertexSpirv, let vertexInputTextures) = maybeVertex,
+                   case .fragment(let fragmentSpirv, let fragmentInputTextures) = maybeFragment,
+                   let vertexMSL = try? JelloCompilerStatic.compileMSLShader(spirv: vertexSpirv),
+                   let fragmentMSL = try? JelloCompilerStatic.compileMSLShader(spirv: fragmentSpirv) {
+                    ShaderPreviewView(vertexShader: vertexMSL, fragmentShader: fragmentMSL, previewGeometry: .sphere)
+                }
+            }
         }
     }
 }

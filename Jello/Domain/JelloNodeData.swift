@@ -21,11 +21,14 @@ enum JelloNodeDataValue: Codable, Equatable {
     case stringArray(StringArray)
     case bool(Bool)
     case int(Int)
+    case int2(Int, Int)
+    case int3(Int, Int, Int)
     case float(Float)
     case float2(Float, Float)
     case float3(Float, Float, Float)
     case float4(Float, Float, Float, Float)
     case previewGeometry(JelloPreviewGeometry)
+    case id(UUID)
 }
 
 

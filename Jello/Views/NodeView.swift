@@ -56,17 +56,18 @@ fileprivate struct NodeRendererView: View {
     let hasSettings: Bool
 
     var body: some View {
+        let doDraw: (inout Path) -> () = { path in
+            path.addRoundedRect(in: CGRect(origin: .init(x: 1.5, y: 1.5), size: CGSize(width: CGFloat(node.width - 3), height: CGFloat(node.height - 3))), cornerSize: CGSize(width: CGFloat(5), height: CGFloat(5)))
+        }
         ZStack {
-            TimelineView(.animation) { context in
-                ZStack {
-                    Path(sim.doDraw)
-                        .fill(gradient)
-                    Path(sim.doDraw)
-                        .fill(.ultraThickMaterial)
-                    Path(sim.doDraw)
-                        .stroke(gradient, lineWidth: 3)
-                    innerBody(sim.doDraw)
-                }
+            ZStack {
+                RoundedRectangle(cornerRadius: sqrt(5*5*2))
+                    .fill(gradient)
+                RoundedRectangle(cornerRadius: sqrt(5*5*2))
+                    .fill(.ultraThickMaterial)
+                RoundedRectangle(cornerRadius: sqrt(5*5*2))
+                    .stroke(gradient, lineWidth: 3)
+                innerBody(doDraw)
             }
             NodeInputPortsView(nodeId: node.uuid)
             NodeOutputPortsView(nodeId: node.uuid)
@@ -99,14 +100,14 @@ fileprivate struct NodeRendererView: View {
         }
         .offset(CGSize(width: canvasTransform.position.x, height: canvasTransform.position.y))
         .onAppear() {
-            self.sim.setup(dimensions: vector_float2(x: Float(node.width), y: Float(node.height)), topLeft: vector_float2(node.position), constraintIterations: 4, updateIterations: 2, radius: Float(JelloNode.cornerRadius))
+//            self.sim.setup(dimensions: vector_float2(x: Float(node.width), y: Float(node.height)), topLeft: vector_float2(node.position), constraintIterations: 4, updateIterations: 2, radius: Float(JelloNode.cornerRadius))
         }
         .onDisappear() {
-            self.simulationRunner.removeSimulation(id: uuid)
+//            self.simulationRunner.removeSimulation(id: uuid)
         }
         .task {
-            await self.simulationRunner.addSimulation(id: uuid, sim: sim)
-            sim.position = vector_float2(node.position)
+//            await self.simulationRunner.addSimulation(id: uuid, sim: sim)
+//            sim.position = vector_float2(node.position)
         }
         .onChange(of: node.width) {
             self.sim.dimensions = vector_float2(x: Float(node.width), y: Float(node.height))

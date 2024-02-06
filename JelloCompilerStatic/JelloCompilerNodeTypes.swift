@@ -14,11 +14,12 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let condPort = inputPorts.first!
         let truePort = inputPorts[1]
         let falsePort = inputPorts[2]
@@ -49,7 +50,7 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         #functionBody(opCode: SpirvOpLabel, [trueLabel])
         if let trueBranch = subNodes[trueBranchTag] {
             for node in trueBranch {
-                node.write()
+                node.write(input: input)
             }
             ifTrue = truePort.incomingEdge!.outputPort.getOrReserveId()
         }
@@ -57,7 +58,7 @@ public class IfElseCompilerNode : CompilerNode, BranchCompilerNode {
         #functionBody(opCode: SpirvOpLabel, [falseLabel])
         if let falseBranch = subNodes[falseBranchTag] {
             for node in falseBranch {
-                node.write()
+                node.write(input: input)
             }
             ifFalse = falsePort.incomingEdge!.outputPort.getOrReserveId()
         }
@@ -98,7 +99,10 @@ public class ConstantCompilerNode : CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain? = .constant
+    
+    public func install(input: JelloCompilerInput) {
         let outputPort = outputPorts.first!
         let constantId = outputPort.getOrReserveId()
         switch(value) {
@@ -150,7 +154,7 @@ public class ConstantCompilerNode : CompilerNode {
         }
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
 
     }
     
@@ -190,81 +194,132 @@ public class ConstantCompilerNode : CompilerNode {
 }
 
 
-public class PreviewOutputCompilerNode: CompilerNode {
+public class PreviewOutputCompilerNode: CompilerNode & SubgraphCompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    public func install() {}
-    public func write() {
-        let inputPort = inputPorts.first!
-        let floatTypeId = #typeDeclaration(opCode: SpirvOpTypeFloat, [32])
-        let float4TypeId = declareType(dataType: .float4)
-        let float4PointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassOutput.rawValue, float4TypeId])
-        let outputVariableId = JelloCompilerBlackboard.fragOutputColorId
-        #debugNames(opCode: SpirvOpName, [outputVariableId], #stringLiteral("fragmentMain"))
-        #annotation(opCode: SpirvOpDecorate, [outputVariableId, SpirvDecorationLocation.rawValue, 0])
-        #globalDeclaration(opCode: SpirvOpVariable, [float4PointerTypeId, outputVariableId, SpirvStorageClassOutput.rawValue])
-        
-        var resultId: UInt32 = 0
-        if let edge = inputPort.incomingEdge {
-            switch(inputPort.concreteDataType!) {
-            case .bool:
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+    public var subgraph: JelloCompilerInput? = nil
+    
+    public func build(input: JelloCompilerInput) throws -> JelloCompilerOutputStage {
+        try compileSpirvFragmentShader(input: input, outputBody: {
+            let inputPort = inputPorts.first!
+            let floatTypeId = #typeDeclaration(opCode: SpirvOpTypeFloat, [32])
+            let float4TypeId = declareType(dataType: .float4)
+            let float4PointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassOutput.rawValue, float4TypeId])
+            let outputVariableId = JelloCompilerBlackboard.fragOutputColorId
+            #debugNames(opCode: SpirvOpName, [outputVariableId], #stringLiteral("fragmentMain"))
+            #annotation(opCode: SpirvOpDecorate, [outputVariableId, SpirvDecorationLocation.rawValue, 0])
+            #globalDeclaration(opCode: SpirvOpVariable, [float4PointerTypeId, outputVariableId, SpirvStorageClassOutput.rawValue])
+            
+            var resultId: UInt32 = 0
+            if let edge = inputPort.incomingEdge {
+                switch(inputPort.concreteDataType!) {
+                case .bool:
+                    resultId = #id
+                    let zeroVector = #id
+                    #globalDeclaration(opCode: SpirvOpConstantNull, [float4TypeId, zeroVector])
+                    let oneFloat = #id
+                    #globalDeclaration(opCode: SpirvOpConstant, [floatTypeId, oneFloat], float(1))
+                    let oneVector = #id
+                    #globalDeclaration(opCode: SpirvOpConstantComposite, [float4TypeId, oneVector, oneFloat, oneFloat, oneFloat, oneFloat])
+                    let trueLabel = #id
+                    let falseLabel = #id
+                    let endLabel = #id
+                    #functionBody(opCode: SpirvOpSelectionMerge, [endLabel, 0])
+                    #functionBody(opCode: SpirvOpBranchConditional, [edge.outputPort.getOrReserveId(), trueLabel, falseLabel])
+                    #functionBody(opCode: SpirvOpLabel, [trueLabel])
+                    #functionBody(opCode: SpirvOpBranch, [endLabel])
+                    #functionBody(opCode: SpirvOpLabel, [falseLabel])
+                    #functionBody(opCode: SpirvOpBranch, [endLabel])
+                    #functionBody(opCode: SpirvOpLabel, [endLabel])
+                    #functionBody(opCode: SpirvOpPhi, [float4TypeId, resultId, oneVector, trueLabel, zeroVector, falseLabel])
+                    break
+                case .float:
+                    resultId = #id
+                    let outId = edge.outputPort.getOrReserveId()
+                    #functionBody(opCode: SpirvOpCompositeConstruct, [float4TypeId, resultId, outId, outId, outId, outId])
+                    break
+                case .float2:
+                    resultId = #id
+                    let outId = edge.outputPort.getOrReserveId()
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, resultId, outId, outId, 0, 1, 0xFFFFFFFF, 0xFFFFFFFF])
+                    break
+                case .float3:
+                    resultId = #id
+                    let outId = edge.outputPort.getOrReserveId()
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, resultId, outId, outId, 0, 1, 2, 0xFFFFFFFF])
+                    break
+                case .float4:
+                    resultId = edge.outputPort.getOrReserveId()
+                    break
+                case .int:
+                    fatalError("Integer Preview Not Currently Supported")
+                    break
+                case .slabMaterial:
+                    fatalError("Material Preview Not Currently Supported")
+                    break
+                case .texture1d_float:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture1d_float2:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture1d_float3:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture1d_float4:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture2d_float:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture2d_float2:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture2d_float3:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture2d_float4:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture3d_float:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture3d_float2:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture3d_float3:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .texture3d_float4:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture1d_float:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture1d_float2:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture1d_float3:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture1d_float4:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture2d_float:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture2d_float2:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture2d_float3:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture2d_float4:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture3d_float:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture3d_float2:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture3d_float3:
+                    fatalError("Texture Preview Not Currently Supported")
+                case .proceduralTexture3d_float4:
+                    fatalError("Texture Preview Not Currently Supported")
+                }
+            } else {
                 resultId = #id
-                let zeroVector = #id
-                #globalDeclaration(opCode: SpirvOpConstantNull, [float4TypeId, zeroVector])
-                let oneFloat = #id
-                #globalDeclaration(opCode: SpirvOpConstant, [floatTypeId, oneFloat], float(1))
-                let oneVector = #id
-                #globalDeclaration(opCode: SpirvOpConstantComposite, [float4TypeId, oneVector, oneFloat, oneFloat, oneFloat, oneFloat])
-                let trueLabel = #id
-                let falseLabel = #id
-                let endLabel = #id
-                #functionBody(opCode: SpirvOpSelectionMerge, [endLabel, 0])
-                #functionBody(opCode: SpirvOpBranchConditional, [edge.outputPort.getOrReserveId(), trueLabel, falseLabel])
-                #functionBody(opCode: SpirvOpLabel, [trueLabel])
-                #functionBody(opCode: SpirvOpBranch, [endLabel])
-                #functionBody(opCode: SpirvOpLabel, [falseLabel])
-                #functionBody(opCode: SpirvOpBranch, [endLabel])
-                #functionBody(opCode: SpirvOpLabel, [endLabel])
-                #functionBody(opCode: SpirvOpPhi, [float4TypeId, resultId, oneVector, trueLabel, zeroVector, falseLabel])
-                break
-            case .float:
-                resultId = #id
-                let outId = edge.outputPort.getOrReserveId()
-                #functionBody(opCode: SpirvOpCompositeConstruct, [float4TypeId, resultId, outId, outId, outId, outId])
-                break
-            case .float2:
-                resultId = #id
-                let outId = edge.outputPort.getOrReserveId()
-                #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, resultId, outId, outId, 0, 1, 0xFFFFFFFF, 0xFFFFFFFF])
-                break
-            case .float3:
-                resultId = #id
-                let outId = edge.outputPort.getOrReserveId()
-                #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, resultId, outId, outId, 0, 1, 2, 0xFFFFFFFF])
-                break
-            case .float4:
-                resultId = edge.outputPort.getOrReserveId()
-                break
-            case .int:
-                fatalError("Integer Preview Not Currently Supported")
-                break
-            case .slabMaterial:
-                fatalError("Material Preview Not Currently Supported")
-                break
-            case .texture1d:
-                fatalError("Texture Preview Not Currently Supported")
-            case .texture2d:
-                fatalError("Texture Preview Not Currently Supported")
-            case .texture3d:
-                fatalError("Texture Preview Not Currently Supported")
+                #globalDeclaration(opCode: SpirvOpConstantNull, [float4TypeId, resultId])
             }
-        } else {
-            resultId = #id
-            #globalDeclaration(opCode: SpirvOpConstantNull, [float4TypeId, resultId])
-        }
-        #functionBody(opCode: SpirvOpStore, [outputVariableId, resultId])
+            #functionBody(opCode: SpirvOpStore, [outputVariableId, resultId])
+        })
     }
+    
+    public func install(input: JelloCompilerInput) {}
+    
+    public func write(input: JelloCompilerInput) {}
     
     public var branchTags: Set<UUID>
     public var constraints: [PortConstraint] {[]}
@@ -274,8 +329,9 @@ public class PreviewOutputCompilerNode: CompilerNode {
         self.branchTags = Set([self.id])
         for p in inputPorts {
             p.newBranchId = self.id
+            p.newSubgraphId = self.id
+            p.node = self
         }
-        inputPort.node = self
     }
 }
 
@@ -284,9 +340,11 @@ public class AddCompilerNode: CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    public func install() {}
+    public func install(input: JelloCompilerInput) {}
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let fst = inputPorts.first!
         let typeId = declareType(dataType: fst.concreteDataType!)
         let zero = #id
@@ -342,9 +400,11 @@ public class SubtractCompilerNode: CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    public func install() {}
-    
-    public func write() {
+    public func install(input: JelloCompilerInput) {}
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func write(input: JelloCompilerInput) {
         let fst = inputPorts.first!
         let typeId = declareType(dataType: fst.concreteDataType!)
         let zero = #id
@@ -400,9 +460,11 @@ public class MultiplyCompilerNode: CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    public func install() {}
-    
-    public func write() {
+    public func install(input: JelloCompilerInput) {}
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func write(input: JelloCompilerInput) {
         let fst = inputPorts.first!
         let typeId = declareType(dataType: fst.concreteDataType!)
         let zero = #id
@@ -459,9 +521,11 @@ public class DivideCompilerNode: CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
-    public func install() {}
-    
-    public func write() {
+    public func install(input: JelloCompilerInput) {}
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func write(input: JelloCompilerInput) {
         let fst = inputPorts.first!
         let typeId = declareType(dataType: fst.concreteDataType!)
         let zero = #id
@@ -520,11 +584,13 @@ public class LoadCompilerNode : CompilerNode {
     private let normalize : Bool
     public var inputPorts: [InputCompilerPort] = []
     public var outputPorts: [OutputCompilerPort]
-    
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
         let loadResultId = #id
         #functionBody(opCode: SpirvOpLoad, [typeId, loadResultId, getPointerId()])
@@ -558,7 +624,8 @@ public class LoadCompilerNode : CompilerNode {
 
 
 public class SwizzleCompilerNode : CompilerNode {
-    
+    public var computationDomain: CompilerComputationDomain?
+
     public enum SwizzleComponentSelector {
         case zero
         case index(UInt8)
@@ -578,11 +645,12 @@ public class SwizzleCompilerNode : CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
+    public var subgraphTags: Set<UUID> = []
     
-    public func install() {
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let inputPort = inputPorts.first!
         let outputPort = outputPorts.first!
         if inputPort.incomingEdge == nil {
@@ -655,11 +723,13 @@ public class UnaryOperatorCompilerNode : CompilerNode {
     private let spirvOperator: SpirvOp
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
-    
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
         let resultId = #id
         if let inputId = inputPorts.first!.incomingEdge?.outputPort.getOrReserveId() {
@@ -698,14 +768,16 @@ public class UnaryOperatorCompilerNode : CompilerNode {
 public class UnaryGLSL450OperatorCompilerNode : CompilerNode {
     public var id: UUID
     private let glsl450Operator: GLSLstd450
-    
+    public var computationDomain: CompilerComputationDomain?
+
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
+    public var subgraphTags: Set<UUID> = []
     
-    public func install() {
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
         let resultId = #id
         if let inputId = inputPorts.first!.incomingEdge?.outputPort.getOrReserveId() {
@@ -749,11 +821,13 @@ public class BinaryGLSL450OperatorCompilerNode : CompilerNode {
     private let glsl450Operator: GLSLstd450
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
-    
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
         let resultId = #id
         let input1Id: UInt32 = inputPorts[0].incomingEdge?.outputPort.getOrReserveId() ?? declareNullValueConstant(dataType: inputPorts[0].concreteDataType!)
@@ -791,11 +865,13 @@ public class BinaryOperatorCompilerNode : CompilerNode {
     private let spirvOperator: SpirvOp
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
-    
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
         let resultId = #id
         let input1Id: UInt32 = inputPorts[0].incomingEdge?.outputPort.getOrReserveId() ?? declareNullValueConstant(dataType: inputPorts[0].concreteDataType!)
@@ -834,11 +910,13 @@ public class MathExpressionCompilerNode : CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
-    
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         if let mathExpression = expression {
             outputPorts.first!.setReservedId(reservedId: processMathExpression(expression: mathExpression))
         } else {
@@ -983,11 +1061,13 @@ public class CombineCompilerNode : CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
-    
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let count = inputPorts.count
         let typeId = switch count {
         case 1:
@@ -1046,11 +1126,13 @@ public class SeparateCompilerNode : CompilerNode {
     public var id: UUID
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort]
-    
-    public func install() {
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func install(input: JelloCompilerInput) {
     }
     
-    public func write() {
+    public func write(input: JelloCompilerInput) {
         let inputPort = inputPorts.first!
         let floatId = declareType(dataType: .float)
         for i in outputPorts.indices {
@@ -1076,5 +1158,205 @@ public class SeparateCompilerNode : CompilerNode {
             outputPort.node = self
         }
         inputPort.node = self
+    }
+}
+
+
+
+
+public class SampleCompilerNode : CompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    public var subgraphTags: Set<UUID> = []
+    public var computationDomain: CompilerComputationDomain?
+
+    public func install(input: JelloCompilerInput) {
+    }
+    
+    public func write(input: JelloCompilerInput) {
+
+    }
+    
+    public var branchTags: Set<UUID> = []
+    public var branches: [UUID] = []
+    
+    public var constraints: [PortConstraint] {
+        let inputPortsIds = inputPorts.map { $0.id }
+        let outputPortsIds = outputPorts.map { $0.id }
+        
+        return [
+            SameDimensionalityConstraint(ports: Set(inputPortsIds)),
+            SameCompositeSizeConstraint(ports: Set<UUID>([inputPortsIds.first!, outputPortsIds.first!]))
+        ]
+    }
+    
+    public init(id: UUID = UUID(), fieldInputPort: InputCompilerPort, positionInputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
+        self.id = id
+        self.inputPorts = [fieldInputPort, positionInputPort]
+        self.outputPorts = [outputPort]
+        for inputPort in inputPorts {
+            inputPort.node = self
+        }
+        for outputPort in outputPorts {
+            outputPort.node = self
+        }
+    }
+}
+
+
+
+public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompilerNode & SubgraphCompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort]
+    public var subgraphTags: Set<UUID> = []
+    public var computationDimension: CompilerComputationDimension
+    public var computationDomain: CompilerComputationDomain?
+    public var subgraph: JelloCompilerInput? = nil
+
+    public func build(input: JelloCompilerInput) throws -> JelloCompilerOutputStage {
+        let format: JelloIOTexture.TextureFormat = switch inputPorts.first!.concreteDataType {
+            case .float: JelloIOTexture.TextureFormat.R32f
+            case .float2: JelloIOTexture.TextureFormat.Rgba32f
+            case .float3: JelloIOTexture.TextureFormat.Rgba32f
+            case .float4: JelloIOTexture.TextureFormat.Rgba32f
+            default: fatalError("Unsupported Data Type")
+        }
+        
+        let packing: JelloIOTexture.TexturePacking = switch inputPorts.first!.concreteDataType {
+            case .float: .float
+            case .float2: .float2
+            case .float3: .float3
+            case .float4: .float4
+            default: fatalError("Unsupported Data Type")
+        }
+
+        let nodes = input.graph.nodes
+        var inputTextures: [JelloIOTexture] = []
+        let compute = #document({
+            let entryPoint = #id
+            #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
+            let glsl450Id = #id
+            #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
+            JelloCompilerBlackboard.glsl450ExtId = glsl450Id
+
+            var dimensions: [UInt32] = [1, 1, 1]
+            if case .dimension(_, let y, let z) = computationDimension {
+                if y == 1 && z == 1 {
+                    dimensions[0] = 64
+                } else if z == 1 {
+                    dimensions[0] = 8
+                    dimensions[1] = 8
+                } else {
+                    dimensions[0] = 4
+                    dimensions[1] = 4
+                    dimensions[2] = 4
+                }
+            }
+            #executionMode(opCode: SpirvOpExecutionMode, [entryPoint, SpirvExecutionModeLocalSize.rawValue], dimensions)
+            
+            #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
+            for node in nodes {
+                node.install(input: input)
+            }
+            inputTextures = JelloCompilerBlackboard.inputComputeTextures
+            let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
+            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelGLCompute.rawValue], [entryPoint], [])
+            let typeComputeFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
+            #functionHead(opCode: SpirvOpFunction, [typeVoid, entryPoint, 0, typeComputeFunction])
+            #functionHead(opCode: SpirvOpLabel, [#id])
+            for node in input.graph.nodes {
+                node.write(input: input)
+            }
+            #functionBody(opCode: SpirvOpReturn)
+            #functionBody(opCode: SpirvOpFunctionEnd)
+            SpirvFunction.instance.writeFunction()
+            JelloCompilerBlackboard.clear()
+        })
+        
+        for outputPort in nodes.flatMap({$0.outputPorts}) {
+            outputPort.clearReservation()
+        }
+        
+        return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: computationDomain!, shaders: [.compute(self.computationDimension, compute, inputTextures,  JelloIOTexture(originatingStage: self.id, size: computationDimension, format: format, packing: packing))])
+    }
+    
+    public func install(input: JelloCompilerInput) {
+        let format: JelloIOTexture.TextureFormat = switch inputPorts.first!.concreteDataType {
+            case .float: JelloIOTexture.TextureFormat.R32f
+            case .float2: JelloIOTexture.TextureFormat.Rgba32f
+            case .float3: JelloIOTexture.TextureFormat.Rgba32f
+            case .float4: JelloIOTexture.TextureFormat.Rgba32f
+            default: fatalError("Unsupported Data Type")
+        }
+        
+        let packing: JelloIOTexture.TexturePacking = switch inputPorts.first!.concreteDataType {
+            case .float: .float
+            case .float2: .float2
+            case .float3: .float3
+            case .float4: .float4
+            default: fatalError("Unsupported Data Type")
+        }
+        
+        JelloCompilerBlackboard.inputComputeTextures.append(JelloIOTexture(originatingStage: self.id, size: self.computationDimension,  format: format, packing: packing))
+    }
+    
+    public func write(input: JelloCompilerInput) {
+    }
+    
+    public var branchTags: Set<UUID>
+    public var branches: [UUID] = []
+    
+    public var constraints: [PortConstraint] {
+        var p = inputPorts.map({$0.id})
+        p.append(contentsOf: outputPorts.map({$0.id}))
+        return [SameCompositeSizeConstraint(ports: Set(p))]
+    }
+    
+    public init(id: UUID = UUID(), inputPort: InputCompilerPort, outputPort: OutputCompilerPort, computationDimension: CompilerComputationDimension) {
+        self.id = id
+        self.inputPorts = [inputPort]
+        self.outputPorts = [outputPort]
+        self.computationDimension = computationDimension
+        self.branchTags = Set()
+        for p in inputPorts {
+            p.node = self
+            p.newBranchId = self.id
+            p.newSubgraphId = self.id
+        }
+        for outputPort in outputPorts {
+            outputPort.node = self
+        }
+    }
+}
+    
+
+public class MaterialOutputCompilerNode: CompilerNode & SubgraphCompilerNode {
+    public var id: UUID
+    public var inputPorts: [InputCompilerPort]
+    public var outputPorts: [OutputCompilerPort] = []
+    public func install(input: JelloCompilerInput) {}
+    public func write(input: JelloCompilerInput) {}
+    public var branchTags: Set<UUID>
+    public var subgraphTags: Set<UUID>
+    public var computationDomain: CompilerComputationDomain?
+    public var subgraph: JelloCompilerInput? = nil
+
+    public func build(input: JelloCompilerInput) throws -> JelloCompilerOutputStage {
+        try compileSpirvFragmentShader(input: input, outputBody: {})
+    }
+
+    public var constraints: [PortConstraint] { [] }
+    public init(id: UUID, inputPort: InputCompilerPort) {
+        self.id = id
+        self.inputPorts = [inputPort]
+        self.branchTags = Set([self.id])
+        self.subgraphTags = Set([self.id])
+        for p in inputPorts {
+            p.node = self
+            p.newBranchId = self.id
+            p.newSubgraphId = self.id
+        }
     }
 }

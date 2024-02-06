@@ -22,10 +22,14 @@ enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable, Equatable {
     case combine = 9
     case separate = 10
     
+    // Texture
+    case sample = 20
+    
     // Shaders and Outputs
     case materialOutput = 100
     case slabShader = 101
     case preview = 102
+    case compute = 103
 
     // Constants
     case color = 300
@@ -37,6 +41,9 @@ enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable, Equatable {
     case tangent = 404
     case bitangent = 405
     
+    
+    // Procedural
+    case spline = 501
     
     var name : String {
         return String(describing: self).capitalized
@@ -72,14 +79,6 @@ enum JelloNodeCategory: Int, Codable, CaseIterable, Identifiable {
 }
 
 
-
-
-enum JelloGraphDomainType: Int, Codable, CaseIterable {
-    case constant = 0
-    case modelDependant = 1
-    case variable = 2
-    case timeVarying = 3
-}
 
 
 enum JelloPreviewGeometry: Codable, Equatable {

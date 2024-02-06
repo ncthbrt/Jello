@@ -91,6 +91,7 @@
 		BCD682682B6CCA1400C70ABF /* RectAnimatedShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD682672B6CCA1400C70ABF /* RectAnimatedShape.swift */; };
 		BCD6826A2B6CCAA300C70ABF /* FavouriteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD682692B6CCAA300C70ABF /* FavouriteButton.swift */; };
 		BCD6826C2B6CCD5D00C70ABF /* Favourites.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD6826B2B6CCD5D00C70ABF /* Favourites.swift */; };
+		BCD6826E2B6CE5CC00C70ABF /* SplineNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD6826D2B6CE5CC00C70ABF /* SplineNodeView.swift */; };
 		BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */; };
 		BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067552AF8B8C10066F8D4 /* JelloBox.swift */; };
 		BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */; };
@@ -98,6 +99,7 @@
 		BCE63ACC2B5513D500DC3D4B /* FrameData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE63ACB2B5513D500DC3D4B /* FrameData.swift */; };
 		BCE63ADE2B55476500DC3D4B /* UV_Sphere.obj in Resources */ = {isa = PBXBuildFile; fileRef = BCE63ADC2B55476500DC3D4B /* UV_Sphere.obj */; };
 		BCE63ADF2B55476500DC3D4B /* UV_Sphere.mtl in Resources */ = {isa = PBXBuildFile; fileRef = BCE63ADD2B55476500DC3D4B /* UV_Sphere.mtl */; };
+		BCE642472B7235850008B2C2 /* ComputeNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE642462B7235850008B2C2 /* ComputeNodeView.swift */; };
 		BCE65EF02B6CBF9200414B2C /* ClampedSplines.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE65EEF2B6CBF9200414B2C /* ClampedSplines.swift */; };
 		BCEAFD172B205E9100D23E1F /* JelloCompilerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEAFD162B205E9100D23E1F /* JelloCompilerService.swift */; };
 		BCEBEF4B2B35BE6D00C10617 /* JelloGoodBadSpirvFileGeneratorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFCA2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift */; };
@@ -229,6 +231,7 @@
 		BCD682672B6CCA1400C70ABF /* RectAnimatedShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RectAnimatedShape.swift; sourceTree = "<group>"; };
 		BCD682692B6CCAA300C70ABF /* FavouriteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouriteButton.swift; sourceTree = "<group>"; };
 		BCD6826B2B6CCD5D00C70ABF /* Favourites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Favourites.swift; sourceTree = "<group>"; };
+		BCD6826D2B6CE5CC00C70ABF /* SplineNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplineNodeView.swift; sourceTree = "<group>"; };
 		BCDA24372B220851002DCFCB /* SpirvGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpirvGenerator.swift; sourceTree = "<group>"; };
 		BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerTypes.swift; sourceTree = "<group>"; };
 		BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationRunner.swift; sourceTree = "<group>"; };
@@ -238,6 +241,7 @@
 		BCE63ACB2B5513D500DC3D4B /* FrameData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameData.swift; sourceTree = "<group>"; };
 		BCE63ADC2B55476500DC3D4B /* UV_Sphere.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UV_Sphere.obj; sourceTree = "<group>"; };
 		BCE63ADD2B55476500DC3D4B /* UV_Sphere.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UV_Sphere.mtl; sourceTree = "<group>"; };
+		BCE642462B7235850008B2C2 /* ComputeNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputeNodeView.swift; sourceTree = "<group>"; };
 		BCE65EEF2B6CBF9200414B2C /* ClampedSplines.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClampedSplines.swift; sourceTree = "<group>"; };
 		BCEAFD162B205E9100D23E1F /* JelloCompilerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerService.swift; sourceTree = "<group>"; };
 		BCEAFD1C2B21A36700D23E1F /* JelloBridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JelloBridgingHeader.h; sourceTree = "<group>"; };
@@ -301,6 +305,8 @@
 				BC876D992B5A716300B8E62F /* SwizzleNodeView.swift */,
 				BC7036F22B65040F00EAA108 /* CalculatorNodeView.swift */,
 				BC7036F42B67993700EAA108 /* CombineNodeView.swift */,
+				BCD6826D2B6CE5CC00C70ABF /* SplineNodeView.swift */,
+				BCE642462B7235850008B2C2 /* ComputeNodeView.swift */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -730,6 +736,7 @@
 				BC1153052B6B935300C7F0BD /* GridEffect.metal in Sources */,
 				BC2AE5742B0764FA008F75C2 /* VertletShared.swift in Sources */,
 				BCE65EF02B6CBF9200414B2C /* ClampedSplines.swift in Sources */,
+				BCE642472B7235850008B2C2 /* ComputeNodeView.swift in Sources */,
 				BC906B792B6403D1003CBBEF /* MathExpressionParser.swift in Sources */,
 				BC2AE5782B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift in Sources */,
 				BC57B94B2B5C084300DE6D8A /* CheckerboardEffect.metal in Sources */,
@@ -764,6 +771,7 @@
 				BCEE1C732AFE40180012F619 /* TypingUtils.swift in Sources */,
 				BCF4E98B2B644B29004B88AB /* MathExpressionLexer.swift in Sources */,
 				BC9BBFEE2AEFF02100FC068C /* JelloGraph.swift in Sources */,
+				BCD6826E2B6CE5CC00C70ABF /* SplineNodeView.swift in Sources */,
 				BC57B8AD2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift in Sources */,
 				BC9BBFEB2AEFEFB400FC068C /* JelloFunction.swift in Sources */,
 				BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */,

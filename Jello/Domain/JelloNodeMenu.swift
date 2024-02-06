@@ -54,9 +54,12 @@ struct JelloBuiltInNodeMenuDefinition : Hashable, Identifiable, Equatable {
             JelloBuiltInNodeMenuDefinition(description: "Select a set of values from a vector", previewImage: "", category: .utility, type: .swizzle),
             JelloBuiltInNodeMenuDefinition(description: "Combines floats into a vector", previewImage: "", category: .utility, type: .combine),
             JelloBuiltInNodeMenuDefinition(description: "Separate a vector into a set of floats", previewImage: "", category: .utility, type: .separate),
+            JelloBuiltInNodeMenuDefinition(description: "Writes values to an intermediate texture", previewImage: "", category: .utility, type: .compute),
+            JelloBuiltInNodeMenuDefinition(description: "Samples a value from an n-dimensional field", previewImage: "", category: .utility, type: .sample),
         ],
         .value: [
             JelloBuiltInNodeMenuDefinition(description: "Specify a constant color", previewImage: "", category: .value, type: .color),
+            JelloBuiltInNodeMenuDefinition(description: "Outputs a spline", previewImage: "", category: .value, type: .spline),
             JelloBuiltInNodeMenuDefinition(description: "Outputs the world position", previewImage: "", category: .value, type: .worldPosition),
             JelloBuiltInNodeMenuDefinition(description: "Outputs the texture coordinates", previewImage: "", category: .value, type: .texCoord),
             JelloBuiltInNodeMenuDefinition(description: "Outputs the normal in model view space", previewImage: "", category: .value, type: .normal),

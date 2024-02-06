@@ -13,12 +13,9 @@ import UniformTypeIdentifiers
 @main
 struct JelloApp: App {
     var body: some Scene {
-//        DocumentGroup(editing: .jelloProject, migrationPlan: JelloMigrationPlan.self) {
-//            ContentView().preferredColorScheme(.dark)
-//        }.modelContainer(for: FavouriteClampedSpline.self)
-        WindowGroup {
-            SplineEditorPreview()
-        }.modelContainer(for: FavouriteClampedSpline.self, inMemory: true)
+        DocumentGroup(editing: .jelloProject, migrationPlan: JelloMigrationPlan.self) {
+            ContentView().preferredColorScheme(.dark)
+        }
     }
 }
 
@@ -70,6 +67,7 @@ struct JelloVersionedSchemaV1: VersionedSchema {
         JelloNode.self,
         JelloInputPort.self,
         JelloOutputPort.self,
-        JelloNodeData.self
+        JelloNodeData.self,
+        ClampedSpline.self
     ]
 }

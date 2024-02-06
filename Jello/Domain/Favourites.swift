@@ -10,7 +10,7 @@ import SwiftData
 
 @Model
 class FavouriteClampedSpline {
-    var uuid: UUID
+    @Attribute(.unique) var uuid: UUID
     var controlPoints: [ClampedSplineControlPoint]
     var dateAdded: Date
     

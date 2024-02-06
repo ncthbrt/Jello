@@ -27,13 +27,7 @@ public func declareType(dataType: JelloConcreteDataType) -> UInt32 {
         return #typeDeclaration(opCode: SpirvOpTypeVector, [floatType, 4])
     case .int:
         return #typeDeclaration(opCode: SpirvOpTypeInt, [32, 1])
-    case .slabMaterial:
-        fatalError("Type Not Supported Yet")
-    case .texture1d:
-        fatalError("Type Not Supported Yet")
-    case .texture2d:
-        fatalError("Type Not Supported Yet")
-    case .texture3d:
+    default:
         fatalError("Type Not Supported Yet")
     }
 }

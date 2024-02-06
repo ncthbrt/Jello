@@ -12,23 +12,7 @@ import JelloCompilerStatic
 import simd
 import SPIRV_Headers_Swift
 
-class JelloCompilerService {
-    
-    static func compileMSL(input: JelloCompilerInput) throws -> (vertex: String?, fragment: String?) {
-        let result = try JelloCompilerStatic.compileToSpirv(input: input)
-        
-        var vertex : String? = nil
-        var fragment : String? = nil
-        if let vertexSpirv = result.vertex {
-            vertex = try JelloCompilerStatic.compileMSLShader(spirv: vertexSpirv)
-        }
-        if let fragmentSpirv = result.fragment {
-            fragment = try JelloCompilerStatic.compileMSLShader(spirv: fragmentSpirv)
-        }
-        
-        return (vertex: vertex, fragment: fragment)
-    }
-    
+class JelloCompilerBridge {
     static func buildGraph(jelloGraph: JelloGraph, jelloNodes: [JelloNode], jelloNodeData: [JelloNodeData], jelloEdges: [JelloEdge], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort], useBaseDataTypes: Bool) -> CompilerGraph {
         let graph = CompilerGraph()
         let inputPortsDict: [UUID: [JelloInputPort]] = jelloInputPorts.reduce(into: [UUID:[JelloInputPort]](), { (result, port) in
@@ -46,7 +30,7 @@ class JelloCompilerService {
         let jelloNodeData = jelloNodeData.grouped(by: { $0.node!.uuid }).reduce(into: [UUID: [String:JelloNodeDataValue]](), { result, kv in
             result[kv.key] = kv.value.reduce(into: [String: JelloNodeDataValue](), { dict, value in dict[value.key] = value.value })
         })
-        let compilerNodes = jelloNodes.map({ JelloCompilerService.buildCompilerNode(jelloNode: $0, jelloNodeData: jelloNodeData[$0.uuid] ?? [String:JelloNodeDataValue](), jelloInputPorts: inputPortsDict[$0.uuid] ?? [], jelloOutputPorts: outputPortsDict[$0.uuid] ?? [], useBaseDataTypes: useBaseDataTypes)}).filter({$0 != nil}).map({$0!})
+        let compilerNodes = jelloNodes.map({ Self.buildCompilerNode(jelloNode: $0, jelloNodeData: jelloNodeData[$0.uuid] ?? [String:JelloNodeDataValue](), jelloInputPorts: inputPortsDict[$0.uuid] ?? [], jelloOutputPorts: outputPortsDict[$0.uuid] ?? [], useBaseDataTypes: useBaseDataTypes)}).filter({$0 != nil}).map({$0!})
         
         let compilerOutputPorts = compilerNodes.flatMap({$0.outputPorts}).reduce(into: [UUID:OutputCompilerPort](), {result, port in result[port.id] = port })
         let edgesDictionary = jelloEdges.reduce(into: [UUID: JelloEdge](), {result, edge in result[edge.inputPort?.uuid] = edge })
@@ -66,9 +50,9 @@ class JelloCompilerService {
     static func buildGraphInput(outputNode: JelloNode, jelloGraph: JelloGraph, jelloNodes: [JelloNode], jelloNodeData: [JelloNodeData], jelloEdges: [JelloEdge], jelloInputPorts: [JelloInputPort], jelloOutputPorts: [JelloOutputPort]) -> JelloCompilerInput {
         let graph = buildGraph(jelloGraph: jelloGraph, jelloNodes: jelloNodes, jelloNodeData: jelloNodeData, jelloEdges: jelloEdges, jelloInputPorts: jelloInputPorts, jelloOutputPorts: jelloOutputPorts, useBaseDataTypes: false)
         if outputNode.nodeType == .builtIn(.preview) {
-            return JelloCompilerInput(output: .previewOutput(graph.nodes.first(where: {$0.id == outputNode.uuid})! as! PreviewOutputCompilerNode), graph: graph)
+            return JelloCompilerInput(id: outputNode.uuid, output: .previewOutput(graph.nodes.first(where: {$0.id == outputNode.uuid})! as! PreviewOutputCompilerNode), graph: graph)
         } else if outputNode.nodeType == .builtIn(.materialOutput) {
-            return JelloCompilerInput(output: .materialOutput(graph.nodes.first(where: {$0.id == outputNode.uuid})! as! MaterialOutputCompilerNode), graph: graph)
+            return JelloCompilerInput(id: outputNode.uuid, output: .materialOutput(graph.nodes.first(where: {$0.id == outputNode.uuid})! as! MaterialOutputCompilerNode), graph: graph)
         } else {
             fatalError("Unexpected output node type")
         }
@@ -99,6 +83,13 @@ class JelloCompilerService {
         case .builtIn(.materialOutput):
             let node = MaterialOutputCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!)
             return node
+        case .builtIn(.compute):
+            if case .int3(let x, let y, let z) = jelloNodeData[JelloNodeDataKey.value.rawValue] ?? .null {
+                return ComputeCompilerNode(id: jelloNode.uuid, inputPort: compilerInputPorts.first!, outputPort: compilerOutputPorts.first!, computationDimension: .dimension(x, y, z))
+            }
+            return nil
+        case .builtIn(.sample):
+            return SampleCompilerNode(id: jelloNode.uuid, fieldInputPort: compilerInputPorts[0], positionInputPort: compilerInputPorts[1], outputPort: compilerOutputPorts[0])
         case .builtIn(.color):
             let value = jelloNodeData[JelloNodeDataKey.value.rawValue] ?? .null
             if case JelloNodeDataValue.float4(let h, let s, let b, let a) = value {
@@ -129,6 +120,9 @@ class JelloCompilerService {
             if case JelloNodeDataValue.stringArray(let array) = value {
                 return MathExpressionCompilerNode(inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!, expression: try? parseMathExpression(array.value.joined(separator: "")))
             }
+            return nil
+
+        case .builtIn(.spline):
             return nil
         case .builtIn(.combine):
             return CombineCompilerNode(inputPorts: compilerInputPorts, outputPort: compilerOutputPorts.first!)

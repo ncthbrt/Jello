@@ -19,18 +19,62 @@ public func labelBranches(input: JelloCompilerInput){
         let (branchId: branchId, port: port) = queue.popFirst()!
         var node = port.incomingEdge!.outputPort.node!
         node.branchTags.insert(branchId)
-        for port in node.inputPorts {
-            if port.incomingEdge != nil {
-                let newBranchId = port.newBranchId ?? branchId
-                queue.append((branchId: newBranchId, port: port))
+        if !(node is SubgraphCompilerNode) {
+            for port in node.inputPorts {
+                if port.incomingEdge != nil {
+                    let newBranchId = port.newBranchId ?? branchId
+                    queue.append((branchId: newBranchId, port: port))
+                }
             }
         }
     }
 }
 
+public func labelSubgraphs(input: JelloCompilerInput){
+    let startNode = input.output.node
+    var queue = Deque(startNode.inputPorts.filter({$0.incomingEdge != nil}).map({(subgraphId: $0.newSubgraphId!, port: $0)}))
+    while !queue.isEmpty {
+        let (subgraphId: subgraphId, port: port) = queue.popFirst()!
+        var node = port.incomingEdge!.outputPort.node!
+        node.subgraphTags.insert(subgraphId)
+        for port in node.inputPorts {
+            if port.incomingEdge != nil {
+                let newSubgraphId = port.newSubgraphId ?? subgraphId
+                queue.append((subgraphId: newSubgraphId, port: port))
+            }
+        }
+    }
+}
+
+public func labelComputationDomains(input: JelloCompilerInput){
+    let nodes = input.graph.nodes
+    for i in nodes.indices {
+        var node = nodes[i]
+        var domain: CompilerComputationDomain = node.computationDomain ?? .constant
+        for inputPort in node.inputPorts {
+            if let edge = inputPort.incomingEdge, let outputNode = edge.outputPort.node, outputNode.subgraphTags.contains(input.id), let thisComputationDomain = outputNode.computationDomain {
+                switch (domain, thisComputationDomain) {
+                case (_, .modelDependant):
+                    domain = .modelDependant
+                case (.modelDependant, _):
+                    domain = .modelDependant
+                case (.timeVarying, _):
+                    domain = .timeVarying
+                case (_, .timeVarying):
+                    domain = .timeVarying
+                default:
+                    domain = .constant
+                }
+            }
+        }
+        node.computationDomain = domain
+    }
+}
+
+
 public func pruneGraph(input: JelloCompilerInput){
     let graph = input.graph
-    graph.nodes = graph.nodes.filter({!$0.branchTags.isEmpty})
+    graph.nodes = graph.nodes.filter({!$0.subgraphTags.isEmpty})
 }
 
 
@@ -66,7 +110,7 @@ enum CouldNotConcretiseTypesError: Error {
     case couldNotConcretiseTypesError
 }
 
-func propagateConstraintsFromCurrentPort(port start: UUID, assignments: inout [UUID: JelloConcreteDataType], domains: [UUID: [JelloConcreteDataType]], constraints: [UUID:[PortConstraint]]) -> Bool {
+func propagateConstraintsFromCurrentPort(port start: UUID, assignments: inout [UUID: JelloConcreteDataType], domains: inout [UUID: [JelloConcreteDataType]], constraints: [UUID:[PortConstraint]]) -> Bool {
     var queue = Deque<UUID>([start])
     var type: JelloConcreteDataType = assignments[start]!
     while !queue.isEmpty {
@@ -74,7 +118,7 @@ func propagateConstraintsFromCurrentPort(port start: UUID, assignments: inout [U
         let constraintsForCurrentPort = constraints[currentPort] ?? []
         type = assignments[currentPort]!
         for constraint in constraintsForCurrentPort {
-            switch constraint.apply(assignments: &assignments, domains: domains, port: currentPort, type: type) {
+            switch constraint.apply(assignments: &assignments, domains: &domains, port: currentPort, type: type) {
             case .contradiction:
                 return false
             case .dirty(let dirtyPorts):
@@ -88,7 +132,7 @@ func propagateConstraintsFromCurrentPort(port start: UUID, assignments: inout [U
     return true
 }
 
-func concretiseTypesInGraphImpl(remainingPorts: ArraySlice<UUID>, domains: [UUID: [JelloConcreteDataType]], assignments: [UUID: JelloConcreteDataType], constraints: [UUID:[PortConstraint]]) -> [UUID: JelloConcreteDataType]? {
+func concretiseTypesInGraphImpl(remainingPorts: ArraySlice<UUID>, domains: inout [UUID: [JelloConcreteDataType]], assignments: [UUID: JelloConcreteDataType], constraints: [UUID:[PortConstraint]]) -> [UUID: JelloConcreteDataType]? {
     if remainingPorts.count == 0 {
         return assignments
     }
@@ -101,10 +145,10 @@ func concretiseTypesInGraphImpl(remainingPorts: ArraySlice<UUID>, domains: [UUID
     if assignments[currentPort] != nil {
         let nextRemainingPorts = remainingPorts.dropFirst()
         var nextAssignments = assignments
-        if !propagateConstraintsFromCurrentPort(port: currentPort, assignments: &nextAssignments, domains: domains, constraints: constraints) {
+        if !propagateConstraintsFromCurrentPort(port: currentPort, assignments: &nextAssignments, domains: &domains, constraints: constraints) {
             return nil
         }
-        if let result = concretiseTypesInGraphImpl(remainingPorts: nextRemainingPorts, domains: domains, assignments: assignments, constraints: constraints) {
+        if let result = concretiseTypesInGraphImpl(remainingPorts: nextRemainingPorts, domains: &domains, assignments: assignments, constraints: constraints) {
             return result
         }
         return nil
@@ -112,12 +156,13 @@ func concretiseTypesInGraphImpl(remainingPorts: ArraySlice<UUID>, domains: [UUID
     
     for value in domain {
         var nextAssignments = assignments
+        var nextDomains = domains
         nextAssignments[currentPort] = value
-        if !propagateConstraintsFromCurrentPort(port: currentPort, assignments: &nextAssignments, domains: domains, constraints: constraints) {
+        if !propagateConstraintsFromCurrentPort(port: currentPort, assignments: &nextAssignments, domains: &nextDomains, constraints: constraints) {
             continue
         }
         let nextRemainingPorts = remainingPorts.dropFirst()
-        if let result = concretiseTypesInGraphImpl(remainingPorts: nextRemainingPorts, domains: domains, assignments: nextAssignments, constraints: constraints) {
+        if let result = concretiseTypesInGraphImpl(remainingPorts: nextRemainingPorts, domains: &nextDomains, assignments: nextAssignments, constraints: constraints) {
             return result
         }
     }
@@ -176,14 +221,14 @@ public func concretiseTypesInGraph(input: JelloCompilerInput) throws {
     for port in ports {
         if let d = domains[port], d.count == 1, let type = d.first {
             assignments[port] = type
-            if !propagateConstraintsFromCurrentPort(port: port, assignments: &assignments, domains: domains, constraints: constraintsMapped) {
+            if !propagateConstraintsFromCurrentPort(port: port, assignments: &assignments, domains: &domains, constraints: constraintsMapped) {
                 throw CouldNotConcretiseTypesError.couldNotConcretiseTypesError // We cannot unify this graph, as these constraints *have* to hold
             }
         }
     }
     
     
-    guard let result: [UUID: JelloConcreteDataType] = concretiseTypesInGraphImpl(remainingPorts: ArraySlice(ports), domains: domains, assignments: assignments, constraints: constraintsMapped) else {
+    guard let result: [UUID: JelloConcreteDataType] = concretiseTypesInGraphImpl(remainingPorts: ArraySlice(ports), domains: &domains, assignments: assignments, constraints: constraintsMapped) else {
         throw CouldNotConcretiseTypesError.couldNotConcretiseTypesError
     }
     
@@ -197,7 +242,34 @@ public func concretiseTypesInGraph(input: JelloCompilerInput) throws {
 
 
 
-public func decomposeGraph(input: JelloCompilerInput) {
+public func decomposeSubgraphs(input: JelloCompilerInput) -> [JelloCompilerInput] {
+    var inputs: [JelloCompilerInput] = []
+    
+    for node in input.graph.nodes.filter({$0 is SubgraphCompilerNode}) {
+        var subgraphNode = node as! SubgraphCompilerNode
+        let subNodes = input.graph.nodes.filter({$0.subgraphTags.contains(node.id)})
+        let go = GraphOutputNode.fromSubgraphNode(subgraphNode: subgraphNode)
+        let subgraph = JelloCompilerInput(id: node.id, output: go, graph: .init(nodes: subNodes))
+        subgraphNode.subgraph = subgraph
+        inputs.append(subgraphNode.subgraph!)
+        subgraph.dependencies = Set<UUID>(subgraph.graph.nodes.filter({ $0 is SubgraphCompilerNode }).map({$0.id}))
+    }
+    
+    let inputDict = inputs.reduce(into: [UUID: JelloCompilerInput]()) { $0[$1.id] = $1 }
+    for input in inputs {
+        let input = input
+        for dependencyId in input.dependencies {
+            if let dep = inputDict[dependencyId] {
+                dep.dependants.insert(input.id)
+            }
+        }
+    }
+    
+    return inputs
+}
+
+
+public func decomposeBranches(input: JelloCompilerInput) {
     for node in input.graph.nodes.filter({$0 is BranchCompilerNode}) {
         var branchNode = node as! BranchCompilerNode
         for branch in branchNode.branches {
@@ -214,22 +286,10 @@ public func decomposeGraph(input: JelloCompilerInput) {
     }
 }
 
-
-
-public func compileToSpirv(input: JelloCompilerInput) throws -> (vertex: [UInt32]?, fragment: [UInt32]?) {
-    labelBranches(input: input)
-    pruneGraph(input: input)
-    topologicallyOrderGraph(input: input)
-    try concretiseTypesInGraph(input: input)
+public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: () -> ()) throws -> JelloCompilerOutputStage {
+    let vertex: [UInt32] = defaultVertexShader
     let nodes = input.graph.nodes
-    decomposeGraph(input: input)
-    
-    let vertex: [UInt32]? = defaultVertexShader
-    
-    for outputPort in nodes.flatMap({$0.outputPorts}) {
-        outputPort.clearReservation()
-    }
-    
+    var inputComputeTextures: [JelloIOTexture] = []
     let fragment = #document({
         let fragmentEntryPoint = #id
         JelloCompilerBlackboard.fragOutputColorId = #id
@@ -342,25 +402,46 @@ public func compileToSpirv(input: JelloCompilerInput) throws -> (vertex: [UInt32
         #annotation(opCode: SpirvOpDecorate, [normalInId, SpirvDecorationLocation.rawValue, 4])
         
         for node in nodes {
-            node.install()
+            node.install(input: input)
         }
         let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
+        
+        inputComputeTextures = JelloCompilerBlackboard.inputComputeTextures
+        
         #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [JelloCompilerBlackboard.fragOutputColorId, JelloCompilerBlackboard.frameDataId, worldPosInId, texCoordInId, tangentInId, bitangentInId, normalInId])
         let typeFragmentFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
         #functionHead(opCode: SpirvOpFunction, [typeVoid, fragmentEntryPoint, 0, typeFragmentFunction])
         #functionHead(opCode: SpirvOpLabel, [#id])
         for node in input.graph.nodes {
-            node.write()
+            node.write(input: input)
         }
+        outputBody()
         #functionBody(opCode: SpirvOpReturn)
         #functionBody(opCode: SpirvOpFunctionEnd)
         SpirvFunction.instance.writeFunction()
         JelloCompilerBlackboard.clear()
     })
-   
     
-    return (vertex: vertex, fragment: fragment)
+    for outputPort in nodes.flatMap({$0.outputPorts}) {
+        outputPort.clearReservation()
+    }
+    
+    return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: .modelDependant, shaders: [.vertex(vertex, []), .fragment(fragment, inputComputeTextures)])
 }
 
 
-
+public func compileToSpirv(input: JelloCompilerInput) throws -> JelloCompilerOutput {
+    labelSubgraphs(input: input)
+    pruneGraph(input: input)
+    topologicallyOrderGraph(input: input)
+    labelComputationDomains(input: input)
+    try concretiseTypesInGraph(input: input)
+    let inputs = decomposeSubgraphs(input: input)
+    var stages: [JelloCompilerOutputStage] = []
+    for input in inputs {
+        labelBranches(input: input)
+        decomposeBranches(input: input)
+        stages.append(try input.output.node.build(input: input))
+    }
+    return JelloCompilerOutput(stages: stages)
+}
