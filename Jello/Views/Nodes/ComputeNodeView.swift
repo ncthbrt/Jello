@@ -8,19 +8,23 @@
 import Foundation
 import SwiftUI
 import SwiftData
-
+import JelloCompilerStatic
 
 
 struct ComputeNodeView : View {
     private var node: JelloNode
     private var drawBounds: (inout Path) -> ()
     @Query private var nodeData: [JelloNodeData]
-    
+    @Query private var inputPorts: [JelloInputPort]
+    @Query private var outputPorts: [JelloOutputPort]
+
     init(node: JelloNode, drawBounds:  @escaping (inout Path) -> ()) {
         self.node = node
         self.drawBounds = drawBounds
         let nodeId = node.uuid
         self._nodeData = Query(filter: #Predicate<JelloNodeData> { data in data.node?.uuid == nodeId })
+        self._inputPorts = Query(filter: #Predicate<JelloInputPort> { data in data.node?.uuid == nodeId })
+        self._outputPorts = Query(filter: #Predicate<JelloOutputPort> { data in data.node?.uuid == nodeId })
     }
     
     private let resolutionList: [Int] = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096]
@@ -57,6 +61,10 @@ struct ComputeNodeView : View {
                     let sliderHeight: Float = Float(80 * (Float(Float(value) + Float(1.0))))
                     let nodeHeight: Float = Float(JelloNode.headerHeight) + sliderHeight + Float(JelloNode.padding * 2)
                     node.size = .init(width: node.size.width, height: CGFloat(nodeHeight))
+                    
+                    let outputPort = outputPorts.first!
+                    outputPort.baseDataType = value == 2 ? .anyTexture_3d : (value == 1 ? .anyTexture_2d : .anyTexture_1d)
+                    outputPort.currentDataType = outputPort.baseDataType
                 })).frame(width: 200, height: 30).padding(5)
                 Spacer(minLength: 20)
                 Picker(selection: .init(get: { resolutionList.firstIndex(of: x) ?? 0 }, set: {

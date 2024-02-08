@@ -89,7 +89,7 @@ class JelloCompilerBridge {
             }
             return nil
         case .builtIn(.sample):
-            return SampleCompilerNode(id: jelloNode.uuid, fieldInputPort: compilerInputPorts[0], positionInputPort: compilerInputPorts[1], outputPort: compilerOutputPorts[0])
+            return SampleCompilerNode(id: jelloNode.uuid, fieldInputPort: compilerInputPorts[0], positionInputPort: compilerInputPorts[1], lodInputPort: compilerInputPorts.count > 2 ? compilerInputPorts[2] : nil, outputPort: compilerOutputPorts[0])
         case .builtIn(.color):
             let value = jelloNodeData[JelloNodeDataKey.value.rawValue] ?? .null
             if case JelloNodeDataValue.float4(let h, let s, let b, let a) = value {

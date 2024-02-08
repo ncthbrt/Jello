@@ -38,9 +38,13 @@ public protocol HasDimensionality {
     var dimensionality: Dimensionality? {get}
 }
 
+public protocol HasRanking {
+    var rank: Int {get}
+}
+
 public protocol PortConstraint {
     var ports: Set<UUID> {get}
-    func apply<Value: Equatable & HasCompositeSize & HasDimensionality>(assignments: inout [UUID: Value], domains: inout [UUID: [Value]], port: UUID, type: Value) -> ConstraintApplicationResult
+    func apply<Value: Hashable & Equatable & HasCompositeSize & HasDimensionality & HasRanking>(assignments: inout [UUID: Value], domains: inout [UUID: [Value]]) -> ConstraintApplicationResult
 }
 
 
@@ -50,26 +54,50 @@ public class SameTypesConstraint: PortConstraint {
         self.ports = ports
     }
     
-    public func apply<T: Equatable & HasCompositeSize>(assignments: inout [UUID: T], domains: inout [UUID: [T]], port: UUID, type: T) -> ConstraintApplicationResult {
-        var changed: [UUID] = []
-        for p in ports {
-            let a = assignments[p]
-            if a == nil {
-                let domain = domains[p] ?? []
-                if !domain.contains(where: {$0 == type}) {
-                    return .contradiction
+    public func apply<T: Hashable & Equatable & HasRanking>(assignments: inout [UUID: T], domains: inout [UUID: [T]]) -> ConstraintApplicationResult {
+        let thisAssignments = ports.map({ assignments[$0] }).filter({ $0 != nil }).map({$0!})
+        if let assignment = thisAssignments.first {
+            if thisAssignments.contains(where: { $0 != assignment }) {
+                return .contradiction
+            } else {
+                var changed: [UUID] = []
+                for p in ports {
+                    if !(domains[p] ?? []).contains(assignment) {
+                        return .contradiction
+                    }
+                    if assignments[p] != assignment {
+                        changed.append(p)
+                        assignments[p] = assignment
+                        domains[p] = [assignment]
+                    }
                 }
-                changed.append(port)
-                assignments[p] = type
+                if !changed.isEmpty {
+                    return .dirty(changed)
+                }
+                return .unchanged
             }
-            else if a != type {
+        } else {
+            var changed: [UUID] = []
+            let theseDomains: [Set<T>] = ports.map({ Set<T>(domains[$0] ?? []) })
+            let commonDomains: [T] = Array<T>(theseDomains.reduce(Set<T>(), { prev, set in prev.intersection(set) }).sorted(by: { a, b in a.rank < b.rank }))
+            if commonDomains.isEmpty {
                 return .contradiction
             }
+            
+            for p in ports {
+                if commonDomains.count != (domains[p]?.count ?? 0) {
+                    domains[p] = Array(commonDomains)
+                    changed.append(p)
+                    if commonDomains.count == 1 {
+                        assignments[p] = commonDomains[0]
+                    }
+                }
+            }
+            if !changed.isEmpty {
+                return .dirty(changed)
+            }
+            return .unchanged
         }
-        if !changed.isEmpty {
-            return .dirty(changed)
-        }
-        return .unchanged
     }
 }
 
@@ -79,35 +107,52 @@ public class SameCompositeSizeConstraint: PortConstraint {
         self.ports = ports
     }
     
-    public func apply<T: Equatable & HasCompositeSize & HasDimensionality>(assignments: inout [UUID: T], domains: inout [UUID: [T]], port: UUID, type: T) -> ConstraintApplicationResult {
-        var changed: [UUID] = []
-        if let thisCompositeSize = type.compositeSize {
+    public func apply<T: Equatable & HasCompositeSize>(assignments: inout [UUID: T], domains: inout [UUID: [T]]) -> ConstraintApplicationResult {
+        if let assignedCompositeSize = ports.map({ assignments[$0] }).map({$0?.compositeSize}).filter({ $0 != nil }).first {
+            var changed: [UUID] = []
             for p in ports {
-                if let a = assignments[p] {
-                    if a.compositeSize != thisCompositeSize {
-                        return .contradiction
+                let oldDomains = (domains[p] ?? [])
+                let newDomains = oldDomains.filter({ $0.compositeSize == assignedCompositeSize })
+                if newDomains.count == 0 {
+                    return .contradiction
+                }
+                if newDomains.count != oldDomains.count {
+                    changed.append(p)
+                    if newDomains.count == 1 {
+                        assignments[p] = newDomains[0]
                     }
-                } else {
-                    let domain = (domains[p] ?? []).filter({$0.compositeSize == thisCompositeSize})
-                    domains[p] = domain
-                    if domain.isEmpty {
-                        return .contradiction
-                    } else if domain.count == 1, let a = domain.first {
-                        assignments[p] = a
-                        changed.append(p)
+                    domains[p] = newDomains
+                }
+            }
+            if changed.isEmpty {
+                return .unchanged
+            }
+            return .dirty(changed)
+        } else {
+            var changed: [UUID] = []
+            let theseCompositeSizes: Set<CompositeSize?> = Set<CompositeSize?>(ports.flatMap({ domains[$0] ?? [] }).map({$0.compositeSize}))
+            for p in ports {
+                let oldDomains = (domains[p] ?? [])
+                let newDomains = oldDomains.filter({ theseCompositeSizes.contains($0.compositeSize) })
+                if newDomains.count == 0 {
+                    return .contradiction
+                }
+                if newDomains.count != oldDomains.count {
+                    changed.append(p)
+                    domains[p] = newDomains
+                    if newDomains.count == 1 {
+                        assignments[p] = newDomains[0]
                     }
                 }
             }
-        }
-        
-        
-        if !changed.isEmpty {
+            
+            if changed.isEmpty {
+                return .unchanged
+            }
             return .dirty(changed)
         }
-        return .unchanged
     }
 }
-
 
 
 public class SameDimensionalityConstraint: PortConstraint {
@@ -116,34 +161,53 @@ public class SameDimensionalityConstraint: PortConstraint {
         self.ports = ports
     }
     
-    public func apply<T: Equatable & HasDimensionality & HasCompositeSize>(assignments: inout [UUID: T], domains: inout [UUID: [T]], port: UUID, type: T) -> ConstraintApplicationResult {
-        var changed: [UUID] = []
-        if let thisDimensionality = type.dimensionality {
+    public func apply<T: Equatable & HasDimensionality>(assignments: inout [UUID: T], domains: inout [UUID: [T]]) -> ConstraintApplicationResult {
+        if let assignedCompositeSize = ports.map({ assignments[$0] }).map({$0?.dimensionality}).filter({ $0 != nil }).first {
+            var changed: [UUID] = []
             for p in ports {
-                if let a = assignments[p] {
-                    if a.dimensionality != thisDimensionality {
-                        return .contradiction
+                let oldDomains = (domains[p] ?? [])
+                let newDomains = oldDomains.filter({ $0.dimensionality == assignedCompositeSize })
+                if newDomains.count == 0 {
+                    return .contradiction
+                }
+                if newDomains.count != oldDomains.count {
+                    changed.append(p)
+                    if newDomains.count == 1 {
+                        assignments[p] = newDomains[0]
                     }
-                } else {
-                    let domain = (domains[p] ?? []).filter({$0.dimensionality == thisDimensionality})
-                    domains[p] = domain
-                    if domain.isEmpty {
-                        return .contradiction
-                    } else if domain.count == 1, let a = domain.first {
-                        assignments[p] = a
-                        changed.append(p)
+                    domains[p] = newDomains
+                }
+            }
+            if changed.isEmpty {
+                return .unchanged
+            }
+            return .dirty(changed)
+        } else {
+            var changed: [UUID] = []
+            let theseCompositeSizes: Set<Dimensionality?> = Set<Dimensionality?>(ports.flatMap({ domains[$0] ?? [] }).map({$0.dimensionality}))
+            for p in ports {
+                let oldDomains = (domains[p] ?? [])
+                let newDomains = oldDomains.filter({ theseCompositeSizes.contains($0.dimensionality) })
+                if newDomains.count == 0 {
+                    return .contradiction
+                }
+                if newDomains.count != oldDomains.count {
+                    changed.append(p)
+                    domains[p] = newDomains
+                    if newDomains.count == 1 {
+                        assignments[p] = newDomains[0]
                     }
                 }
             }
-        }
-        
-        
-        if !changed.isEmpty {
+            
+            if changed.isEmpty {
+                return .unchanged
+            }
             return .dirty(changed)
         }
-        return .unchanged
     }
 }
+
 
 
 public enum JelloTextureDataType: Int, Codable, CaseIterable, Equatable {
@@ -154,7 +218,7 @@ public enum JelloTextureDataType: Int, Codable, CaseIterable, Equatable {
     case int = 4
 }
 
-public enum JelloConcreteDataType: Int, Codable, Equatable, CaseIterable, HasCompositeSize, HasDimensionality {
+public enum JelloConcreteDataType: Int, Codable, Equatable, CaseIterable, HasCompositeSize, HasDimensionality, HasRanking {
     case float = 0
     case float2 = 1
     case float3 = 2
@@ -177,20 +241,20 @@ public enum JelloConcreteDataType: Int, Codable, Equatable, CaseIterable, HasCom
     case texture3d_float3 = 302
     case texture3d_float4 = 303
 
-    case proceduralTexture1d_float = 400
-    case proceduralTexture1d_float2 = 401
-    case proceduralTexture1d_float3 = 402
-    case proceduralTexture1d_float4 = 403
+    case proceduralField1d_float = 400
+    case proceduralField1d_float2 = 401
+    case proceduralField1d_float3 = 402
+    case proceduralField1d_float4 = 403
     
-    case proceduralTexture2d_float = 500
-    case proceduralTexture2d_float2 = 501
-    case proceduralTexture2d_float3 = 502
-    case proceduralTexture2d_float4 = 503
+    case proceduralField2d_float = 500
+    case proceduralField2d_float2 = 501
+    case proceduralField2d_float3 = 502
+    case proceduralField2d_float4 = 503
     
-    case proceduralTexture3d_float = 600
-    case proceduralTexture3d_float2 = 601
-    case proceduralTexture3d_float3 = 602
-    case proceduralTexture3d_float4 = 603
+    case proceduralField3d_float = 600
+    case proceduralField3d_float2 = 601
+    case proceduralField3d_float3 = 602
+    case proceduralField3d_float4 = 603
     
     case slabMaterial = 1000
     
@@ -232,29 +296,29 @@ public enum JelloConcreteDataType: Int, Codable, Equatable, CaseIterable, HasCom
             return .s3
         case .texture3d_float4:
             return .s4
-        case .proceduralTexture1d_float:
+        case .proceduralField1d_float:
             return .s1
-        case .proceduralTexture1d_float2:
+        case .proceduralField1d_float2:
             return .s2
-        case .proceduralTexture1d_float3:
+        case .proceduralField1d_float3:
             return .s3
-        case .proceduralTexture1d_float4:
+        case .proceduralField1d_float4:
             return .s4
-        case .proceduralTexture2d_float:
+        case .proceduralField2d_float:
             return .s1
-        case .proceduralTexture2d_float2:
+        case .proceduralField2d_float2:
             return .s2
-        case .proceduralTexture2d_float3:
+        case .proceduralField2d_float3:
             return .s3
-        case .proceduralTexture2d_float4:
+        case .proceduralField2d_float4:
             return .s4
-        case .proceduralTexture3d_float:
+        case .proceduralField3d_float:
             return .s1
-        case .proceduralTexture3d_float2:
+        case .proceduralField3d_float2:
             return .s2
-        case .proceduralTexture3d_float3:
+        case .proceduralField3d_float3:
             return .s3
-        case .proceduralTexture3d_float4:
+        case .proceduralField3d_float4:
             return .s4
         case .slabMaterial:
             return nil
@@ -299,34 +363,36 @@ public enum JelloConcreteDataType: Int, Codable, Equatable, CaseIterable, HasCom
             return .d3
         case .texture3d_float4:
             return .d3
-        case .proceduralTexture1d_float:
+        case .proceduralField1d_float:
             return .d1
-        case .proceduralTexture1d_float2:
+        case .proceduralField1d_float2:
             return .d1
-        case .proceduralTexture1d_float3:
+        case .proceduralField1d_float3:
             return .d1
-        case .proceduralTexture1d_float4:
+        case .proceduralField1d_float4:
             return .d1
-        case .proceduralTexture2d_float:
+        case .proceduralField2d_float:
             return .d2
-        case .proceduralTexture2d_float2:
+        case .proceduralField2d_float2:
             return .d2
-        case .proceduralTexture2d_float3:
+        case .proceduralField2d_float3:
             return .d2
-        case .proceduralTexture2d_float4:
+        case .proceduralField2d_float4:
             return .d2
-        case .proceduralTexture3d_float:
+        case .proceduralField3d_float:
             return .d3
-        case .proceduralTexture3d_float2:
+        case .proceduralField3d_float2:
             return .d3
-        case .proceduralTexture3d_float3:
+        case .proceduralField3d_float3:
             return .d3
-        case .proceduralTexture3d_float4:
+        case .proceduralField3d_float4:
             return .d3
         case .slabMaterial:
             return nil
         }
     }
+    
+    public var rank: Int { 1 }
 }
 
 public enum JelloConstantValue: Codable, Equatable {
@@ -339,7 +405,7 @@ public enum JelloConstantValue: Codable, Equatable {
 }
 
 
-public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompositeSize, HasDimensionality {
+public enum JelloGraphDataType: Int, Codable, Equatable, HasCompositeSize, HasDimensionality, HasRanking {
     case any = 0
     case anyFloat = 1
     case float4 = 2
@@ -348,9 +414,12 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompos
     case float = 5
     case int = 6
     case bool = 7
-    case anyTexture = 8
+    case anyField = 8
     case anyMaterial = 30
     case slabMaterial = 31    
+    
+    
+    
     
     case texture1d_float = 100
     case texture1d_float2 = 101
@@ -367,38 +436,52 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompos
     case texture3d_float3 = 302
     case texture3d_float4 = 303
 
-    case proceduralTexture1d_float = 400
-    case proceduralTexture1d_float2 = 401
-    case proceduralTexture1d_float3 = 402
-    case proceduralTexture1d_float4 = 403
+    case proceduralField1d_float = 400
+    case proceduralField1d_float2 = 401
+    case proceduralField1d_float3 = 402
+    case proceduralField1d_float4 = 403
     
-    case proceduralTexture2d_float = 500
-    case proceduralTexture2d_float2 = 501
-    case proceduralTexture2d_float3 = 502
-    case proceduralTexture2d_float4 = 503
+    case proceduralField2d_float = 500
+    case proceduralField2d_float2 = 501
+    case proceduralField2d_float3 = 502
+    case proceduralField2d_float4 = 503
     
-    case proceduralTexture3d_float = 600
-    case proceduralTexture3d_float2 = 601
-    case proceduralTexture3d_float3 = 602
-    case proceduralTexture3d_float4 = 603
+    case proceduralField3d_float = 600
+    case proceduralField3d_float2 = 601
+    case proceduralField3d_float3 = 602
+    case proceduralField3d_float4 = 603
     
-    case anyTexture_float = 700
-    case anyTexture_float2 = 701
-    case anyTexture_float3 = 702
-    case anyTexture_float4 = 703
+    case anyField_float = 700
+    case anyField_float2 = 701
+    case anyField_float3 = 702
+    case anyField_float4 = 703
     
-    case anyTexture_1d = 800
-    case anyTexture_2d = 801
-    case anyTexture_3d = 802
+    case anyField_1d = 800
+    case anyField_2d = 801
+    case anyField_3d = 802
     
-    case anyProceduralTexture_float = 900
-    case anyProceduralTexture_float2 = 901
-    case anyProceduralTexture_float3 = 902
-    case anyProceduralTexture_float4 = 903
+    case anyProceduralField = 900
     
-    case anyProceduralTexture_1d = 1000
-    case anyProceduralTexture_2d = 1001
-    case anyProceduralTexture_3d = 1002
+    case anyProceduralField_float = 901
+    case anyProceduralField_float2 = 902
+    case anyProceduralField_float3 = 903
+    case anyProceduralField_float4 = 904
+    
+    case anyProceduralField_1d = 1000
+    case anyProceduralField_2d = 1001
+    case anyProceduralField_3d = 1002
+    
+    case anyTexture = 1100
+    
+    case anyTexture_float = 1101
+    case anyTexture_float2 = 1102
+    case anyTexture_float3 = 1103
+    case anyTexture_float4 = 1104
+    
+    case anyTexture_1d = 1200
+    case anyTexture_2d = 1201
+    case anyTexture_3d = 1202
+
     
     public var compositeSize: CompositeSize? {
         switch self {
@@ -438,29 +521,29 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompos
             return .s3
         case .texture3d_float4:
             return .s4
-        case .proceduralTexture1d_float:
+        case .proceduralField1d_float:
             return .s1
-        case .proceduralTexture1d_float2:
+        case .proceduralField1d_float2:
             return .s2
-        case .proceduralTexture1d_float3:
+        case .proceduralField1d_float3:
             return .s3
-        case .proceduralTexture1d_float4:
+        case .proceduralField1d_float4:
             return .s4
-        case .proceduralTexture2d_float:
+        case .proceduralField2d_float:
             return .s1
-        case .proceduralTexture2d_float2:
+        case .proceduralField2d_float2:
             return .s2
-        case .proceduralTexture2d_float3:
+        case .proceduralField2d_float3:
             return .s3
-        case .proceduralTexture2d_float4:
+        case .proceduralField2d_float4:
             return .s4
-        case .proceduralTexture3d_float:
+        case .proceduralField3d_float:
             return .s1
-        case .proceduralTexture3d_float2:
+        case .proceduralField3d_float2:
             return .s2
-        case .proceduralTexture3d_float3:
+        case .proceduralField3d_float3:
             return .s3
-        case .proceduralTexture3d_float4:
+        case .proceduralField3d_float4:
             return .s4
         case .slabMaterial:
             return nil
@@ -468,9 +551,39 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompos
             return nil
         case .anyFloat:
             return nil
-        case .anyTexture:
+        case .anyField:
             return nil
         case .anyMaterial:
+            return nil
+        case .anyField_float:
+            return .s1
+        case .anyField_float2:
+            return .s2
+        case .anyField_float3:
+            return .s3
+        case .anyField_float4:
+            return .s4
+        case .anyField_1d:
+            return nil
+        case .anyField_2d:
+            return nil
+        case .anyField_3d:
+            return nil
+        case .anyProceduralField_float:
+            return .s1
+        case .anyProceduralField_float2:
+            return .s2
+        case .anyProceduralField_float3:
+            return .s3
+        case .anyProceduralField_float4:
+            return .s4
+        case .anyProceduralField_1d:
+            return nil
+        case .anyProceduralField_2d:
+            return nil
+        case .anyProceduralField_3d:
+            return nil
+        case .anyTexture:
             return nil
         case .anyTexture_float:
             return .s1
@@ -486,19 +599,7 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompos
             return nil
         case .anyTexture_3d:
             return nil
-        case .anyProceduralTexture_float:
-            return .s1
-        case .anyProceduralTexture_float2:
-            return .s2
-        case .anyProceduralTexture_float3:
-            return .s3
-        case .anyProceduralTexture_float4:
-            return .s4
-        case .anyProceduralTexture_1d:
-            return nil
-        case .anyProceduralTexture_2d:
-            return nil
-        case .anyProceduralTexture_3d:
+        case .anyProceduralField:
             return nil
         }
     }
@@ -541,29 +642,29 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompos
             return .d3
         case .texture3d_float4:
             return .d3
-        case .proceduralTexture1d_float:
+        case .proceduralField1d_float:
             return .d1
-        case .proceduralTexture1d_float2:
+        case .proceduralField1d_float2:
             return .d1
-        case .proceduralTexture1d_float3:
+        case .proceduralField1d_float3:
             return .d1
-        case .proceduralTexture1d_float4:
+        case .proceduralField1d_float4:
             return .d1
-        case .proceduralTexture2d_float:
+        case .proceduralField2d_float:
             return .d2
-        case .proceduralTexture2d_float2:
+        case .proceduralField2d_float2:
             return .d2
-        case .proceduralTexture2d_float3:
+        case .proceduralField2d_float3:
             return .d2
-        case .proceduralTexture2d_float4:
+        case .proceduralField2d_float4:
             return .d2
-        case .proceduralTexture3d_float:
+        case .proceduralField3d_float:
             return .d3
-        case .proceduralTexture3d_float2:
+        case .proceduralField3d_float2:
             return .d3
-        case .proceduralTexture3d_float3:
+        case .proceduralField3d_float3:
             return .d3
-        case .proceduralTexture3d_float4:
+        case .proceduralField3d_float4:
             return .d3
         case .slabMaterial:
             return nil
@@ -571,9 +672,39 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompos
             return nil
         case .anyFloat:
             return nil
-        case .anyTexture:
+        case .anyField:
             return nil
         case .anyMaterial:
+            return nil
+        case .anyField_float:
+            return nil
+        case .anyField_float2:
+            return nil
+        case .anyField_float3:
+            return nil
+        case .anyField_float4:
+            return nil
+        case .anyField_1d:
+            return .d1
+        case .anyField_2d:
+            return .d2
+        case .anyField_3d:
+            return .d3
+        case .anyProceduralField_float:
+            return nil
+        case .anyProceduralField_float2:
+            return nil
+        case .anyProceduralField_float3:
+            return nil
+        case .anyProceduralField_float4:
+            return nil
+        case .anyProceduralField_1d:
+            return .d1
+        case .anyProceduralField_2d:
+            return .d2
+        case .anyProceduralField_3d:
+            return .d3
+        case .anyTexture:
             return nil
         case .anyTexture_float:
             return nil
@@ -589,20 +720,33 @@ public enum JelloGraphDataType: Int, Codable, CaseIterable, Equatable, HasCompos
             return .d2
         case .anyTexture_3d:
             return .d3
-        case .anyProceduralTexture_float:
+        case .anyProceduralField:
             return nil
-        case .anyProceduralTexture_float2:
-            return nil
-        case .anyProceduralTexture_float3:
-            return nil
-        case .anyProceduralTexture_float4:
-            return nil
-        case .anyProceduralTexture_1d:
-            return .d1
-        case .anyProceduralTexture_2d:
-            return .d2
-        case .anyProceduralTexture_3d:
-            return .d3
+        }
+    }
+    
+    public var rank: Int {
+        switch self {
+        case .any:
+            return 1
+        case .anyFloat, .anyField, .anyMaterial:
+            return 2
+        case .anyField_float, .anyField_float2, .anyField_float3, .anyField_float4:
+            return 3
+        case .anyField_1d, .anyField_2d, .anyField_3d:
+            return 3
+        case .anyTexture, .anyProceduralField:
+            return 3
+        case .anyTexture_float, .anyTexture_float2, .anyTexture_float3, .anyTexture_float4:
+            return 4
+        case .anyTexture_1d, .anyTexture_2d, .anyTexture_3d:
+            return 4
+        case .anyProceduralField_float, .anyProceduralField_float2, .anyProceduralField_float3, .anyProceduralField_float4:
+            return 4
+        case .anyProceduralField_1d, .anyProceduralField_2d, .anyProceduralField_3d:
+            return 4
+        default:
+            return 5
         }
     }
 }
@@ -615,7 +759,7 @@ public func getDomain(input: JelloGraphDataType) -> [JelloConcreteDataType] {
         return [.float, .float2, .float3, .float4]
     case .anyMaterial:
         return [.slabMaterial]
-    case .anyTexture:
+    case .anyField:
         return [
             .texture1d_float,
             .texture1d_float2,
@@ -632,20 +776,20 @@ public func getDomain(input: JelloGraphDataType) -> [JelloConcreteDataType] {
             .texture3d_float3,
             .texture3d_float4,
             
-            .proceduralTexture1d_float,
-            .proceduralTexture1d_float2,
-            .proceduralTexture1d_float3,
-            .proceduralTexture1d_float4,
+            .proceduralField1d_float,
+            .proceduralField1d_float2,
+            .proceduralField1d_float3,
+            .proceduralField1d_float4,
             
-            .proceduralTexture2d_float,
-            .proceduralTexture2d_float2,
-            .proceduralTexture2d_float3,
-            .proceduralTexture2d_float4,
+            .proceduralField2d_float,
+            .proceduralField2d_float2,
+            .proceduralField2d_float3,
+            .proceduralField2d_float4,
             
-            .proceduralTexture3d_float,
-            .proceduralTexture3d_float2,
-            .proceduralTexture3d_float3,
-            .proceduralTexture3d_float4
+            .proceduralField3d_float,
+            .proceduralField3d_float2,
+            .proceduralField3d_float3,
+            .proceduralField3d_float4
         ]
     case .int:
         return [.int]
@@ -686,63 +830,129 @@ public func getDomain(input: JelloGraphDataType) -> [JelloConcreteDataType] {
     case .texture3d_float4:
         return [.texture3d_float4]
         
-    case .proceduralTexture1d_float:
-        return [.proceduralTexture1d_float]
-    case .proceduralTexture1d_float2:
-        return [.proceduralTexture1d_float2]
-    case .proceduralTexture1d_float3:
-        return [.proceduralTexture1d_float3]
-    case .proceduralTexture1d_float4:
-        return [.proceduralTexture1d_float4]
+    case .proceduralField1d_float:
+        return [.proceduralField1d_float]
+    case .proceduralField1d_float2:
+        return [.proceduralField1d_float2]
+    case .proceduralField1d_float3:
+        return [.proceduralField1d_float3]
+    case .proceduralField1d_float4:
+        return [.proceduralField1d_float4]
         
-    case .proceduralTexture2d_float:
-        return [.proceduralTexture2d_float]
-    case .proceduralTexture2d_float2:
-        return [.proceduralTexture2d_float2]
-    case .proceduralTexture2d_float3:
-        return [.proceduralTexture2d_float3]
-    case .proceduralTexture2d_float4:
-        return [.proceduralTexture2d_float4]
+    case .proceduralField2d_float:
+        return [.proceduralField2d_float]
+    case .proceduralField2d_float2:
+        return [.proceduralField2d_float2]
+    case .proceduralField2d_float3:
+        return [.proceduralField2d_float3]
+    case .proceduralField2d_float4:
+        return [.proceduralField2d_float4]
         
-    case .proceduralTexture3d_float:
-        return [.proceduralTexture3d_float]
-    case .proceduralTexture3d_float2:
-        return [.proceduralTexture3d_float2]
-    case .proceduralTexture3d_float3:
-        return [.proceduralTexture3d_float3]
-    case .proceduralTexture3d_float4:
-        return [.proceduralTexture3d_float4]
+    case .proceduralField3d_float:
+        return [.proceduralField3d_float]
+    case .proceduralField3d_float2:
+        return [.proceduralField3d_float2]
+    case .proceduralField3d_float3:
+        return [.proceduralField3d_float3]
+    case .proceduralField3d_float4:
+        return [.proceduralField3d_float4]
     case .slabMaterial:
         return [.slabMaterial]
+    case .anyProceduralField:
+        return [
+            .proceduralField1d_float,
+            .proceduralField1d_float2,
+            .proceduralField1d_float3,
+            .proceduralField1d_float4,
+            
+            .proceduralField2d_float,
+            .proceduralField2d_float2,
+            .proceduralField2d_float3,
+            .proceduralField2d_float4,
+            
+            .proceduralField3d_float,
+            .proceduralField3d_float2,
+            .proceduralField3d_float3,
+            .proceduralField3d_float4
+        ]
+    case .anyField_float:
+        return [.proceduralField1d_float, .proceduralField2d_float, .proceduralField3d_float, .texture1d_float, .texture2d_float, .texture3d_float]
+    case .anyField_float2:
+        return [.proceduralField1d_float2, .proceduralField2d_float2, .proceduralField3d_float2, .texture1d_float2, .texture2d_float2, .texture3d_float2]
+    case .anyField_float3:
+        return [.proceduralField1d_float3, .proceduralField2d_float3, .proceduralField3d_float3, .texture1d_float3, .texture2d_float3, .texture3d_float3]
+    case .anyField_float4:
+        return [.proceduralField1d_float4, .proceduralField2d_float4, .proceduralField3d_float4, .texture1d_float4, .texture2d_float4, .texture3d_float4]
+    case .anyField_1d:
+        return [.proceduralField1d_float, .proceduralField1d_float2, .proceduralField1d_float3, .proceduralField1d_float4, .texture1d_float, .texture1d_float2, .texture1d_float3, .texture1d_float4]
+    case .anyField_2d:
+        return [.proceduralField2d_float, .proceduralField2d_float2, .proceduralField2d_float3, .proceduralField2d_float4, .texture2d_float, .texture2d_float2, .texture2d_float3, .texture2d_float4]
+    case .anyField_3d:
+        return [.proceduralField3d_float, .proceduralField3d_float2, .proceduralField3d_float3, .proceduralField3d_float4, .texture3d_float, .texture3d_float2, .texture3d_float3, .texture3d_float4]
+    case .anyProceduralField_float:
+        return [.proceduralField1d_float, .proceduralField2d_float, .proceduralField3d_float]
+    case .anyProceduralField_float2:
+        return [.proceduralField1d_float2, .proceduralField2d_float2, .proceduralField3d_float2]
+    case .anyProceduralField_float3:
+        return [.proceduralField1d_float3, .proceduralField2d_float3, .proceduralField3d_float3]
+    case .anyProceduralField_float4:
+        return [.proceduralField1d_float4, .proceduralField2d_float4, .proceduralField3d_float4]
+    case .anyProceduralField_1d:
+        return [.proceduralField1d_float, .proceduralField1d_float2, .proceduralField1d_float3, .proceduralField1d_float4]
+    case .anyProceduralField_2d:
+        return [.proceduralField2d_float, .proceduralField2d_float2, .proceduralField2d_float3, .proceduralField2d_float4]
+    case .anyProceduralField_3d:
+        return [.proceduralField3d_float, .proceduralField3d_float2, .proceduralField3d_float3, .proceduralField3d_float4]
+    case .anyTexture:
+         return [
+            .texture1d_float,
+            .texture1d_float2,
+            .texture1d_float3,
+            .texture1d_float4,
+            
+            .texture2d_float,
+            .texture2d_float2,
+            .texture2d_float3,
+            .texture2d_float4,
+            
+            .texture3d_float,
+            .texture3d_float2,
+            .texture3d_float3,
+            .texture3d_float4
+        ]
     case .anyTexture_float:
-        return [.proceduralTexture1d_float, .proceduralTexture2d_float, .proceduralTexture3d_float, .texture1d_float, .texture2d_float, .texture3d_float]
+        return [
+           .texture1d_float,
+           .texture2d_float,
+           .texture3d_float,
+       ]
     case .anyTexture_float2:
-        return [.proceduralTexture1d_float2, .proceduralTexture2d_float2, .proceduralTexture3d_float2, .texture1d_float2, .texture2d_float2, .texture3d_float2]
+        return [
+           .texture1d_float2,
+           .texture2d_float2,
+           .texture3d_float2,
+       ]
     case .anyTexture_float3:
-        return [.proceduralTexture1d_float3, .proceduralTexture2d_float3, .proceduralTexture3d_float3, .texture1d_float3, .texture2d_float3, .texture3d_float3]
+        return [
+           .texture1d_float3,
+           .texture2d_float3,
+           .texture3d_float3,
+       ]
     case .anyTexture_float4:
-        return [.proceduralTexture1d_float4, .proceduralTexture2d_float4, .proceduralTexture3d_float4, .texture1d_float4, .texture2d_float4, .texture3d_float4]
+        return [
+           .texture1d_float4,
+           .texture2d_float4,
+           .texture3d_float4,
+       ]
     case .anyTexture_1d:
-        return [.proceduralTexture1d_float, .proceduralTexture1d_float2, .proceduralTexture1d_float3, .proceduralTexture1d_float4, .texture1d_float, .texture1d_float2, .texture1d_float3, .texture1d_float4]
+        return [.texture1d_float, .texture1d_float2, .texture1d_float3, .texture1d_float4]
     case .anyTexture_2d:
-        return [.proceduralTexture2d_float, .proceduralTexture2d_float2, .proceduralTexture2d_float3, .proceduralTexture2d_float4, .texture2d_float, .texture2d_float2, .texture2d_float3, .texture2d_float4]
+        return [.texture2d_float, .texture2d_float2, .texture2d_float3, .texture2d_float4]
     case .anyTexture_3d:
-        return [.proceduralTexture3d_float, .proceduralTexture3d_float2, .proceduralTexture3d_float3, .proceduralTexture3d_float4, .texture3d_float, .texture3d_float2, .texture3d_float3, .texture3d_float4]
-    case .anyProceduralTexture_float:
-        return [.proceduralTexture1d_float, .proceduralTexture2d_float, .proceduralTexture3d_float]
-    case .anyProceduralTexture_float2:
-        return [.proceduralTexture1d_float2, .proceduralTexture2d_float2, .proceduralTexture3d_float2]
-    case .anyProceduralTexture_float3:
-        return [.proceduralTexture1d_float3, .proceduralTexture2d_float3, .proceduralTexture3d_float3]
-    case .anyProceduralTexture_float4:
-        return [.proceduralTexture1d_float4, .proceduralTexture2d_float4, .proceduralTexture3d_float4]
-    case .anyProceduralTexture_1d:
-        return [.proceduralTexture1d_float, .proceduralTexture1d_float2, .proceduralTexture1d_float3, .proceduralTexture1d_float4]
-    case .anyProceduralTexture_2d:
-        return [.proceduralTexture2d_float, .proceduralTexture2d_float2, .proceduralTexture2d_float3, .proceduralTexture2d_float4]
-    case .anyProceduralTexture_3d:
-        return [.proceduralTexture3d_float, .proceduralTexture3d_float2, .proceduralTexture3d_float3, .proceduralTexture3d_float4]
+        return [.texture3d_float, .texture3d_float2, .texture3d_float3, .texture3d_float4]
     }
+    
+    
 }
 
 

@@ -101,7 +101,7 @@
 		BCE63ADF2B55476500DC3D4B /* UV_Sphere.mtl in Resources */ = {isa = PBXBuildFile; fileRef = BCE63ADD2B55476500DC3D4B /* UV_Sphere.mtl */; };
 		BCE642472B7235850008B2C2 /* ComputeNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE642462B7235850008B2C2 /* ComputeNodeView.swift */; };
 		BCE65EF02B6CBF9200414B2C /* ClampedSplines.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE65EEF2B6CBF9200414B2C /* ClampedSplines.swift */; };
-		BCEAFD172B205E9100D23E1F /* JelloCompilerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEAFD162B205E9100D23E1F /* JelloCompilerService.swift */; };
+		BCEAFD172B205E9100D23E1F /* JelloCompilerBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEAFD162B205E9100D23E1F /* JelloCompilerBridge.swift */; };
 		BCEBEF4B2B35BE6D00C10617 /* JelloGoodBadSpirvFileGeneratorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9BBFCA2AEFDE3E00FC068C /* JelloGoodBadSpirvFileGeneratorTest.swift */; };
 		BCEBEF4C2B35BE6D00C10617 /* JelloGraphProcessingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC3DD0042B356C7D00F27E8D /* JelloGraphProcessingTests.swift */; };
 		BCEE1C6F2AFE2DE40012F619 /* GraphLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEE1C6E2AFE2DE40012F619 /* GraphLayout.swift */; };
@@ -243,7 +243,7 @@
 		BCE63ADD2B55476500DC3D4B /* UV_Sphere.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = UV_Sphere.mtl; sourceTree = "<group>"; };
 		BCE642462B7235850008B2C2 /* ComputeNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputeNodeView.swift; sourceTree = "<group>"; };
 		BCE65EEF2B6CBF9200414B2C /* ClampedSplines.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClampedSplines.swift; sourceTree = "<group>"; };
-		BCEAFD162B205E9100D23E1F /* JelloCompilerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerService.swift; sourceTree = "<group>"; };
+		BCEAFD162B205E9100D23E1F /* JelloCompilerBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerBridge.swift; sourceTree = "<group>"; };
 		BCEAFD1C2B21A36700D23E1F /* JelloBridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JelloBridgingHeader.h; sourceTree = "<group>"; };
 		BCEBEF422B35BE6900C10617 /* JelloCompilerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JelloCompilerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BCEE1C6E2AFE2DE40012F619 /* GraphLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphLayout.swift; sourceTree = "<group>"; };
@@ -523,7 +523,7 @@
 		BCEAFD182B20621E00D23E1F /* Compiler */ = {
 			isa = PBXGroup;
 			children = (
-				BCEAFD162B205E9100D23E1F /* JelloCompilerService.swift */,
+				BCEAFD162B205E9100D23E1F /* JelloCompilerBridge.swift */,
 			);
 			path = Compiler;
 			sourceTree = "<group>";
@@ -729,7 +729,7 @@
 				BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */,
 				BC8618132B5C315200AF6EE8 /* HSBEffect.metal in Sources */,
 				BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */,
-				BCEAFD172B205E9100D23E1F /* JelloCompilerService.swift in Sources */,
+				BCEAFD172B205E9100D23E1F /* JelloCompilerBridge.swift in Sources */,
 				BCCE161F2B1724C4000370CB /* ArcKnob.swift in Sources */,
 				BC31EB732B039291004401FC /* JelloTypes.swift in Sources */,
 				BCCE160C2B1723F3000370CB /* PlanarGeometry.swift in Sources */,

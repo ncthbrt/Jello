@@ -112,13 +112,11 @@ enum CouldNotConcretiseTypesError: Error {
 
 func propagateConstraintsFromCurrentPort(port start: UUID, assignments: inout [UUID: JelloConcreteDataType], domains: inout [UUID: [JelloConcreteDataType]], constraints: [UUID:[PortConstraint]]) -> Bool {
     var queue = Deque<UUID>([start])
-    var type: JelloConcreteDataType = assignments[start]!
     while !queue.isEmpty {
         let currentPort = queue.popFirst()!
         let constraintsForCurrentPort = constraints[currentPort] ?? []
-        type = assignments[currentPort]!
         for constraint in constraintsForCurrentPort {
-            switch constraint.apply(assignments: &assignments, domains: &domains, port: currentPort, type: type) {
+            switch constraint.apply(assignments: &assignments, domains: &domains) {
             case .contradiction:
                 return false
             case .dirty(let dirtyPorts):

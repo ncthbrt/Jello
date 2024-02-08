@@ -39,88 +39,12 @@ extension JelloGraphDataType {
             return Gradient(colors: [.red, .yellow, .green, .blue])
         case .anyFloat:
             return Gradient(colors: [.green, .teal])
-        case .anyTexture:
-            return Gradient(colors: [.mint, .teal])
         case .anyMaterial:
             return Gradient(colors: [.blue, .purple])
         case .slabMaterial:
             return Gradient(colors: [.blue, .yellow])
-        case .texture1d_float:
-            return Gradient(colors: [.mint, .teal])
-        case .texture1d_float2:
-            return Gradient(colors: [.mint, .teal])
-        case .texture1d_float3:
-            return Gradient(colors: [.mint, .teal])
-        case .texture1d_float4:
-            return Gradient(colors: [.mint, .teal])
-        case .texture2d_float:
-            return Gradient(colors: [.mint, .teal])
-        case .texture2d_float2:
-            return Gradient(colors: [.mint, .teal])
-        case .texture2d_float3:
-            return Gradient(colors: [.mint, .teal])
-        case .texture2d_float4:
-            return Gradient(colors: [.mint, .teal])
-        case .texture3d_float:
-            return Gradient(colors: [.mint, .teal])
-        case .texture3d_float2:
-            return Gradient(colors: [.mint, .teal])
-        case .texture3d_float3:
-            return Gradient(colors: [.mint, .teal])
-        case .texture3d_float4:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture1d_float:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture1d_float2:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture1d_float3:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture1d_float4:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture2d_float:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture2d_float2:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture2d_float3:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture2d_float4:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture3d_float:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture3d_float2:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture3d_float3:
-            return Gradient(colors: [.mint, .teal])
-        case .proceduralTexture3d_float4:
-            return Gradient(colors: [.mint, .teal])
-        case .anyTexture_float:
-            return Gradient(colors: [.mint, .teal])
-        case .anyTexture_float2:
-            return Gradient(colors: [.mint, .teal])
-        case .anyTexture_float3:
-            return Gradient(colors: [.mint, .teal])
-        case .anyTexture_float4:
-            return Gradient(colors: [.mint, .teal])
-        case .anyTexture_1d:
-            return Gradient(colors: [.mint, .teal])
-        case .anyTexture_2d:
-            return Gradient(colors: [.mint, .teal])
-        case .anyTexture_3d:
-            return Gradient(colors: [.mint, .teal])
-        case .anyProceduralTexture_float:
-            return Gradient(colors: [.mint, .teal])
-        case .anyProceduralTexture_float2:
-            return Gradient(colors: [.mint, .teal])
-        case .anyProceduralTexture_float3:
-            return Gradient(colors: [.mint, .teal])
-        case .anyProceduralTexture_float4:
-            return Gradient(colors: [.mint, .teal])
-        case .anyProceduralTexture_1d:
-            return Gradient(colors: [.mint, .teal])
-        case .anyProceduralTexture_2d:
-            return Gradient(colors: [.mint, .teal])
-        case .anyProceduralTexture_3d:
-            return Gradient(colors: [.mint, .teal])
+        default:
+            return Gradient(colors: [.teal, .blue])
         }
     }
     
@@ -142,14 +66,34 @@ extension JelloGraphDataType {
     public func getGenericDomain() -> [JelloGraphDataType] {
         switch self {
         case .any:
-            return JelloGraphDataType.allCases
-        case .anyFloat:
-            return [.anyFloat, .float, .float2, .float3, .float4]
-        case .anyMaterial:
-            return [.anyMaterial, .slabMaterial]
-        case .anyTexture:
             return [
+                .any,
+                .anyFloat,
+                .anyField,
+                .anyMaterial,
+                
                 .anyTexture,
+                .anyProceduralField,
+                
+                .anyField_float,
+                .anyField_float2,
+                .anyField_float3,
+                .anyField_float4,
+                
+                .anyField_1d,
+                .anyField_2d,
+                .anyField_3d,
+                
+                .anyProceduralField_float,
+                .anyProceduralField_float2,
+                .anyProceduralField_float3,
+                .anyProceduralField_float4,
+                
+                .anyProceduralField_1d,
+                .anyProceduralField_2d,
+                .anyProceduralField_3d,
+                
+                
                 .anyTexture_float,
                 .anyTexture_float2,
                 .anyTexture_float3,
@@ -159,71 +103,298 @@ extension JelloGraphDataType {
                 .anyTexture_2d,
                 .anyTexture_3d,
                 
-                .anyProceduralTexture_float,
-                .anyProceduralTexture_float2,
-                .anyProceduralTexture_float3,
-                .anyProceduralTexture_float4,
-                
-                .anyProceduralTexture_1d,
-                .anyProceduralTexture_2d,
-                .anyProceduralTexture_3d,
+                .float4,
+                .float3,
+                .float2,
+                .float,
+                .int,
+                .bool,
+                .slabMaterial,
                 
                 .texture1d_float,
                 .texture1d_float2,
                 .texture1d_float3,
                 .texture1d_float4,
+            
                 .texture2d_float,
                 .texture2d_float2,
                 .texture2d_float3,
                 .texture2d_float4,
+            
                 .texture3d_float,
                 .texture3d_float2,
                 .texture3d_float3,
                 .texture3d_float4,
-                .proceduralTexture1d_float,
-                .proceduralTexture1d_float2,
-                .proceduralTexture1d_float3,
-                .proceduralTexture1d_float4,
-                .proceduralTexture2d_float,
-                .proceduralTexture2d_float2,
-                .proceduralTexture2d_float3,
-                .proceduralTexture2d_float4,
-                .proceduralTexture3d_float,
-                .proceduralTexture3d_float2,
-                .proceduralTexture3d_float3,
-                .proceduralTexture3d_float4,
+
+                .proceduralField1d_float,
+                .proceduralField1d_float2,
+                .proceduralField1d_float3,
+                .proceduralField1d_float4,
+            
+                .proceduralField2d_float,
+                .proceduralField2d_float2,
+                .proceduralField2d_float3,
+                .proceduralField2d_float4,
+            
+                .proceduralField3d_float,
+                .proceduralField3d_float2,
+                .proceduralField3d_float3,
+                .proceduralField3d_float4,
             ]
-        
+        case .anyFloat:
+            return [.anyFloat, .float, .float2, .float3, .float4]
+        case .anyMaterial:
+            return [.anyMaterial, .slabMaterial]
+        case .anyField:
+            return [
+                .anyField,
+                .anyProceduralField,
+                .anyTexture,
+                
+                .anyField_float,
+                .anyField_float2,
+                .anyField_float3,
+                .anyField_float4,
+                
+                .anyField_1d,
+                .anyField_2d,
+                .anyField_3d,
+                
+                .anyProceduralField_float,
+                .anyProceduralField_float2,
+                .anyProceduralField_float3,
+                .anyProceduralField_float4,
+                
+                .anyProceduralField_1d,
+                .anyProceduralField_2d,
+                .anyProceduralField_3d,
+                
+                
+                .anyTexture_float,
+                .anyTexture_float2,
+                .anyTexture_float3,
+                .anyTexture_float4,
+                
+                .anyTexture_1d,
+                .anyTexture_2d,
+                .anyTexture_3d,
+                
+                
+                .texture1d_float,
+                .texture1d_float2,
+                .texture1d_float3,
+                .texture1d_float4,
+                
+                .texture2d_float,
+                .texture2d_float2,
+                .texture2d_float3,
+                .texture2d_float4,
+                
+                .texture3d_float,
+                .texture3d_float2,
+                .texture3d_float3,
+                .texture3d_float4,
+                
+                .proceduralField1d_float,
+                .proceduralField1d_float2,
+                .proceduralField1d_float3,
+                .proceduralField1d_float4,
+                
+                .proceduralField2d_float,
+                .proceduralField2d_float2,
+                .proceduralField2d_float3,
+                .proceduralField2d_float4,
+                
+                .proceduralField3d_float,
+                .proceduralField3d_float2,
+                .proceduralField3d_float3,
+                .proceduralField3d_float4
+            ]
+        case .int:
+            return [.int]
+        case .bool:
+            return [.bool]
+        case .float:
+            return [.float]
+        case .float2:
+            return [.float2]
+        case .float3:
+            return [.float3]
+        case .float4:
+            return [.float4]
+        case .texture1d_float:
+            return [.texture1d_float]
+        case .texture1d_float2:
+            return [.texture1d_float2]
+        case .texture1d_float3:
+            return [.texture1d_float3]
+        case .texture1d_float4:
+            return [.texture1d_float4]
+            
+        case .texture2d_float:
+            return [.texture2d_float]
+        case .texture2d_float2:
+            return [.texture2d_float2]
+        case .texture2d_float3:
+            return [.texture2d_float3]
+        case .texture2d_float4:
+            return [.texture2d_float4]
+            
+        case .texture3d_float:
+            return [.texture3d_float]
+        case .texture3d_float2:
+            return [.texture3d_float2]
+        case .texture3d_float3:
+            return [.texture3d_float3]
+        case .texture3d_float4:
+            return [.texture3d_float4]
+            
+        case .proceduralField1d_float:
+            return [.proceduralField1d_float]
+        case .proceduralField1d_float2:
+            return [.proceduralField1d_float2]
+        case .proceduralField1d_float3:
+            return [.proceduralField1d_float3]
+        case .proceduralField1d_float4:
+            return [.proceduralField1d_float4]
+            
+        case .proceduralField2d_float:
+            return [.proceduralField2d_float]
+        case .proceduralField2d_float2:
+            return [.proceduralField2d_float2]
+        case .proceduralField2d_float3:
+            return [.proceduralField2d_float3]
+        case .proceduralField2d_float4:
+            return [.proceduralField2d_float4]
+            
+        case .proceduralField3d_float:
+            return [.proceduralField3d_float]
+        case .proceduralField3d_float2:
+            return [.proceduralField3d_float2]
+        case .proceduralField3d_float3:
+            return [.proceduralField3d_float3]
+        case .proceduralField3d_float4:
+            return [.proceduralField3d_float4]
+        case .slabMaterial:
+            return [.slabMaterial]
+        case .anyProceduralField:
+            return [
+                .anyProceduralField,
+                
+                .anyProceduralField_float,
+                .anyProceduralField_float2,
+                .anyProceduralField_float3,
+                .anyProceduralField_float4,
+                
+                .anyProceduralField_1d,
+                .anyProceduralField_2d,
+                .anyProceduralField_3d,
+                
+                .proceduralField1d_float,
+                .proceduralField1d_float2,
+                .proceduralField1d_float3,
+                .proceduralField1d_float4,
+                
+                .proceduralField2d_float,
+                .proceduralField2d_float2,
+                .proceduralField2d_float3,
+                .proceduralField2d_float4,
+                
+                .proceduralField3d_float,
+                .proceduralField3d_float2,
+                .proceduralField3d_float3,
+                .proceduralField3d_float4
+            ]
+        case .anyField_float:
+            return [.anyField_float, .anyProceduralField_float, .anyTexture_float, .proceduralField1d_float, .proceduralField2d_float, .proceduralField3d_float, .texture1d_float, .texture2d_float, .texture3d_float]
+        case .anyField_float2:
+            return [.anyField_float2, .anyProceduralField_float2, .anyTexture_float2, .proceduralField1d_float2, .proceduralField2d_float2, .proceduralField3d_float2, .texture1d_float2, .texture2d_float2, .texture3d_float2]
+        case .anyField_float3:
+            return [.anyField_float3, .anyProceduralField_float3, .anyTexture_float3, .proceduralField1d_float3, .proceduralField2d_float3, .proceduralField3d_float3, .texture1d_float3, .texture2d_float3, .texture3d_float3]
+        case .anyField_float4:
+            return [.anyField_float4, .anyProceduralField_float4, .anyTexture_float4, .proceduralField1d_float4, .proceduralField2d_float4, .proceduralField3d_float4, .texture1d_float4, .texture2d_float4, .texture3d_float4]
+        case .anyField_1d:
+            return [.anyField_1d, .anyProceduralField_1d, .anyTexture_1d, .proceduralField1d_float, .proceduralField1d_float2, .proceduralField1d_float3, .proceduralField1d_float4, .texture1d_float, .texture1d_float2, .texture1d_float3, .texture1d_float4]
+        case .anyField_2d:
+            return [.anyField_1d, .anyProceduralField_2d, .anyTexture_2d, .proceduralField2d_float, .proceduralField2d_float2, .proceduralField2d_float3, .proceduralField2d_float4, .texture2d_float, .texture2d_float2, .texture2d_float3, .texture2d_float4]
+        case .anyField_3d:
+            return [.anyField_3d, .anyProceduralField_3d, .anyTexture_3d, .proceduralField3d_float, .proceduralField3d_float2, .proceduralField3d_float3, .proceduralField3d_float4, .texture3d_float, .texture3d_float2, .texture3d_float3, .texture3d_float4]
+        case .anyProceduralField_float:
+            return [.anyProceduralField_float, .proceduralField1d_float, .proceduralField2d_float, .proceduralField3d_float]
+        case .anyProceduralField_float2:
+            return [.anyProceduralField_float2, .proceduralField1d_float2, .proceduralField2d_float2, .proceduralField3d_float2]
+        case .anyProceduralField_float3:
+            return [.anyProceduralField_float3, .proceduralField1d_float3, .proceduralField2d_float3, .proceduralField3d_float3]
+        case .anyProceduralField_float4:
+            return [.anyProceduralField_float4, .proceduralField1d_float4, .proceduralField2d_float4, .proceduralField3d_float4]
+        case .anyProceduralField_1d:
+            return [.anyProceduralField_1d, .proceduralField1d_float, .proceduralField1d_float2, .proceduralField1d_float3, .proceduralField1d_float4]
+        case .anyProceduralField_2d:
+            return [.anyProceduralField_2d, .proceduralField2d_float, .proceduralField2d_float2, .proceduralField2d_float3, .proceduralField2d_float4]
+        case .anyProceduralField_3d:
+            return [.anyProceduralField_3d, .proceduralField3d_float, .proceduralField3d_float2, .proceduralField3d_float3, .proceduralField3d_float4]
+        case .anyTexture:
+             return [
+                .anyTexture,
+                
+                .anyTexture_float,
+                .anyTexture_float2,
+                .anyTexture_float3,
+                .anyTexture_float4,
+                
+                .anyTexture_1d,
+                .anyTexture_2d,
+                .anyTexture_3d,
+                
+                .texture1d_float,
+                .texture1d_float2,
+                .texture1d_float3,
+                .texture1d_float4,
+                
+                .texture2d_float,
+                .texture2d_float2,
+                .texture2d_float3,
+                .texture2d_float4,
+                
+                .texture3d_float,
+                .texture3d_float2,
+                .texture3d_float3,
+                .texture3d_float4
+            ]
         case .anyTexture_float:
-            return [.anyTexture_float, .proceduralTexture1d_float, .proceduralTexture2d_float, .proceduralTexture3d_float, .texture1d_float, .texture2d_float, .texture3d_float]
+            return [
+                .anyTexture_float,
+               .texture1d_float,
+               .texture2d_float,
+               .texture3d_float,
+           ]
         case .anyTexture_float2:
-            return [.anyTexture_float2, .proceduralTexture1d_float2, .proceduralTexture2d_float2, .proceduralTexture3d_float2, .texture1d_float2, .texture2d_float2, .texture3d_float2]
+            return [
+                .anyTexture_float2,
+               .texture1d_float2,
+               .texture2d_float2,
+               .texture3d_float2,
+           ]
         case .anyTexture_float3:
-            return [.anyTexture_float3, .proceduralTexture1d_float3, .proceduralTexture2d_float3, .proceduralTexture3d_float3, .texture1d_float3, .texture2d_float3, .texture3d_float3]
+            return [
+                .anyTexture_float3,
+               .texture1d_float3,
+               .texture2d_float3,
+               .texture3d_float3,
+           ]
         case .anyTexture_float4:
-            return [.anyTexture_float4, .proceduralTexture1d_float4, .proceduralTexture2d_float4, .proceduralTexture3d_float4, .texture1d_float4, .texture2d_float4, .texture3d_float4]
+            return [
+                .anyTexture_float4,
+               .texture1d_float4,
+               .texture2d_float4,
+               .texture3d_float4,
+           ]
         case .anyTexture_1d:
-            return [.anyTexture_1d, .proceduralTexture1d_float, .proceduralTexture1d_float2, .proceduralTexture1d_float3, .proceduralTexture1d_float4, .texture1d_float, .texture1d_float2, .texture1d_float3, .texture1d_float4]
+            return [.anyTexture_1d, .texture1d_float, .texture1d_float2, .texture1d_float3, .texture1d_float4]
         case .anyTexture_2d:
-            return [.anyTexture_2d, .proceduralTexture2d_float, .proceduralTexture2d_float2, .proceduralTexture2d_float3, .proceduralTexture2d_float4, .texture2d_float, .texture2d_float2, .texture2d_float3, .texture2d_float4]
+            return [.anyTexture_2d, .texture2d_float, .texture2d_float2, .texture2d_float3, .texture2d_float4]
         case .anyTexture_3d:
-            return [.anyTexture_3d, .proceduralTexture3d_float, .proceduralTexture3d_float2, .proceduralTexture3d_float3, .proceduralTexture3d_float4, .texture3d_float, .texture3d_float2, .texture3d_float3, .texture3d_float4]
-        case .anyProceduralTexture_float:
-            return [.anyProceduralTexture_float, .proceduralTexture1d_float, .proceduralTexture2d_float, .proceduralTexture3d_float]
-        case .anyProceduralTexture_float2:
-            return [.anyProceduralTexture_float2, .proceduralTexture1d_float2, .proceduralTexture2d_float2, .proceduralTexture3d_float2]
-        case .anyProceduralTexture_float3:
-            return [.anyProceduralTexture_float3, .proceduralTexture1d_float3, .proceduralTexture2d_float3, .proceduralTexture3d_float3]
-        case .anyProceduralTexture_float4:
-            return [.anyProceduralTexture_float4, .proceduralTexture1d_float4, .proceduralTexture2d_float4, .proceduralTexture3d_float4]
-        case .anyProceduralTexture_1d:
-            return [.anyProceduralTexture_1d, .proceduralTexture1d_float, .proceduralTexture1d_float2, .proceduralTexture1d_float3, .proceduralTexture1d_float4]
-        case .anyProceduralTexture_2d:
-            return [.anyProceduralTexture_2d, .proceduralTexture2d_float, .proceduralTexture2d_float2, .proceduralTexture2d_float3, .proceduralTexture2d_float4]
-        case .anyProceduralTexture_3d:
-            return [.anyProceduralTexture_3d, .proceduralTexture3d_float, .proceduralTexture3d_float2, .proceduralTexture3d_float3, .proceduralTexture3d_float4]
-        default:
-            return [self]
+            return [.anyTexture_3d, .texture3d_float, .texture3d_float2, .texture3d_float3, .texture3d_float4]
         }
     }
 }
@@ -236,13 +407,11 @@ enum CouldNotResolveTypesError: Error {
 
 fileprivate func propagateConstraintsFromCurrentPort(port start: UUID, assignments: inout [UUID: JelloGraphDataType], domains: inout [UUID: [JelloGraphDataType]], constraints: [UUID:[PortConstraint]]) -> Bool {
     var queue = Deque<UUID>([start])
-    var type: JelloGraphDataType = assignments[start]!
     while !queue.isEmpty {
         let currentPort = queue.popFirst()!
         let constraintsForCurrentPort = constraints[currentPort] ?? []
-        type = assignments[currentPort]!
         for constraint in constraintsForCurrentPort {
-            switch constraint.apply(assignments: &assignments, domains: &domains, port: currentPort, type: type) {
+            switch constraint.apply(assignments: &assignments, domains: &domains) {
             case .contradiction:
                 return false
             case .dirty(let dirtyPorts):
@@ -367,10 +536,11 @@ func updateTypesInGraph(modelContext: ModelContext, graphId: UUID) throws {
         let nodes = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloNode> { $0.graph?.uuid == graphId }))
         let edges = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloEdge> { $0.graph?.uuid == graphId }))
         let nodeData = try modelContext.fetch(FetchDescriptor<JelloNodeData>()).filter({$0.node?.graph?.uuid == graphId})
-        let inputPorts = (try modelContext.fetch(FetchDescriptor<JelloInputPort>())).filter({$0.node?.graph?.uuid == graphId})
-        let outputPorts = try modelContext.fetch(FetchDescriptor<JelloOutputPort>()).filter({$0.node?.graph?.uuid == graphId})
+        let inputPorts = (try modelContext.fetch(FetchDescriptor<JelloInputPort>(sortBy: [SortDescriptor(\JelloInputPort.index)])).filter({$0.node?.graph?.uuid == graphId}))
+        let outputPorts = try modelContext.fetch(FetchDescriptor<JelloOutputPort>(sortBy: [SortDescriptor(\JelloOutputPort.index)])).filter({$0.node?.graph?.uuid == graphId})
         
         let graphInput = JelloCompilerBridge.buildGraph(jelloGraph: graphs.first!, jelloNodes: nodes, jelloNodeData: nodeData, jelloEdges: edges, jelloInputPorts: inputPorts, jelloOutputPorts: outputPorts, useBaseDataTypes: true)
+        
         
         let assignments = try resolveTypesInGraph(graph: graphInput)
         
@@ -385,7 +555,7 @@ func updateTypesInGraph(modelContext: ModelContext, graphId: UUID) throws {
                 }
             }
         }
-    
+        
         for outputPort in outputPorts {
             if let assignment = assignments[outputPort.uuid] {
                 if outputPort.currentDataType != assignment {
@@ -417,5 +587,4 @@ func updateTypesInGraph(modelContext: ModelContext, graphId: UUID) throws {
             }
         }
     }
-    
 }

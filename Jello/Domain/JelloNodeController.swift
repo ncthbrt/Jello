@@ -292,8 +292,10 @@ fileprivate class JelloSwizzleNodeController: JelloNodeController {
     func onOutputPortDisconnected(port: JelloOutputPort, edge: JelloEdge) {
         if let modelContext = port.modelContext {
             let nodeId = port.node!.uuid
+            let portId = port.uuid
+            let outputEdges = try! modelContext.fetchCount(FetchDescriptor<JelloEdge>(predicate: #Predicate { data in data.outputPort?.uuid == portId }))
             let nodeData = try! modelContext.fetch(FetchDescriptor<JelloNodeData>(predicate: #Predicate { data in data.node?.uuid == nodeId })).first(where: {$0.key == JelloNodeDataKey.typeSliderDisabled.rawValue })
-            nodeData!.value = .bool(false)
+            nodeData!.value = .bool(outputEdges > 1)
         }
     }
     
@@ -532,7 +534,7 @@ fileprivate class JelloSplineNodeController: JelloNodeController {
     func setup(node: JelloNode)
     {
         let outputPortOffset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(0), width: 500 + JelloNode.padding * 4)
-        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .proceduralTexture1d_float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
+        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .proceduralField1d_float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
         node.modelContext?.insert(outputPortModel)
         
         let spline = ClampedSpline()
@@ -561,7 +563,7 @@ fileprivate class JelloComputeNodeController: JelloNodeController {
     func setup(node: JelloNode)
     {
         let outputPortOffset = JelloNode.getStandardOutputPortPositionOffset(index: UInt8(0), width: 325)
-        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .anyTexture, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
+        let outputPortModel = JelloOutputPort(uuid: UUID(), index: UInt8(0), name: "", dataType: .anyTexture_1d, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(outputPortOffset.x), nodeOffsetY: Float(outputPortOffset.y))
         node.modelContext?.insert(outputPortModel)
         
         let inputPortOffset = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
@@ -570,7 +572,10 @@ fileprivate class JelloComputeNodeController: JelloNodeController {
         
         let componentData = JelloNodeData(key: JelloNodeDataKey.value.rawValue, value: .int3(8, 1, 1), node: node)
         node.modelContext?.insert(componentData)
-        
+
+        let isSliderDisabledData = JelloNodeData(key: JelloNodeDataKey.typeSliderDisabled.rawValue, value: .bool(false), node: node)
+        node.modelContext?.insert(isSliderDisabledData)
+
         node.size = CGSize(width: 325, height: JelloNode.headerHeight * 2 + 80 + JelloNode.padding)
     }
     
@@ -581,6 +586,30 @@ fileprivate class JelloComputeNodeController: JelloNodeController {
         AnyView(
             ComputeNodeView(node: node, drawBounds: drawBounds)
         )
+    }
+    
+   
+    func onOutputPortConnected(port: JelloOutputPort, edge: JelloEdge) {
+        if let modelContext = port.modelContext {
+            let nodeId = port.node!.uuid
+            let nodeData = try! modelContext.fetch(FetchDescriptor<JelloNodeData>(predicate: #Predicate { data in data.node?.uuid == nodeId })).first(where: {$0.key == JelloNodeDataKey.typeSliderDisabled.rawValue })
+            withAnimation(.spring) {
+                nodeData!.value = .bool(true)
+            }
+        }
+    }
+    
+    func onOutputPortDisconnected(port: JelloOutputPort, edge: JelloEdge) {
+        if let modelContext = port.modelContext {
+            let nodeId = port.node!.uuid
+            let portId = port.uuid
+            let outputEdges = try! modelContext.fetchCount(FetchDescriptor<JelloEdge>(predicate: #Predicate { data in data.outputPort?.uuid == portId }))
+            let key = JelloNodeDataKey.typeSliderDisabled.rawValue
+            let nodeData = try! modelContext.fetch(FetchDescriptor<JelloNodeData>(predicate: #Predicate { data in data.node?.uuid == nodeId && data.key == key }))
+            withAnimation(.spring) {
+                nodeData.first?.value = .bool(outputEdges > 1)
+            }
+        }
     }
 }
 
@@ -598,18 +627,23 @@ fileprivate class JelloSampleNodeController: JelloNodeController {
         node.modelContext?.insert(outputPortModel)
         
         let inputPortOffset1 = JelloNode.getStandardInputPortPositionOffset(index: UInt8(0))
-        let inputPortModel1 = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "field", dataType: .anyTexture, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset1.x), nodeOffsetY: Float(inputPortOffset1.y))
+        let inputPortModel1 = JelloInputPort(uuid: UUID(), index: UInt8(0), name: "field", dataType: .anyField, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset1.x), nodeOffsetY: Float(inputPortOffset1.y))
         node.modelContext?.insert(inputPortModel1)
         
         let inputPortOffset2 = JelloNode.getStandardInputPortPositionOffset(index: UInt8(1))
         let inputPortModel2 = JelloInputPort(uuid: UUID(), index: UInt8(1), name: "pos", dataType: .anyFloat, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset2.x), nodeOffsetY: Float(inputPortOffset2.y))
         node.modelContext?.insert(inputPortModel2)
         
-        node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.getStandardNodeHeight(inputPortsCount: 2, outputPortsCount: 1))
+        let inputPortOffset3 = JelloNode.getStandardInputPortPositionOffset(index: UInt8(2))
+        let inputPortModel3 = JelloInputPort(uuid: UUID(), index: UInt8(2), name: "lod", dataType: .float, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset3.x), nodeOffsetY: Float(inputPortOffset3.y))
+        node.modelContext?.insert(inputPortModel3)
+        
+        node.size = CGSize(width: JelloNode.standardNodeWidth, height: JelloNode.getStandardNodeHeight(inputPortsCount: 3, outputPortsCount: 1))
     }
+    
 }
 
-
+    
 
 
 

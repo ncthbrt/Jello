@@ -284,29 +284,29 @@ public class PreviewOutputCompilerNode: CompilerNode & SubgraphCompilerNode {
                     fatalError("Texture Preview Not Currently Supported")
                 case .texture3d_float4:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture1d_float:
+                case .proceduralField1d_float:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture1d_float2:
+                case .proceduralField1d_float2:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture1d_float3:
+                case .proceduralField1d_float3:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture1d_float4:
+                case .proceduralField1d_float4:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture2d_float:
+                case .proceduralField2d_float:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture2d_float2:
+                case .proceduralField2d_float2:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture2d_float3:
+                case .proceduralField2d_float3:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture2d_float4:
+                case .proceduralField2d_float4:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture3d_float:
+                case .proceduralField3d_float:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture3d_float2:
+                case .proceduralField3d_float2:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture3d_float3:
+                case .proceduralField3d_float3:
                     fatalError("Texture Preview Not Currently Supported")
-                case .proceduralTexture3d_float4:
+                case .proceduralField3d_float4:
                     fatalError("Texture Preview Not Currently Supported")
                 }
             } else {
@@ -1175,7 +1175,513 @@ public class SampleCompilerNode : CompilerNode {
     }
     
     public func write(input: JelloCompilerInput) {
+        let fieldInput = inputPorts[0]
+        let positionInput = inputPorts[1]
+        
+        let maybeLodInput = inputPorts.count > 2 ? inputPorts[2] : nil
 
+        let maybeFieldOutputPort = fieldInput.incomingEdge?.outputPort
+        let maybePositionOutputPort = positionInput.incomingEdge?.outputPort
+        let maybeLodOutputPort = maybeLodInput?.incomingEdge?.outputPort
+        let maybeFieldId = maybeFieldOutputPort?.getOrReserveId()
+        let maybePositionId = maybePositionOutputPort?.getOrReserveId()
+        let maybeLodId = maybeLodOutputPort?.getOrReserveId()
+        
+        var resultId: UInt32 = 0
+        
+        switch fieldInput.concreteDataType {
+        case .float:
+            fatalError("Unexpected Type")
+        case .float2:
+            fatalError("Unexpected Type")
+        case .float3:
+            fatalError("Unexpected Type")
+        case .float4:
+            fatalError("Unexpected Type")
+        case .int:
+            fatalError("Unexpected Type")
+        case .bool:
+            fatalError("Unexpected Type")
+        case .texture1d_float:
+            if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilitySampled1D.rawValue])
+                let floatType = declareType(dataType: .float)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId,  SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpCompositeExtract, [floatType, resultId, intermediateResultId, 0])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpCompositeExtract, [floatType, resultId, intermediateResultId, 0])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float)
+                resultId = nullVal
+            }
+        case .texture1d_float2:
+            if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilitySampled1D.rawValue])
+                let float2Type = declareType(dataType: .float2)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float2Type, resultId, intermediateResultId, intermediateResultId, 0, 1])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float2Type, resultId, intermediateResultId, intermediateResultId, 0, 1])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float2)
+                resultId = nullVal
+            }
+        case .texture1d_float3:
+            if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilitySampled1D.rawValue])
+                let float3Type = declareType(dataType: .float3)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float3Type, resultId, intermediateResultId, intermediateResultId, 0, 1, 2])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float3Type, resultId, intermediateResultId, intermediateResultId, 0, 1, 2])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float3)
+                resultId = nullVal
+            }
+        case .texture1d_float4:
+            if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilitySampled1D.rawValue])
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, resultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, resultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float4)
+                resultId = nullVal
+            }
+        case .texture2d_float:
+            if let fieldId = maybeFieldId {
+                let floatType = declareType(dataType: .float)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId,  SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpCompositeExtract, [floatType, resultId, intermediateResultId, 0])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float2)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpCompositeExtract, [floatType, resultId, intermediateResultId, 0])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float)
+                resultId = nullVal
+            }
+        case .texture2d_float2:
+            if let fieldId = maybeFieldId {
+                let float2Type = declareType(dataType: .float2)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float2Type, resultId, intermediateResultId, intermediateResultId, 0, 1])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float2)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float2Type, resultId, intermediateResultId, intermediateResultId, 0, 1])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float2)
+                resultId = nullVal
+            }
+        case .texture2d_float3:
+            if let fieldId = maybeFieldId {
+                let float3Type = declareType(dataType: .float3)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float3Type, resultId, intermediateResultId, intermediateResultId, 0, 1, 2])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float2)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float3Type, resultId, intermediateResultId, intermediateResultId, 0, 1, 2])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float3)
+                resultId = nullVal
+            }
+        case .texture2d_float4:
+            if let fieldId = maybeFieldId {
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, resultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float2)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, resultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float4)
+                resultId = nullVal
+            }
+        case .texture3d_float:
+            if let fieldId = maybeFieldId {
+                let floatType = declareType(dataType: .float)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId,  SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpCompositeExtract, [floatType, resultId, intermediateResultId, 0])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float3)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpCompositeExtract, [floatType, resultId, intermediateResultId, 0])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float)
+                resultId = nullVal
+            }
+        case .texture3d_float2:
+            if let fieldId = maybeFieldId {
+                let float2Type = declareType(dataType: .float2)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float2Type, resultId, intermediateResultId, intermediateResultId, 0, 1])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float3)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float2Type, resultId, intermediateResultId, intermediateResultId, 0, 1])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float2)
+                resultId = nullVal
+            }
+        case .texture3d_float3:
+            if let fieldId = maybeFieldId {
+                let float3Type = declareType(dataType: .float3)
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                let intermediateResultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float3Type, resultId, intermediateResultId, intermediateResultId, 0, 1, 2])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float3)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, intermediateResultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float3Type, resultId, intermediateResultId, intermediateResultId, 0, 1, 2])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float3)
+                resultId = nullVal
+            }
+        case .texture3d_float4:
+            if let fieldId = maybeFieldId {
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float)
+                    }
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, resultId, fieldId, positionId, SpirvOpImageQueryLod.rawValue, lodId])
+                } else {
+                    var lodId = maybeLodId ?? 0
+                    if maybeLodId == nil {
+                        lodId = declareNullValueConstant(dataType: .float2)
+                    }
+                    let nullVal = declareNullValueConstant(dataType: .float3)
+                    #functionBody(opCode: SpirvOpImageSampleExplicitLod, [float4Type, resultId, fieldId, nullVal, SpirvOpImageQueryLod.rawValue, lodId])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float4)
+                resultId = nullVal
+            }
+
+        case .proceduralField1d_float:
+            if let fieldId = maybeFieldId {
+                let floatType = declareType(dataType: .float)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [floatType, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpFunctionCall, [floatType, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float)
+                resultId = nullVal
+            }
+        case .proceduralField1d_float2:
+            if let fieldId = maybeFieldId {
+                let float2Type = declareType(dataType: .float2)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float2Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float2Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float2)
+                resultId = nullVal
+            }
+        case .proceduralField1d_float3:
+            if let fieldId = maybeFieldId {
+                let float3Type = declareType(dataType: .float3)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float3Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float3Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float3)
+                resultId = nullVal
+            }
+        case .proceduralField1d_float4:
+            if let fieldId = maybeFieldId {
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float4Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float4Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float4)
+                resultId = nullVal
+            }
+        case .proceduralField2d_float:
+            if let fieldId = maybeFieldId {
+                let floatType = declareType(dataType: .float)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [floatType, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float2)
+                    #functionBody(opCode: SpirvOpFunctionCall, [floatType, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float)
+                resultId = nullVal
+            }
+        case .proceduralField2d_float2:
+            if let fieldId = maybeFieldId {
+                let float2Type = declareType(dataType: .float2)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float2Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float2)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float2Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float2)
+                resultId = nullVal
+            }
+        case .proceduralField2d_float3:
+            if let fieldId = maybeFieldId {
+                let float3Type = declareType(dataType: .float3)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float3Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float2)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float3Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float3)
+                resultId = nullVal
+            }
+        case .proceduralField2d_float4:
+            if let fieldId = maybeFieldId {
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float4Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float2)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float4Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float4)
+                resultId = nullVal
+            }
+        case .proceduralField3d_float:
+            if let fieldId = maybeFieldId {
+                let floatType = declareType(dataType: .float)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [floatType, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float3)
+                    #functionBody(opCode: SpirvOpFunctionCall, [floatType, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float)
+                resultId = nullVal
+            }
+        case .proceduralField3d_float2:
+            if let fieldId = maybeFieldId {
+                let float2Type = declareType(dataType: .float2)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float2Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float3)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float2Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float2)
+                resultId = nullVal
+            }
+        case .proceduralField3d_float3:
+            if let fieldId = maybeFieldId {
+                let float3Type = declareType(dataType: .float3)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float3Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float3)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float3Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float3)
+                resultId = nullVal
+            }
+        case .proceduralField3d_float4:
+            if let fieldId = maybeFieldId {
+                let float4Type = declareType(dataType: .float4)
+                resultId = #id
+                if let positionId = maybePositionId {
+                    #functionBody(opCode: SpirvOpFunctionCall, [float4Type, resultId, fieldId, positionId])
+                } else {
+                    let nullVal = declareNullValueConstant(dataType: .float3)
+                    #functionBody(opCode: SpirvOpFunctionCall, [float4Type, resultId, fieldId, nullVal])
+                }
+            } else {
+                let nullVal = declareNullValueConstant(dataType: .float4)
+                resultId = nullVal
+            }
+        case .slabMaterial:
+            fatalError("Unexpected Type")
+        case .none:
+            fatalError("Expected Concrete Type")
+        }
+        
+        outputPorts[0].setReservedId(reservedId: resultId)
     }
     
     public var branchTags: Set<UUID> = []
@@ -1184,16 +1690,18 @@ public class SampleCompilerNode : CompilerNode {
     public var constraints: [PortConstraint] {
         let inputPortsIds = inputPorts.map { $0.id }
         let outputPortsIds = outputPorts.map { $0.id }
-        
         return [
-            SameDimensionalityConstraint(ports: Set(inputPortsIds)),
-            SameCompositeSizeConstraint(ports: Set<UUID>([inputPortsIds.first!, outputPortsIds.first!]))
+            SameDimensionalityConstraint(ports: Set([inputPorts[0].id, inputPorts[1].id])),
+            SameCompositeSizeConstraint(ports: Set<UUID>([inputPorts[0].id, outputPorts[0].id]))
         ]
     }
     
-    public init(id: UUID = UUID(), fieldInputPort: InputCompilerPort, positionInputPort: InputCompilerPort, outputPort: OutputCompilerPort) {
+    public init(id: UUID = UUID(), fieldInputPort: InputCompilerPort, positionInputPort: InputCompilerPort, lodInputPort: InputCompilerPort?, outputPort: OutputCompilerPort) {
         self.id = id
         self.inputPorts = [fieldInputPort, positionInputPort]
+        if let lodPort = lodInputPort {
+            self.inputPorts.append(lodPort)
+        }
         self.outputPorts = [outputPort]
         for inputPort in inputPorts {
             inputPort.node = self
