@@ -20,6 +20,7 @@ public class JelloCompilerBlackboard {
     
     public static var glsl450ExtId : UInt32 = 0
     public static var inputComputeTextures: [JelloIOTexture] = []
+    public static var inputComputeIds: [UInt32] = []
     public static func clear(){
         fragOutputColorId = 0
         frameDataId = 0
@@ -30,5 +31,6 @@ public class JelloCompilerBlackboard {
         normalInId = 0
         glsl450ExtId = 0
         inputComputeTextures = []
+        inputComputeIds = []
     }
 }

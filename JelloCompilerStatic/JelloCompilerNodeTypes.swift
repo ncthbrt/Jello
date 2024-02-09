@@ -1509,6 +1509,7 @@ public class SampleCompilerNode : CompilerNode {
 
         case .proceduralField1d_float:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let floatType = declareType(dataType: .float)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1523,6 +1524,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField1d_float2:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float2Type = declareType(dataType: .float2)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1537,6 +1539,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField1d_float3:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float3Type = declareType(dataType: .float3)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1551,6 +1554,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField1d_float4:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float4Type = declareType(dataType: .float4)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1565,6 +1569,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField2d_float:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let floatType = declareType(dataType: .float)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1579,6 +1584,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField2d_float2:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float2Type = declareType(dataType: .float2)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1593,6 +1599,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField2d_float3:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float3Type = declareType(dataType: .float3)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1607,6 +1614,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField2d_float4:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float4Type = declareType(dataType: .float4)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1621,6 +1629,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField3d_float:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let floatType = declareType(dataType: .float)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1635,6 +1644,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField3d_float2:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float2Type = declareType(dataType: .float2)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1649,6 +1659,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField3d_float3:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float3Type = declareType(dataType: .float3)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1663,6 +1674,7 @@ public class SampleCompilerNode : CompilerNode {
             }
         case .proceduralField3d_float4:
             if let fieldId = maybeFieldId {
+                #capability(opCode: SpirvOpCapability, [SpirvCapabilityGroupNonUniformQuad.rawValue])
                 let float4Type = declareType(dataType: .float4)
                 resultId = #id
                 if let positionId = maybePositionId {
@@ -1688,8 +1700,6 @@ public class SampleCompilerNode : CompilerNode {
     public var branches: [UUID] = []
     
     public var constraints: [PortConstraint] {
-        let inputPortsIds = inputPorts.map { $0.id }
-        let outputPortsIds = outputPorts.map { $0.id }
         return [
             SameDimensionalityConstraint(ports: Set([inputPorts[0].id, inputPorts[1].id])),
             SameCompositeSizeConstraint(ports: Set<UUID>([inputPorts[0].id, outputPorts[0].id]))
@@ -1722,6 +1732,8 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
     public var computationDimension: CompilerComputationDimension
     public var computationDomain: CompilerComputationDomain?
     public var subgraph: JelloCompilerInput? = nil
+    private var inputTexId: UInt32 = 0
+    private var sampledImageTypeId: UInt32 = 0
 
     public func build(input: JelloCompilerInput) throws -> JelloCompilerOutputStage {
         let format: JelloIOTexture.TextureFormat = switch inputPorts.first!.concreteDataType {
@@ -1762,6 +1774,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
                     dimensions[2] = 4
                 }
             }
+            
             #executionMode(opCode: SpirvOpExecutionMode, [entryPoint, SpirvExecutionModeLocalSize.rawValue], dimensions)
             
             #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
@@ -1770,8 +1783,10 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             }
             inputTextures = JelloCompilerBlackboard.inputComputeTextures
             let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
-            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelGLCompute.rawValue], [entryPoint], [])
+            
+            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelGLCompute.rawValue], [entryPoint], #stringLiteral("computeMain"), JelloCompilerBlackboard.inputComputeIds)
             let typeComputeFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
+            #debugNames(opCode: SpirvOpName, [typeComputeFunction], #stringLiteral("computeMain"))
             #functionHead(opCode: SpirvOpFunction, [typeVoid, entryPoint, 0, typeComputeFunction])
             #functionHead(opCode: SpirvOpLabel, [#id])
             for node in input.graph.nodes {
@@ -1799,6 +1814,14 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             default: fatalError("Unsupported Data Type")
         }
         
+        let spirvFormat: SpirvImageFormat = switch inputPorts.first!.concreteDataType {
+            case .float: SpirvImageFormatR32f
+            case .float2: SpirvImageFormatRgba32f
+            case .float3: SpirvImageFormatRgba32f
+            case .float4: SpirvImageFormatRgba32f
+            default: fatalError("Unsupported Data Type")
+        }
+        
         let packing: JelloIOTexture.TexturePacking = switch inputPorts.first!.concreteDataType {
             case .float: .float
             case .float2: .float2
@@ -1806,11 +1829,25 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             case .float4: .float4
             default: fatalError("Unsupported Data Type")
         }
-        
+        let index = JelloCompilerBlackboard.inputComputeTextures.count
+        let dim = outputPorts.first!.concreteDataType?.dimensionality ?? .d1
+        let floatType = declareType(dataType: .float)
+        let imageType = #typeDeclaration(opCode: SpirvOpTypeImage, [floatType, (dim == .d1 ? SpirvDim1D : (dim == .d2 ? SpirvDim2D : SpirvDim3D)).rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* single sampled */, 1 /* Sampled */, spirvFormat.rawValue, 0 /* Read Only */])
+        sampledImageTypeId = #typeDeclaration(opCode: SpirvOpTypeSampledImage, [imageType])
+        inputTexId = #id
+        // Compute shader inputs get binding 3
+        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationDescriptorSet.rawValue, 3])
+        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationBinding.rawValue, UInt32(index)])
+
+        let imagePointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, sampledImageTypeId])
+        #globalDeclaration(opCode: SpirvOpVariable, [imagePointerTypeId, inputTexId, SpirvStorageClassUniformConstant.rawValue])
         JelloCompilerBlackboard.inputComputeTextures.append(JelloIOTexture(originatingStage: self.id, size: self.computationDimension,  format: format, packing: packing))
+        JelloCompilerBlackboard.inputComputeIds.append(inputTexId)
     }
     
     public func write(input: JelloCompilerInput) {
+        let resultId = outputPorts.first!.getOrReserveId()
+        #functionBody(opCode: SpirvOpLoad, [sampledImageTypeId, resultId, inputTexId])
     }
     
     public var branchTags: Set<UUID>

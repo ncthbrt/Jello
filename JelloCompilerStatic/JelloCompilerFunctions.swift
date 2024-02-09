@@ -406,7 +406,7 @@ public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: ()
         
         inputComputeTextures = JelloCompilerBlackboard.inputComputeTextures
         
-        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [JelloCompilerBlackboard.fragOutputColorId, JelloCompilerBlackboard.frameDataId, worldPosInId, texCoordInId, tangentInId, bitangentInId, normalInId])
+        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [JelloCompilerBlackboard.fragOutputColorId, JelloCompilerBlackboard.frameDataId, worldPosInId, texCoordInId, tangentInId, bitangentInId, normalInId], JelloCompilerBlackboard.inputComputeIds)
         let typeFragmentFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
         #functionHead(opCode: SpirvOpFunction, [typeVoid, fragmentEntryPoint, 0, typeFragmentFunction])
         #functionHead(opCode: SpirvOpLabel, [#id])

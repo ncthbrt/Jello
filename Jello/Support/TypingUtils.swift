@@ -72,6 +72,7 @@ extension JelloGraphDataType {
                 .anyField,
                 .anyMaterial,
                 
+                .anyFloat123,
                 .anyTexture,
                 .anyProceduralField,
                 
@@ -142,7 +143,9 @@ extension JelloGraphDataType {
                 .proceduralField3d_float4,
             ]
         case .anyFloat:
-            return [.anyFloat, .float, .float2, .float3, .float4]
+            return [.anyFloat, .anyFloat123, .float, .float2, .float3, .float4]
+        case .anyFloat123:
+            return [.anyFloat123, .float, .float2, .float3]
         case .anyMaterial:
             return [.anyMaterial, .slabMaterial]
         case .anyField:

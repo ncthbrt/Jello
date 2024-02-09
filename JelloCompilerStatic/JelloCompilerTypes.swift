@@ -79,7 +79,7 @@ public class SameTypesConstraint: PortConstraint {
         } else {
             var changed: [UUID] = []
             let theseDomains: [Set<T>] = ports.map({ Set<T>(domains[$0] ?? []) })
-            let commonDomains: [T] = Array<T>(theseDomains.reduce(Set<T>(), { prev, set in prev.intersection(set) }).sorted(by: { a, b in a.rank < b.rank }))
+            let commonDomains: [T] = Array<T>(theseDomains.reduce(Set<T>(theseDomains.first ?? []), { prev, set in prev.intersection(set) }).sorted(by: { a, b in a.rank < b.rank }))
             if commonDomains.isEmpty {
                 return .contradiction
             }
@@ -130,7 +130,9 @@ public class SameCompositeSizeConstraint: PortConstraint {
             return .dirty(changed)
         } else {
             var changed: [UUID] = []
-            let theseCompositeSizes: Set<CompositeSize?> = Set<CompositeSize?>(ports.flatMap({ domains[$0] ?? [] }).map({$0.compositeSize}))
+            
+            let compositeSizesForPorts: [Set<CompositeSize?>] = ports.map({ p in (domains[p] ?? []).map({ $0.compositeSize }) }).map({ Set<CompositeSize?>($0) })
+            let theseCompositeSizes: Set<CompositeSize?> = compositeSizesForPorts.reduce(Set<CompositeSize?>(compositeSizesForPorts.first ?? []), { prev, curr in prev.intersection(curr) })
             for p in ports {
                 let oldDomains = (domains[p] ?? [])
                 let newDomains = oldDomains.filter({ theseCompositeSizes.contains($0.compositeSize) })
@@ -184,10 +186,11 @@ public class SameDimensionalityConstraint: PortConstraint {
             return .dirty(changed)
         } else {
             var changed: [UUID] = []
-            let theseCompositeSizes: Set<Dimensionality?> = Set<Dimensionality?>(ports.flatMap({ domains[$0] ?? [] }).map({$0.dimensionality}))
+            let dimensionalitiesForPorts: [Set<Dimensionality?>] = ports.map({ p in (domains[p] ?? []).map({ $0.dimensionality }) }).map({ Set<Dimensionality?>($0) })
+            let theseDimensionalities: Set<Dimensionality?> = dimensionalitiesForPorts.reduce(Set<Dimensionality?>(dimensionalitiesForPorts.first ?? []), { prev, curr in prev.intersection(curr) })
             for p in ports {
                 let oldDomains = (domains[p] ?? [])
-                let newDomains = oldDomains.filter({ theseCompositeSizes.contains($0.dimensionality) })
+                let newDomains = oldDomains.filter({ theseDimensionalities.contains($0.dimensionality) })
                 if newDomains.count == 0 {
                     return .contradiction
                 }
@@ -418,7 +421,7 @@ public enum JelloGraphDataType: Int, Codable, Equatable, HasCompositeSize, HasDi
     case anyMaterial = 30
     case slabMaterial = 31    
     
-    
+    case anyFloat123 = 32
     
     
     case texture1d_float = 100
@@ -550,6 +553,8 @@ public enum JelloGraphDataType: Int, Codable, Equatable, HasCompositeSize, HasDi
         case .any:
             return nil
         case .anyFloat:
+            return nil
+        case .anyFloat123:
             return nil
         case .anyField:
             return nil
@@ -722,6 +727,8 @@ public enum JelloGraphDataType: Int, Codable, Equatable, HasCompositeSize, HasDi
             return .d3
         case .anyProceduralField:
             return nil
+        case .anyFloat123:
+            return nil
         }
     }
     
@@ -745,6 +752,8 @@ public enum JelloGraphDataType: Int, Codable, Equatable, HasCompositeSize, HasDi
             return 4
         case .anyProceduralField_1d, .anyProceduralField_2d, .anyProceduralField_3d:
             return 4
+        case .anyFloat123:
+            return 4
         default:
             return 5
         }
@@ -757,6 +766,8 @@ public func getDomain(input: JelloGraphDataType) -> [JelloConcreteDataType] {
         return JelloConcreteDataType.allCases
     case .anyFloat:
         return [.float, .float2, .float3, .float4]
+    case .anyFloat123:
+        return [.float, .float2, .float3]
     case .anyMaterial:
         return [.slabMaterial]
     case .anyField:

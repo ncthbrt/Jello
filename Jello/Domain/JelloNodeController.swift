@@ -631,7 +631,7 @@ fileprivate class JelloSampleNodeController: JelloNodeController {
         node.modelContext?.insert(inputPortModel1)
         
         let inputPortOffset2 = JelloNode.getStandardInputPortPositionOffset(index: UInt8(1))
-        let inputPortModel2 = JelloInputPort(uuid: UUID(), index: UInt8(1), name: "pos", dataType: .anyFloat, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset2.x), nodeOffsetY: Float(inputPortOffset2.y))
+        let inputPortModel2 = JelloInputPort(uuid: UUID(), index: UInt8(1), name: "pos", dataType: .anyFloat123, node: node, nodePositionX: node.positionX, nodePositionY: node.positionY, nodeOffsetX: Float(inputPortOffset2.x), nodeOffsetY: Float(inputPortOffset2.y))
         node.modelContext?.insert(inputPortModel2)
         
         let inputPortOffset3 = JelloNode.getStandardInputPortPositionOffset(index: UInt8(2))
