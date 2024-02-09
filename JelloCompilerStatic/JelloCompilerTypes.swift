@@ -974,7 +974,7 @@ public enum CompilerComputationDimension: Codable, Equatable, Hashable {
 public enum CompilerComputationDomain: Int, Codable, Hashable, Equatable, Identifiable {
     case constant = 0
     case timeVarying = 1
-    case modelDependant = 2
+    case sceneModelDependant = 2
     
     public var id: CompilerComputationDomain { self }
 }

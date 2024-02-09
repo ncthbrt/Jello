@@ -54,10 +54,10 @@ public func labelComputationDomains(input: JelloCompilerInput){
         for inputPort in node.inputPorts {
             if let edge = inputPort.incomingEdge, let outputNode = edge.outputPort.node, outputNode.subgraphTags.contains(input.id), let thisComputationDomain = outputNode.computationDomain {
                 switch (domain, thisComputationDomain) {
-                case (_, .modelDependant):
-                    domain = .modelDependant
-                case (.modelDependant, _):
-                    domain = .modelDependant
+                case (_, .sceneModelDependant):
+                    domain = .sceneModelDependant
+                case (.sceneModelDependant, _):
+                    domain = .sceneModelDependant
                 case (.timeVarying, _):
                     domain = .timeVarying
                 case (_, .timeVarying):
