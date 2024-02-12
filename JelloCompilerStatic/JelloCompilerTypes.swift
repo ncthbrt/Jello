@@ -971,12 +971,18 @@ public enum CompilerComputationDimension: Codable, Equatable, Hashable {
     case dimension(Int, Int, Int)
 }
 
-public enum CompilerComputationDomain: Int, Codable, Hashable, Equatable, Identifiable {
-    case constant = 0
-    case timeVarying = 1
-    case sceneModelDependant = 2
+public struct CompilerComputationDomain: OptionSet, Codable, Hashable, Equatable, Identifiable {
+    public var rawValue: UInt32
+    
+    static let constant = CompilerComputationDomain([])
+    static let timeVarying = CompilerComputationDomain(rawValue: 1 << 0)
+    static let modelDependant = CompilerComputationDomain(rawValue: 1 << 1)
     
     public var id: CompilerComputationDomain { self }
+    
+    public init(rawValue: UInt32) {
+        self.rawValue = rawValue
+    }
 }
 
 public protocol HasComputationDimensionCompilerNode {
@@ -1094,7 +1100,7 @@ public protocol CompilerNode {
 
 public protocol SubgraphCompilerNode {
     var subgraph: JelloCompilerInput? {get set}
-    func build(input: JelloCompilerInput) throws -> JelloCompilerOutputStage
+    func buildShader(input: JelloCompilerInput) throws -> JelloCompilerOutputStage
 }
 
 public protocol BranchCompilerNode {

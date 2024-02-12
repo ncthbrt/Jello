@@ -53,18 +53,7 @@ public func labelComputationDomains(input: JelloCompilerInput){
         var domain: CompilerComputationDomain = node.computationDomain ?? .constant
         for inputPort in node.inputPorts {
             if let edge = inputPort.incomingEdge, let outputNode = edge.outputPort.node, outputNode.subgraphTags.contains(input.id), let thisComputationDomain = outputNode.computationDomain {
-                switch (domain, thisComputationDomain) {
-                case (_, .sceneModelDependant):
-                    domain = .sceneModelDependant
-                case (.sceneModelDependant, _):
-                    domain = .sceneModelDependant
-                case (.timeVarying, _):
-                    domain = .timeVarying
-                case (_, .timeVarying):
-                    domain = .timeVarying
-                default:
-                    domain = .constant
-                }
+                domain = thisComputationDomain.union(domain)
             }
         }
         node.computationDomain = domain
@@ -439,7 +428,7 @@ public func compileToSpirv(input: JelloCompilerInput) throws -> JelloCompilerOut
     for input in inputs {
         labelBranches(input: input)
         decomposeBranches(input: input)
-        stages.append(try input.output.node.build(input: input))
+        stages.append(try input.output.node.buildShader(input: input))
     }
     return JelloCompilerOutput(stages: stages)
 }
