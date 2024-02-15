@@ -974,10 +974,11 @@ public enum CompilerComputationDimension: Codable, Equatable, Hashable {
 public struct CompilerComputationDomain: OptionSet, Codable, Hashable, Equatable, Identifiable {
     public var rawValue: UInt32
     
-    static let constant = CompilerComputationDomain([])
-    static let timeVarying = CompilerComputationDomain(rawValue: 1 << 0)
-    static let modelDependant = CompilerComputationDomain(rawValue: 1 << 1)
-    
+    public static let constant = CompilerComputationDomain([])
+    public static let timeVarying = CompilerComputationDomain(rawValue: 1 << 0)
+    public static let modelDependant = CompilerComputationDomain(rawValue: 1 << 1)
+    public static let transformDependant = CompilerComputationDomain(rawValue: 1 << 2)
+
     public var id: CompilerComputationDomain { self }
     
     public init(rawValue: UInt32) {
@@ -1033,14 +1034,56 @@ public class JelloCompilerInput {
     }
 }
 
-public enum SpirvShader: Codable, Equatable {
-    case compute(CompilerComputationDimension, [UInt32], [JelloIOTexture], JelloIOTexture)
-    case vertex([UInt32], [JelloIOTexture])
-    case fragment([UInt32], [JelloIOTexture])
+public struct SpirvTextureBinding : Codable, Equatable {
+    public let texture: JelloComputeIOTexture
+    public let spirvId: UInt32
 }
 
-public struct JelloIOTexture: Codable, Equatable, Hashable {
+public struct SpirvComputeShader: Codable, Equatable {
+    public let shader: [UInt32]
+    public let outputComputeTexture: SpirvTextureBinding
+    public let inputComputeTextures: [SpirvTextureBinding]
+}
+
+public struct SpirvComputeRasterizerShader: Codable, Equatable {
+    public let shader: [UInt32]
+    public let outputTexture: SpirvTextureBinding
+}
+
+public struct SpirvVertexShader: Codable, Equatable {
+    public let shader: [UInt32]
+    public let inputTextures: [SpirvTextureBinding]
+}
+
+public struct SpirvFragmentShader: Codable, Equatable {
+    public let shader: [UInt32]
+    public let inputTextures: [SpirvTextureBinding]
+}
+
+
+public enum SpirvShader: Codable, Equatable {
+    case computeRasterizer(SpirvComputeRasterizerShader)
+    case compute(SpirvComputeShader)
+    case vertex(SpirvVertexShader)
+    case fragment(SpirvFragmentShader)
+    
+    var shader: [UInt32] {
+        switch self {
+        case .compute(let c):
+            c.shader
+        case .computeRasterizer(let r):
+            r.shader
+        case .fragment(let f):
+            f.shader
+        case .vertex(let v):
+            v.shader
+        }
+    }
+}
+
+public struct JelloComputeIOTexture: Codable, Equatable, Hashable {
     public var originatingStage: UUID
+    public var originatingPass: UInt32
     public var size: CompilerComputationDimension
     public var format: TextureFormat
     public var packing: TexturePacking
@@ -1050,9 +1093,11 @@ public struct JelloIOTexture: Codable, Equatable, Hashable {
         case Rgba32f = 0
         case Rgba16f = 1
         case R32f = 2
+        case R32i = 3
     }
     
     public enum TexturePacking: Int, Codable, Equatable {
+        case int = 0
         case float = 1
         case float2 = 2
         case float3 = 3
@@ -1062,6 +1107,7 @@ public struct JelloIOTexture: Codable, Equatable, Hashable {
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(originatingStage)
+        hasher.combine(originatingPass)
     }
 }
 

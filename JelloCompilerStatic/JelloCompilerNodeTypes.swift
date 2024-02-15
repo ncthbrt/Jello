@@ -579,7 +579,7 @@ public class DivideCompilerNode: CompilerNode {
 
 
 
-public class LoadCompilerNode : CompilerNode {
+public class BuiltInCompilerNode : CompilerNode {
     public var id: UUID
     private let normalize : Bool
     public var inputPorts: [InputCompilerPort] = []
@@ -588,18 +588,18 @@ public class LoadCompilerNode : CompilerNode {
     public var computationDomain: CompilerComputationDomain?
 
     public func install(input: JelloCompilerInput) {
+        self.requestPointerId()
     }
     
     public func write(input: JelloCompilerInput) {
         let typeId = declareType(dataType: outputPorts.first!.concreteDataType!)
-        let loadResultId = #id
-        #functionBody(opCode: SpirvOpLoad, [typeId, loadResultId, getPointerId()])
+        let resultId = getPointerId()
         if !normalize {
-            outputPorts.first!.setReservedId(reservedId: loadResultId)
+            outputPorts.first!.setReservedId(reservedId: resultId)
             return
         }
         let normalizeResultId = #id
-        #functionBody(opCode: SpirvOpExtInst, [typeId, normalizeResultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Normalize.rawValue, loadResultId])
+        #functionBody(opCode: SpirvOpExtInst, [typeId, normalizeResultId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Normalize.rawValue, resultId])
         outputPorts.first!.setReservedId(reservedId: normalizeResultId)
     }
     
@@ -607,14 +607,17 @@ public class LoadCompilerNode : CompilerNode {
     public var branches: [UUID] = []
     public var constraints: [PortConstraint] { [] }
     public let getPointerId: () -> UInt32
+    public let requestPointerId: () -> ()
     
     
-    public init(id: UUID = UUID(), outputPort: OutputCompilerPort, type: JelloConcreteDataType, getPointerId: @escaping () -> UInt32, normalize: Bool) {
+    public init(id: UUID = UUID(), outputPort: OutputCompilerPort, type: JelloConcreteDataType, getPointerId: @escaping () -> UInt32, requestPointerId: @escaping () -> (), normalize: Bool, computationDomain: CompilerComputationDomain) {
         self.id = id
         self.inputPorts =  []
         self.outputPorts = [outputPort]
         self.getPointerId = getPointerId
         self.normalize = normalize
+        self.requestPointerId = requestPointerId
+        self.computationDomain = computationDomain
         outputPort.concreteDataType = type
         outputPort.node = self
         
@@ -690,6 +693,7 @@ public class SwizzleCompilerNode : CompilerNode {
                 }})
 
                 let inId = inputPort.incomingEdge!.outputPort.getOrReserveId()
+                
                 #functionBody(opCode: SpirvOpVectorShuffle, [resultTypeId, resultId, inId, inId], components)
             }
             outputPort.setReservedId(reservedId: resultId)
@@ -1736,17 +1740,18 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
     private var sampledImageTypeId: UInt32 = 0
     
     public func buildShader(input: JelloCompilerInput) throws -> JelloCompilerOutputStage {
-    
+        var shaders: [SpirvShader] = []
         if (computationDomain ?? .constant).contains(.modelDependant) {
-            return try buildModelDependantShader(input: input)
-        } else {
-            return try buildTimeVaryingOrConstantShader(input: input)
+            shaders.append(try buildComputeRasterizerShader(input: input))
         }
+        shaders.append(try buildOutputSpirvShader(input: input))
+        return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: computationDomain!, shaders: shaders)
+
     }
     
-    private func buildModelDependantShader(input: JelloCompilerInput) throws -> JelloCompilerOutputStage {
+    private func buildComputeRasterizerShader(input: JelloCompilerInput) throws -> SpirvShader {
         let nodes = input.graph.nodes
-        var inputTextures: [JelloIOTexture] = []
+        var outputTextureId: UInt32 = 0
         let compute = #document({
             let entryPoint = #id
             #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
@@ -1755,10 +1760,8 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             JelloCompilerBlackboard.glsl450ExtId = glsl450Id
             
             var dimensions: [UInt32] = [1, 1, 1]
-            if case .dimension(let dimX, let dimY, let dimZ) = computationDimension {
+            if case .dimension(_, let dimY, let dimZ) = self.computationDimension {
                 if dimY == 1 && dimZ == 1 {
-                    dimensions[0] = 128
-                } else if dimZ == 1 {
                     dimensions[0] = 128
                 } else {
                     dimensions[0] = 16
@@ -1778,140 +1781,187 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             #globalDeclaration(opCode: SpirvOpVariable, [int3PointerType, JelloCompilerBlackboard.gl_GlobalInvocationID, SpirvStorageClassInput.rawValue])
             #annotation(opCode: SpirvOpDecorate, [JelloCompilerBlackboard.gl_GlobalInvocationID, SpirvDecorationBuiltIn.rawValue, SpirvBuiltInGlobalInvocationId.rawValue])
             
-            let outputIds = setupShaderOutput()
+            // Declare inputs for vertex data
+            let vertexDataTypeId = VertexData.register()
+            var vertexDataOffset: UInt32 = 0
+            #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 0, SpirvDecorationOffset.rawValue, vertexDataOffset])
+            vertexDataOffset += 12
+            #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 1, SpirvDecorationOffset.rawValue, vertexDataOffset])
+            vertexDataOffset += 8
+            #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 2, SpirvDecorationOffset.rawValue, vertexDataOffset])
+            vertexDataOffset += 12
+            #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 3, SpirvDecorationOffset.rawValue, vertexDataOffset])
+            vertexDataOffset += 12
+            #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 4, SpirvDecorationOffset.rawValue, vertexDataOffset])
+            vertexDataOffset += 12
+            
+            let runtimeVertexDataArrayTypeId = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [vertexDataTypeId])
+            #annotation(opCode: SpirvOpDecorate, [runtimeVertexDataArrayTypeId, SpirvDecorationArrayStride.rawValue, vertexDataOffset])
+            let vertexDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [runtimeVertexDataArrayTypeId])
+            #debugNames(opCode: SpirvOpMemberName, [vertexDataBufferTypeId, 0], #stringLiteral("vertices"))
+            
+
+            #annotation(opCode: SpirvOpDecorate, [vertexDataBufferTypeId, SpirvDecorationBlock.rawValue])
+            #annotation(opCode: SpirvOpMemberDecorate, [vertexDataBufferTypeId, 0, SpirvDecorationOffset.rawValue, 0])
+
+            let vertexDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataBufferTypeId])
+            
+            // Vertex Data buffer gets set 1 and binding 1
+            let verticesDataBuffer = #id
+            #globalDeclaration(opCode: SpirvOpVariable, [vertexDataBufferPointerTypeId, verticesDataBuffer, SpirvStorageClassStorageBuffer.rawValue])
+            #debugNames(opCode: SpirvOpName, [verticesDataBuffer], #stringLiteral("verticesBuffer"))
+            #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationDescriptorSet.rawValue, 1])
+            #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationBinding.rawValue, 1])
+            JelloCompilerBlackboard.entryPointInterfaceIds.append(verticesDataBuffer)
+            
+            let runtimeIntArrayTypeId = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [intType])
+            #annotation(opCode: SpirvOpDecorate, [runtimeIntArrayTypeId, SpirvDecorationArrayStride.rawValue, 4])
+            let indicesDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [runtimeIntArrayTypeId])
+            #debugNames(opCode: SpirvOpMemberName, [indicesDataBufferTypeId, 0], #stringLiteral("indices"))
+            #annotation(opCode: SpirvOpDecorate, [indicesDataBufferTypeId, SpirvDecorationBlock.rawValue])
+            #annotation(opCode: SpirvOpMemberDecorate, [indicesDataBufferTypeId, 0, SpirvDecorationOffset.rawValue, 0])
+            let indicesDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, indicesDataBufferTypeId])
+            
+
+            // Indices Data buffer gets set 1 and binding 2
+            let indicesDataBuffer = #id
+            #debugNames(opCode: SpirvOpName, [indicesDataBuffer], #stringLiteral("indicesBuffer"))
+            #globalDeclaration(opCode: SpirvOpVariable, [indicesDataBufferPointerTypeId, indicesDataBuffer, SpirvStorageClassStorageBuffer.rawValue])
+            #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationDescriptorSet.rawValue, 1])
+            #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationBinding.rawValue, 2])
+            JelloCompilerBlackboard.entryPointInterfaceIds.append(indicesDataBuffer)
+
+
+            // Declare output for triangle IDs
+            
+            let triangleIndexTextureTypeId = #typeDeclaration(opCode: SpirvOpTypeImage, [intType, SpirvDim2D.rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* Single sampled */, 2 /* Compatible w/ Read Write */, SpirvImageFormatR32i.rawValue])
+            let triangleIndexOutputId = #id
+            JelloCompilerBlackboard.entryPointInterfaceIds.append(triangleIndexOutputId)
+            outputTextureId = triangleIndexOutputId
+
+            // Compute shader texture output gets set 4 and binding 1
+            #annotation(opCode: SpirvOpDecorate, [triangleIndexOutputId, SpirvDecorationDescriptorSet.rawValue, 4])
+            #annotation(opCode: SpirvOpDecorate, [triangleIndexOutputId, SpirvDecorationBinding.rawValue, 1])
+            
+            let triangleIndexTexPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniform.rawValue, triangleIndexTextureTypeId])
+            #globalDeclaration(opCode: SpirvOpVariable, [triangleIndexTexPointerTypeId, triangleIndexOutputId, SpirvStorageClassUniform.rawValue])
+            
             for node in nodes {
                 node.install(input: input)
             }
-            inputTextures = JelloCompilerBlackboard.inputComputeTextures
+            
             let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
             
             let floatType = declareType(dataType: .float)
-            let float4Type = declareType(dataType: .float4)
-            let uniformPointerFloat4Type = #typeDeclaration(opCode: SpirvOpTypePointer, [float4Type, SpirvStorageClassUniformConstant.rawValue])
-            let runtimeArrayFloat4 = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [float4Type])
-            let uniformPointerRuntimeArrayFloat4 = #typeDeclaration(opCode: SpirvOpTypePointer, [runtimeArrayFloat4, SpirvStorageClassUniformConstant.rawValue])
-            #annotation(opCode: SpirvOpDecorate, [runtimeArrayFloat4, SpirvDecorationArrayStride.rawValue, 4 * 4])
             
-            let positionsInId = #id
-            #globalDeclaration(opCode: SpirvOpVariable, [uniformPointerRuntimeArrayFloat4, positionsInId, SpirvStorageClassUniformConstant.rawValue])
-            #debugNames(opCode: SpirvOpName, [positionsInId], #stringLiteral("positions"))
-            var index = JelloCompilerBlackboard.inputComputeIds.count
-            JelloCompilerBlackboard.inputComputeIds.append(positionsInId)
-            #annotation(opCode: SpirvOpDecorate, [positionsInId, SpirvDecorationDescriptorSet.rawValue, 3])
-            #annotation(opCode: SpirvOpDecorate, [positionsInId, SpirvDecorationBinding.rawValue, UInt32(index)])
-
-            let uvsInId = #id
-            #globalDeclaration(opCode: SpirvOpVariable, [uniformPointerRuntimeArrayFloat4, uvsInId, SpirvStorageClassUniformConstant.rawValue])
-            #debugNames(opCode: SpirvOpName, [uvsInId], #stringLiteral("uvs"))
-            index = JelloCompilerBlackboard.inputComputeIds.count
-            JelloCompilerBlackboard.inputComputeIds.append(uvsInId)
-            #annotation(opCode: SpirvOpDecorate, [uvsInId, SpirvDecorationDescriptorSet.rawValue, 3])
-            #annotation(opCode: SpirvOpDecorate, [uvsInId, SpirvDecorationBinding.rawValue, UInt32(index)])
+            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelGLCompute.rawValue], [entryPoint], #stringLiteral("computeMain"), JelloCompilerBlackboard.entryPointInterfaceIds, [JelloCompilerBlackboard.gl_GlobalInvocationID])
             
-            
-            let runtimeArrayInt = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [intType])
-            #annotation(opCode: SpirvOpDecorate, [runtimeArrayInt, SpirvDecorationArrayStride.rawValue, 4])
-            let uniformPointerRuntimeArrayInt = #typeDeclaration(opCode: SpirvOpTypePointer, [runtimeArrayInt, SpirvStorageClassUniformConstant.rawValue])
-
-            let indicesInId = #id
-            #globalDeclaration(opCode: SpirvOpVariable, [uniformPointerRuntimeArrayInt, indicesInId, SpirvStorageClassUniformConstant.rawValue])
-            #debugNames(opCode: SpirvOpName, [indicesInId], #stringLiteral("indices"))
-            index = JelloCompilerBlackboard.inputComputeIds.count
-            JelloCompilerBlackboard.inputComputeIds.append(indicesInId)
-            #annotation(opCode: SpirvOpDecorate, [indicesInId, SpirvDecorationDescriptorSet.rawValue, 3])
-            #annotation(opCode: SpirvOpDecorate, [indicesInId, SpirvDecorationBinding.rawValue, UInt32(index)])
-            
-            
-            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelGLCompute.rawValue], [entryPoint], #stringLiteral("computeMain"), JelloCompilerBlackboard.inputComputeIds, [JelloCompilerBlackboard.gl_GlobalInvocationID, positionsInId])
             let typeComputeFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
             #debugNames(opCode: SpirvOpName, [typeComputeFunction], #stringLiteral("computeMain"))
             #functionHead(opCode: SpirvOpFunction, [typeVoid, entryPoint, 0, typeComputeFunction])
             let globalScopeId = #id
             #functionHead(opCode: SpirvOpLabel, [globalScopeId])
-            
-            let loadUV1 = #id
-            let loadUV2 = #id
-            let loadUV3 = #id
-            
-            let coordId = #id
-            let primativeIndexId = #id
-            #functionBody(opCode: SpirvOpLoad, [int3Type, coordId, JelloCompilerBlackboard.gl_GlobalInvocationID])
-            #functionBody(opCode: SpirvOpCompositeExtract, [intType, primativeIndexId, coordId, 0])
-            let vert1IndexId = #id
-            let vert2IndexId = #id
-            let vert3IndexId = #id
-            let threeId = #id
-            #globalDeclaration(opCode: SpirvOpConstant, [intType, threeId, 3])
-            let oneId = #id
-            #globalDeclaration(opCode: SpirvOpConstant, [intType, threeId, 1])
-            #functionBody(opCode: SpirvOpIMul, [intType, vert1IndexId, primativeIndexId, threeId])
-            #functionBody(opCode: SpirvOpIAdd, [intType, vert2IndexId, vert1IndexId, oneId])
-            #functionBody(opCode: SpirvOpIAdd, [intType, vert3IndexId, vert2IndexId, oneId])
-            
-            let uv1AccessChain = #id
-            #functionBody(opCode: SpirvOpAccessChain, [uniformPointerFloat4Type, uv1AccessChain, uvsInId, vert1IndexId])
+
+            let invocationId = #id
+            let triangleIndexId = #id
+            #functionBody(opCode: SpirvOpLoad, [int3Type, invocationId, JelloCompilerBlackboard.gl_GlobalInvocationID])
+            #functionBody(opCode: SpirvOpCompositeExtract, [intType, triangleIndexId, invocationId, 0])
+
+            let threeInt = #id
+            let oneInt = #id
+            let indicesIndex1 = #id
+            let indicesIndex2 = #id
+            let indicesIndex3 = #id
+            let indicesIndexAccessChain1 = #id
+            let indicesIndexAccessChain2 = #id
+            let indicesIndexAccessChain3 = #id
+            let index1 = #id
+            let index2 = #id
+            let index3 = #id
+            let vertexAccessChain1 = #id
+            let vertexAccessChain2 = #id
+            let vertexAccessChain3 = #id
+            let vertex1 = #id
+            let vertex2 = #id
+            let vertex3 = #id
             let uv1 = #id
-            #functionBody(opCode: SpirvOpLoad, [float4Type, uv1, uv1AccessChain])
-            
-            let uv2AccessChain = #id
-            #functionBody(opCode: SpirvOpAccessChain, [uniformPointerFloat4Type, uv2AccessChain, uvsInId, vert2IndexId])
             let uv2 = #id
-            #functionBody(opCode: SpirvOpLoad, [float4Type, uv2, uv2AccessChain])
-            
-            let uv3AccessChain = #id
-            #functionBody(opCode: SpirvOpAccessChain, [uniformPointerFloat4Type, uv3AccessChain, uvsInId, vert3IndexId])
             let uv3 = #id
-            #functionBody(opCode: SpirvOpLoad, [float4Type, uv3, uv3AccessChain])
+            #globalDeclaration(opCode: SpirvOpConstant, [intType, threeInt, 3])
+            #globalDeclaration(opCode: SpirvOpConstant, [intType, oneInt, 1])
+            #functionBody(opCode: SpirvOpIMul, [intType, indicesIndex1, triangleIndexId, threeInt])
+            #functionBody(opCode: SpirvOpIAdd, [intType, indicesIndex2, indicesIndex1, oneInt])
+            #functionBody(opCode: SpirvOpIAdd, [intType, indicesIndex3, indicesIndex2, oneInt])
+            let zeroInt = #id
+            #globalDeclaration(opCode: SpirvOpConstant, [intType, zeroInt, 0])
+            let intStorageBufferPointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, intType])
+            #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain1, indicesDataBuffer, zeroInt, indicesIndex1])
+            #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain2, indicesDataBuffer, zeroInt, indicesIndex2])
+            #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain3, indicesDataBuffer, zeroInt, indicesIndex3])
+            #functionBody(opCode: SpirvOpLoad, [intType, index1, indicesIndexAccessChain1])
+            #functionBody(opCode: SpirvOpLoad, [intType, index2, indicesIndexAccessChain2])
+            #functionBody(opCode: SpirvOpLoad, [intType, index3, indicesIndexAccessChain3])
+            
+            let vertexStorageBufferPointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataTypeId])
+            #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain1, verticesDataBuffer, zeroInt, index1])
+            #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain2, verticesDataBuffer, zeroInt, index2])
+            #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain3, verticesDataBuffer, zeroInt, index3])
+            #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId, vertex1, vertexAccessChain1])
+            #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId, vertex2, vertexAccessChain3])
+            #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId, vertex3, vertexAccessChain3])
             
             let float2Type = declareType(dataType: .float2)
-            
-            let minId = #id
-            let maxId = #id
+            #functionBody(opCode: SpirvOpCompositeExtract, [float2Type, uv1, vertex1, 1])
+            #functionBody(opCode: SpirvOpCompositeExtract, [float2Type, uv2, vertex2, 1])
+            #functionBody(opCode: SpirvOpCompositeExtract, [float2Type, uv3, vertex3, 1])
+
+                        
+            let minUVId = #id
+            let maxUVId = #id
         
+            // START CALCULATE UV BOUNDING BOX
             let minUV1UV2 = #id
-            #functionBody(opCode: SpirvOpExtInst, [float4Type, minUV1UV2, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMin.rawValue, uv1, uv2])
-            #functionBody(opCode: SpirvOpExtInst, [float4Type, minId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, minUV1UV2, uv3])
+            #functionBody(opCode: SpirvOpExtInst, [float2Type, minUV1UV2, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMin.rawValue, uv1, uv2])
+            #functionBody(opCode: SpirvOpExtInst, [float2Type, minUVId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, minUV1UV2, uv3])
             
             let maxUV1UV2 = #id
-            #functionBody(opCode: SpirvOpExtInst, [float4Type, maxUV1UV2, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, uv1, uv2])
-            #functionBody(opCode: SpirvOpExtInst, [float4Type, maxId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, maxUV1UV2, uv3])
+            #functionBody(opCode: SpirvOpExtInst, [float2Type, maxUV1UV2, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, uv1, uv2])
+            #functionBody(opCode: SpirvOpExtInst, [float2Type, maxUVId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, maxUV1UV2, uv3])
             
             let pixelBoundsMinF = #id
             let pixelBoundsMaxF = #id
             let textureSizeF = #id
             
-            let zero = declareNullValueConstant(dataType: .float)
+            let zeroF = declareNullValueConstant(dataType: .float)
+            let sizeXF = #id
+            let sizeYF = #id
+            let sizeZF = #id
+            
+            let oneFId = #id
+            #globalDeclaration(opCode: SpirvOpConstant, [floatType, oneFId], float(Float(1)))
+            let oneIId = #id
+            #globalDeclaration(opCode: SpirvOpConstant, [intType, oneIId], int(1))
             
             if case .dimension(let dimX, let dimY, _) = computationDimension {
-                let sizeXF = #id
-                let sizeYF = #id
                 #globalDeclaration(opCode: SpirvOpConstant, [floatType, sizeXF], float(Float(dimX)))
                 #globalDeclaration(opCode: SpirvOpConstant, [floatType, sizeYF], float(Float(dimY)))
-                
-                #globalDeclaration(opCode: SpirvOpConstantComposite, [float4Type, textureSizeF, sizeXF, sizeYF, zero, zero])
+                #globalDeclaration(opCode: SpirvOpConstantComposite, [float2Type, textureSizeF, sizeXF, sizeYF])
             }
-            #functionBody(opCode: SpirvOpFMul, [float4Type, pixelBoundsMinF, minId, textureSizeF])
-            #functionBody(opCode: SpirvOpFMul, [float4Type, pixelBoundsMaxF, maxId, textureSizeF])
+            #functionBody(opCode: SpirvOpFMul, [float2Type, pixelBoundsMinF, minUVId, textureSizeF])
+            #functionBody(opCode: SpirvOpFMul, [float2Type, pixelBoundsMaxF, maxUVId, textureSizeF])
             
-            let zeroPoint5 = #id
-            #globalDeclaration(opCode: SpirvOpConstant, [floatType, zeroPoint5], float(0.5))
-            let zeroPoint5Vec4 = #id
-            #globalDeclaration(opCode: SpirvOpConstantComposite, [float4Type, zeroPoint5Vec4, zeroPoint5, zeroPoint5, zeroPoint5, zeroPoint5])
-
             
             let conservativePixelBoundsMaxF = #id
-            #functionBody(opCode: SpirvOpFAdd, [float4Type, conservativePixelBoundsMaxF, pixelBoundsMaxF, zeroPoint5])
+            #functionBody(opCode: SpirvOpExtInst, [float2Type, conservativePixelBoundsMaxF, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Ceil.rawValue, pixelBoundsMaxF])
+
             
-            let clampedPixelBoundsMaxF = #id
-            #functionBody(opCode: SpirvOpExtInst, [float4Type, clampedPixelBoundsMaxF, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, conservativePixelBoundsMaxF, textureSizeF])
-            
-            let int4Type = #typeDeclaration(opCode: SpirvOpTypeVector, [intType, 3])
+            let int2Type = #typeDeclaration(opCode: SpirvOpTypeVector, [intType, 2])
             
             let pixelBoundsMinI = #id
-            #functionBody(opCode: SpirvOpConvertFToS, [int4Type, pixelBoundsMinI, pixelBoundsMinF])
+            #functionBody(opCode: SpirvOpConvertFToS, [int2Type, pixelBoundsMinI, pixelBoundsMinF])
             
             let pixelBoundsMaxI = #id
-            #functionBody(opCode: SpirvOpConvertFToS, [int4Type, pixelBoundsMaxI, clampedPixelBoundsMaxF])
+            #functionBody(opCode: SpirvOpConvertFToS, [int2Type, pixelBoundsMaxI, conservativePixelBoundsMaxF])
             
             let pixelMinX = #id
             #functionBody(opCode: SpirvOpCompositeExtract, [intType, pixelMinX, pixelBoundsMinI, 0])
@@ -1922,6 +1972,69 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let pixelMaxY = #id
             #functionBody(opCode: SpirvOpCompositeExtract, [intType, pixelMaxY, pixelBoundsMaxI, 1])
             
+            // END CALCULATE UV BOUNDING BOX
+            
+            
+            // BEGIN CONSTANT VALUES FOR CALCULATING BARYCENTRIC COORDS
+            let deltaUV2UV1 = #id
+            let deltaUV3UV1 = #id
+            let baryDenominator = #id
+            let oneOverBaryDenominator = #id
+            
+            let deltaUV2UV1X = #id
+            let deltaUV2UV1Y = #id
+            let deltaUV3UV1X = #id
+            let deltaUV3UV1Y = #id
+            
+            let boolType = declareType(dataType: .bool)
+            #functionBody(opCode: SpirvOpFSub, [float2Type, deltaUV2UV1, uv2, uv1])
+            #functionBody(opCode: SpirvOpFSub, [float2Type, deltaUV3UV1, uv3, uv1])
+
+            #functionBody(opCode: SpirvOpCompositeExtract, [floatType, deltaUV2UV1X, deltaUV2UV1, 0])
+            #functionBody(opCode: SpirvOpCompositeExtract, [floatType, deltaUV2UV1Y, deltaUV2UV1, 1])
+            
+            #functionBody(opCode: SpirvOpCompositeExtract, [floatType, deltaUV3UV1X, deltaUV3UV1, 0])
+            #functionBody(opCode: SpirvOpCompositeExtract, [floatType, deltaUV3UV1Y, deltaUV3UV1, 1])
+            
+            
+            let deltaUV2UV1XMdeltaUV3UV1Y = #id
+            #functionBody(opCode: SpirvOpFMul, [floatType, deltaUV2UV1XMdeltaUV3UV1Y, deltaUV2UV1X, deltaUV3UV1Y])
+            let deltaUV3UV1XMdeltaUV2UV1Y = #id
+            #functionBody(opCode: SpirvOpFMul, [floatType, deltaUV3UV1XMdeltaUV2UV1Y, deltaUV3UV1X, deltaUV2UV1Y])
+            
+            #functionBody(opCode: SpirvOpFSub, [floatType, baryDenominator, deltaUV2UV1XMdeltaUV3UV1Y, deltaUV2UV1XMdeltaUV3UV1Y])
+            
+            let ifDenominatorNonZeroCondValue = #id
+            #functionBody(opCode: SpirvOpFOrdNotEqual, [boolType, ifDenominatorNonZeroCondValue, zeroF, baryDenominator])
+            
+            let ifDenominatorNonZeroMergeLabel = #id
+            let ifDenominatorZeroLabel = #id
+            #functionBody(opCode: SpirvOpSelectionMerge, [ifDenominatorNonZeroMergeLabel, 0])
+            #functionBody(opCode: SpirvOpBranchConditional, [ifDenominatorNonZeroCondValue, ifDenominatorZeroLabel, ifDenominatorNonZeroMergeLabel])
+            
+            #functionBody(opCode: SpirvOpLabel, [ifDenominatorZeroLabel])
+            #functionBody(opCode: SpirvOpReturn) // Return early if uv triangle has zero size
+            
+            #functionBody(opCode: SpirvOpLabel, [ifDenominatorNonZeroMergeLabel])
+            #functionBody(opCode: SpirvOpFDiv, [floatType, oneOverBaryDenominator, oneFId, baryDenominator])
+            
+            // END CONSTANT VALUES FOR CALCULATING BARYCENTRIC COORDS
+            
+            // BEGIN CONSTANT VALUES FOR CALCULATING UV COORDS
+            let uvDeltaX = #id
+            let uvDeltaY = #id
+            
+            #functionBody(opCode: SpirvOpFDiv, [floatType, uvDeltaX, oneFId, sizeXF])
+            #functionBody(opCode: SpirvOpFDiv, [floatType, uvDeltaY, oneFId, sizeYF])
+
+            let startUVX = #id
+            let startUVY = #id
+            
+            #functionBody(opCode: SpirvOpCompositeExtract, [floatType, startUVX, minUVId, 0])
+            #functionBody(opCode: SpirvOpCompositeExtract, [floatType, startUVY, minUVId, 1])
+            // END CONSTANT VALUES FOR CALCULATING UV COORDS
+            
+            
             let xLoopMergePoint = #id
             let xContinueTarget = #id
             let xLoopHead = #id
@@ -1930,18 +2043,19 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let yLoopMergePoint = #id
             let yContinueTarget = #id
             let yLoopHead = #id
-            let yLoopConditional = #id
             let yLoopBody = #id
             
             let xPixelPlusOne = #id
-
+            let xUVNext = #id
             let yPixelPlusOne = #id
-
+            let yUVNext = #id
+            
             #functionBody(opCode: SpirvOpBranch, [xLoopHead])
             #functionBody(opCode: SpirvOpLabel, [xLoopHead])
             let pixelX = #id
-            #functionBody(opCode: SpirvOpPhi, [intType, pixelX], [pixelMinX, globalScopeId], [xPixelPlusOne, xContinueTarget])
-            let boolType = declareType(dataType: .bool)
+            let uvX = #id
+            #functionBody(opCode: SpirvOpPhi, [intType, pixelX], [pixelMinX, ifDenominatorNonZeroMergeLabel], [xPixelPlusOne, xContinueTarget])
+            #functionBody(opCode: SpirvOpPhi, [floatType, uvX], [startUVX, ifDenominatorNonZeroMergeLabel], [xUVNext, xContinueTarget])
             let pixelXRangeCheck = #id
             #functionBody(opCode: SpirvOpSLessThan, [boolType, pixelXRangeCheck, pixelX, pixelMaxX])
             // Assign variables visble to loop body here, including OpPhi instructions
@@ -1952,29 +2066,104 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             
                 #functionBody(opCode: SpirvOpLabel, [yLoopHead])
                 let pixelY = #id
+                let uvY = #id
                 #functionBody(opCode: SpirvOpPhi, [intType, pixelY], [pixelMinY, xLoopBody], [yPixelPlusOne, yContinueTarget])
+                #functionBody(opCode: SpirvOpPhi, [floatType, uvY], [startUVY, xLoopBody], [yUVNext, yContinueTarget])
+
                 let pixelYRangeCheck = #id
                 #functionBody(opCode: SpirvOpSLessThan, [boolType, pixelYRangeCheck, pixelY, pixelMaxY])
                 #functionBody(opCode: SpirvOpLoopMerge, [yLoopMergePoint, yContinueTarget, 0 /* No loop inlining specifier */])
                 #functionBody(opCode: SpirvOpBranchConditional, [pixelYRangeCheck, yLoopBody, yLoopMergePoint])
                 #functionBody(opCode: SpirvOpLabel, [yLoopBody])
-                
-                // TODO: Calculate Barycentric coordinates to interpolate values
-                for node in input.graph.nodes {
-                    node.write(input: input)
-                }
-                // TODO: Call the right shader output function here
-                writeTimeVaryingOrConstantShaderOutput(outputIds.texId, outputIds.texTypeId)
+             
+                // START Calculate Barycentric coordinates to interpolate values
+
+                let thisUV = #id
+                #functionBody(opCode: SpirvOpCompositeConstruct, [float2Type, thisUV, uvX, uvY])
             
+                let deltaThisUVUV1 = #id
+                let deltaThisUVUV1X = #id
+                let deltaThisUVUV1Y = #id
+                let baryU = #id
+                let baryV = #id
+                let baryW = #id
+                // TODO ADD in Z Coordinate from group
+                
+                #functionBody(opCode: SpirvOpFSub, [float2Type, deltaThisUVUV1, thisUV, uv1])
+                #functionBody(opCode: SpirvOpCompositeExtract, [floatType, deltaThisUVUV1X, deltaThisUVUV1, 0])
+                #functionBody(opCode: SpirvOpCompositeExtract, [floatType, deltaThisUVUV1Y, deltaThisUVUV1, 1])
+                
+                let deltaThisUVUV1XMdeltaUV3UV1Y = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, deltaThisUVUV1XMdeltaUV3UV1Y, deltaThisUVUV1X,  deltaUV3UV1Y])
+                let deltaThisUVUV1YMdeltaUV3UV1X = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, deltaThisUVUV1YMdeltaUV3UV1X, deltaThisUVUV1Y,  deltaUV3UV1X])
+                
+                let deltaThisUVUV1XMdeltaUV3UV1YSdeltaThisUVUV1YMdeltaUV3UV1X = #id
+                #functionBody(opCode: SpirvOpFSub, [floatType, deltaThisUVUV1XMdeltaUV3UV1YSdeltaThisUVUV1YMdeltaUV3UV1X, deltaThisUVUV1XMdeltaUV3UV1Y,  deltaThisUVUV1YMdeltaUV3UV1X])
+                #functionBody(opCode: SpirvOpFMul, [floatType, baryV, oneOverBaryDenominator,  deltaThisUVUV1XMdeltaUV3UV1YSdeltaThisUVUV1YMdeltaUV3UV1X])
+            
+                let deltaThisUVUV1YMdeltaUV2UV1X = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, deltaThisUVUV1YMdeltaUV2UV1X, deltaThisUVUV1Y,  deltaUV2UV1X])
+                let deltaThisUVUV1XMdeltaUV2UV1Y = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, deltaThisUVUV1XMdeltaUV2UV1Y, deltaThisUVUV1X,  deltaUV2UV1Y])
+                
+            
+                let deltaThisUVUV1YMdeltaUV2UV1XSdeltaThisUVUV1XMdeltaUV2UV1Y = #id
+                #functionBody(opCode: SpirvOpFSub, [floatType, deltaThisUVUV1YMdeltaUV2UV1XSdeltaThisUVUV1XMdeltaUV2UV1Y, deltaThisUVUV1YMdeltaUV2UV1X,  deltaThisUVUV1YMdeltaUV2UV1X])
+                #functionBody(opCode: SpirvOpFMul, [floatType, baryW, oneOverBaryDenominator,  deltaThisUVUV1YMdeltaUV2UV1XSdeltaThisUVUV1XMdeltaUV2UV1Y])
+                
+                let oneMinusBaryV = #id
+                #functionBody(opCode: SpirvOpFSub, [floatType, oneMinusBaryV, oneFId, baryV])
+                #functionBody(opCode: SpirvOpFSub, [floatType, baryU, oneMinusBaryV, baryW])
+            
+                let baryUIsNegative = #id
+                let baryVIsNegative = #id
+                let baryWIsNegative = #id
+                #functionBody(opCode: SpirvOpFOrdLessThan, [boolType, baryUIsNegative, baryU, zeroF])
+                #functionBody(opCode: SpirvOpFOrdLessThan, [boolType, baryVIsNegative, baryV, zeroF])
+                #functionBody(opCode: SpirvOpFOrdLessThan, [boolType, baryWIsNegative, baryW, zeroF])
+                let baryUOrVIsNegative = #id
+                let baryUOrVorWIsNegative = #id
+                #functionBody(opCode: SpirvOpLogicalOr, [boolType, baryUOrVIsNegative, baryUIsNegative, baryVIsNegative])
+                #functionBody(opCode: SpirvOpLogicalOr, [boolType, baryUOrVorWIsNegative, baryUOrVIsNegative, baryWIsNegative])
+                
+            
+                // END Calculate Barycentric coordinates to interpolate values
+                // Test if in triangle
+                let ifBaryMergeLabel = #id
+                let ifBaryPositiveLabel = #id
+                #functionBody(opCode: SpirvOpSelectionMerge, [ifBaryMergeLabel, 0])
+                #functionBody(opCode: SpirvOpBranchConditional, [baryUOrVorWIsNegative, ifBaryMergeLabel, ifBaryPositiveLabel])
+                #functionBody(opCode: SpirvOpLabel, [ifBaryPositiveLabel])
+                
+                let texelPointerId = #id
+                let texCoordinateId: UInt32 = #id
+                #functionBody(opCode: SpirvOpCompositeConstruct, [int2Type, texCoordinateId, pixelX, pixelY])
+                let zeroI = #id
+                #globalDeclaration(opCode: SpirvOpConstant, [intType, zeroI, 0])
+                let texelMemorySemantics = #id
+                let texelScope = #id
+            
+                let texelPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassImage.rawValue, intType])
+                #functionBody(opCode: SpirvOpImageTexelPointer, [texelPointerTypeId, texelPointerId, outputTextureId, texCoordinateId, zeroI])
+                #globalDeclaration(opCode: SpirvOpConstant, [intType, texelMemorySemantics, SpirvMemorySemanticsAcquireReleaseMask.rawValue | SpirvMemorySemanticsImageMemoryMask.rawValue])
+                #globalDeclaration(opCode: SpirvOpConstant, [intType, texelScope, SpirvScopeCrossDevice.rawValue])
+                #functionBody(opCode: SpirvOpAtomicSMax, [intType, #id, texelPointerId, texelScope, texelMemorySemantics, triangleIndexId])
+                #functionBody(opCode: SpirvOpBranch, [ifBaryMergeLabel])
+                #functionBody(opCode: SpirvOpLabel, [ifBaryMergeLabel])
+                #functionBody(opCode: SpirvOpBranch, [yContinueTarget])
                 #functionBody(opCode: SpirvOpLabel, [yContinueTarget])
-                #functionBody(opCode: SpirvOpIAdd, [intType, yPixelPlusOne, pixelY, oneId])
+                #functionBody(opCode: SpirvOpIAdd, [intType, yPixelPlusOne, pixelY, oneIId])
+                #functionBody(opCode: SpirvOpFAdd, [floatType, yUVNext, uvY, uvDeltaY])
                 #functionBody(opCode: SpirvOpBranch, [yLoopHead])
                 #functionBody(opCode: SpirvOpLabel, [yLoopMergePoint])
                 #functionBody(opCode: SpirvOpBranch, [xContinueTarget])
             
             #functionBody(opCode: SpirvOpLabel, [xContinueTarget])
             // Update values here
-            #functionBody(opCode: SpirvOpIAdd, [intType, xPixelPlusOne, pixelX, oneId])
+            #functionBody(opCode: SpirvOpIAdd, [intType, xPixelPlusOne, pixelX, oneIId])
+            #functionBody(opCode: SpirvOpFAdd, [floatType, xUVNext, uvX, uvDeltaX])
+
             #functionBody(opCode: SpirvOpBranch, [xLoopHead])
             #functionBody(opCode: SpirvOpLabel, [xLoopMergePoint])
             #functionBody(opCode: SpirvOpReturn)
@@ -1987,15 +2176,20 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             outputPort.clearReservation()
         }
         
-        return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: computationDomain!, shaders: [.compute(self.computationDimension, compute, inputTextures,  JelloIOTexture(originatingStage: self.id, size: computationDimension, format: format, packing: packing))])
+        if case .dimension(let x, let y, _) = computationDimension {
+            return .computeRasterizer(SpirvComputeRasterizerShader(shader: compute, outputTexture: SpirvTextureBinding(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass: 0, size: .dimension(x, y, 1), format: .R32i, packing: .int), spirvId: outputTextureId)))
+        }
+        fatalError("Computation Dimension Required")
     }
     
     
     
-    
-    private func buildTimeVaryingOrConstantShader(input: JelloCompilerInput) throws -> JelloCompilerOutputStage {
+    private func buildOutputSpirvShader(input: JelloCompilerInput) throws -> SpirvShader {
         let nodes = input.graph.nodes
-        var inputTextures: [JelloIOTexture] = []
+        var inputTextures: [SpirvTextureBinding] = []
+        var outputTextureBinding: SpirvTextureBinding? = nil
+
+
         let compute = #document({
             let entryPoint = #id
             #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
@@ -2016,7 +2210,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
                     dimensions[2] = 4
                 }
             }
-            
+
             #executionMode(opCode: SpirvOpExecutionMode, [entryPoint, SpirvExecutionModeLocalSize.rawValue], dimensions)
             
             #memoryModel(opCode: SpirvOpMemoryModel, [SpirvAddressingModelLogical.rawValue, SpirvMemoryModelGLSL450.rawValue])
@@ -2025,27 +2219,338 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let intType = declareType(dataType: .int)
             let int3Type = #typeDeclaration(opCode: SpirvOpTypeVector, [intType, 3])
             let int3PointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, int3Type])
+            let floatType = declareType(dataType: .float)
             #globalDeclaration(opCode: SpirvOpVariable, [int3PointerType, JelloCompilerBlackboard.gl_GlobalInvocationID, SpirvStorageClassInput.rawValue])
             #annotation(opCode: SpirvOpDecorate, [JelloCompilerBlackboard.gl_GlobalInvocationID, SpirvDecorationBuiltIn.rawValue, SpirvBuiltInGlobalInvocationId.rawValue])
             
-            let outputIds = setupShaderOutput()
+            let outputTexId = #id
+            let outputTexTypeId = #typeDeclaration(opCode: SpirvOpTypeImage, [floatType, self.spirvDimensionality.rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* Single sampled */, 2 /* Compatible w/ Read Write */, self.spirvFormat.rawValue])
+
+            // Compute shader texture output gets set 4 and binding 1
+            #annotation(opCode: SpirvOpDecorate, [outputTexId, SpirvDecorationDescriptorSet.rawValue, 4])
+            #annotation(opCode: SpirvOpDecorate, [outputTexId, SpirvDecorationBinding.rawValue, UInt32(1)])
+            #debugNames(opCode: SpirvOpName, [outputTexId], #stringLiteral("outputTex"))
+
+            let outputTexPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniform.rawValue, outputTexTypeId])
+            #globalDeclaration(opCode: SpirvOpVariable, [outputTexPointerTypeId, outputTexId, SpirvStorageClassUniform.rawValue])
+            JelloCompilerBlackboard.entryPointInterfaceIds.append(outputTexId)
+            JelloCompilerBlackboard.outputComputeTexture = SpirvTextureBinding(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass:  (self.computationDomain?.contains(.modelDependant) ?? false) ? 1 : 0, size: computationDimension, format: format, packing: packing), spirvId: outputTexId)
+            
+            var triangleIndexInputId: UInt32? = nil
+            var triangleIndexTextureTypeId: UInt32? = nil
+            var vertexDataTypeId: UInt32? = nil
+            var runtimeVertexDataArrayTypeId: UInt32? = nil
+            var vertexDataBufferTypeId: UInt32? = nil
+            var verticesDataBuffer: UInt32? = nil
+            var indicesDataBuffer: UInt32? = nil
+            if (computationDomain ?? .constant).contains(.modelDependant) {
+                // Declare inputs for vertex data
+                vertexDataTypeId = VertexData.register()
+                var vertexDataOffset: UInt32 = 0
+                #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 0, SpirvDecorationOffset.rawValue, vertexDataOffset])
+                vertexDataOffset += 12
+                #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 1, SpirvDecorationOffset.rawValue, vertexDataOffset])
+                vertexDataOffset += 8
+                #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 2, SpirvDecorationOffset.rawValue, vertexDataOffset])
+                vertexDataOffset += 12
+                #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 3, SpirvDecorationOffset.rawValue, vertexDataOffset])
+                vertexDataOffset += 12
+                #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 4, SpirvDecorationOffset.rawValue, vertexDataOffset])
+                vertexDataOffset += 12
+                
+                runtimeVertexDataArrayTypeId = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [vertexDataTypeId!])
+                #annotation(opCode: SpirvOpDecorate, [runtimeVertexDataArrayTypeId!, SpirvDecorationArrayStride.rawValue, vertexDataOffset])
+                vertexDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [runtimeVertexDataArrayTypeId!])
+                #debugNames(opCode: SpirvOpMemberName, [vertexDataBufferTypeId!, 0], #stringLiteral("vertices"))
+                
+
+                #annotation(opCode: SpirvOpDecorate, [vertexDataBufferTypeId!, SpirvDecorationBlock.rawValue])
+                #annotation(opCode: SpirvOpMemberDecorate, [vertexDataBufferTypeId!, 0, SpirvDecorationOffset.rawValue, 0])
+
+                let vertexDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataBufferTypeId!])
+                
+                // Vertex Data buffer gets set 1 and binding 1
+                verticesDataBuffer = #id
+                #globalDeclaration(opCode: SpirvOpVariable, [vertexDataBufferPointerTypeId, verticesDataBuffer!, SpirvStorageClassStorageBuffer.rawValue])
+                #debugNames(opCode: SpirvOpName, [verticesDataBuffer!], #stringLiteral("verticesBuffer"))
+                #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationDescriptorSet.rawValue, 1])
+                #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationBinding.rawValue, 1])
+                JelloCompilerBlackboard.entryPointInterfaceIds.append(verticesDataBuffer!)
+                
+                let runtimeIntArrayTypeId = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [intType])
+                #annotation(opCode: SpirvOpDecorate, [runtimeIntArrayTypeId, SpirvDecorationArrayStride.rawValue, 4])
+                let indicesDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [runtimeIntArrayTypeId])
+                #debugNames(opCode: SpirvOpMemberName, [indicesDataBufferTypeId, 0], #stringLiteral("indices"))
+                #annotation(opCode: SpirvOpDecorate, [indicesDataBufferTypeId, SpirvDecorationBlock.rawValue])
+                #annotation(opCode: SpirvOpMemberDecorate, [indicesDataBufferTypeId, 0, SpirvDecorationOffset.rawValue, 0])
+                let indicesDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, indicesDataBufferTypeId])
+                
+
+                // Indices Data buffer gets set 1 and binding 2
+                indicesDataBuffer = #id
+                #debugNames(opCode: SpirvOpName, [indicesDataBuffer!], #stringLiteral("indicesBuffer"))
+                #globalDeclaration(opCode: SpirvOpVariable, [indicesDataBufferPointerTypeId, indicesDataBuffer!, SpirvStorageClassStorageBuffer.rawValue])
+                #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationDescriptorSet.rawValue, 1])
+                #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationBinding.rawValue, 2])
+                JelloCompilerBlackboard.entryPointInterfaceIds.append(indicesDataBuffer!)
+
+
+                // Declare input for triangle IDs
+                triangleIndexTextureTypeId = #typeDeclaration(opCode: SpirvOpTypeImage, [intType, (self.spirvDimensionality == SpirvDim1D ? SpirvDim1D : SpirvDim2D).rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* Single sampled */, 2 /* Compatible w/ Read Write */, SpirvImageFormatR32i.rawValue])
+                triangleIndexInputId = #id
+                if case .dimension(let x, let y, _) = computationDimension {
+                    JelloCompilerBlackboard.inputComputeTextures.append(.init(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass: 0, size: .dimension(Int(x), Int(y), 1), format: .R32i, packing: .int), spirvId: triangleIndexInputId!))
+                }
+
+                // Triangle ID texture input get set 2 and binding 1
+                #annotation(opCode: SpirvOpDecorate, [triangleIndexInputId!, SpirvDecorationDescriptorSet.rawValue, 2])
+                #annotation(opCode: SpirvOpDecorate, [triangleIndexInputId!, SpirvDecorationBinding.rawValue, 1])
+
+                JelloCompilerBlackboard.entryPointInterfaceIds.append(triangleIndexInputId!)
+                let triangleIndexTexPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, triangleIndexTextureTypeId!])
+                #globalDeclaration(opCode: SpirvOpVariable, [triangleIndexTexPointerTypeId, triangleIndexInputId!, SpirvStorageClassUniformConstant.rawValue])
+            }
+            
             for node in nodes {
                 node.install(input: input)
             }
+            
             inputTextures = JelloCompilerBlackboard.inputComputeTextures
+            outputTextureBinding = JelloCompilerBlackboard.outputComputeTexture
             let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
-            
-            
              
-            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelGLCompute.rawValue], [entryPoint], #stringLiteral("computeMain"), JelloCompilerBlackboard.inputComputeIds, [JelloCompilerBlackboard.gl_GlobalInvocationID])
+            #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelGLCompute.rawValue], [entryPoint], #stringLiteral("computeMain"), JelloCompilerBlackboard.entryPointInterfaceIds, [JelloCompilerBlackboard.gl_GlobalInvocationID])
             let typeComputeFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
             #debugNames(opCode: SpirvOpName, [typeComputeFunction], #stringLiteral("computeMain"))
             #functionHead(opCode: SpirvOpFunction, [typeVoid, entryPoint, 0, typeComputeFunction])
             #functionHead(opCode: SpirvOpLabel, [#id])
+            
+            let globalInvocationLoadId = #id
+            #functionBody(opCode: SpirvOpLoad, [int3Type, globalInvocationLoadId, JelloCompilerBlackboard.gl_GlobalInvocationID])
+            
+            if (computationDomain ?? .constant).contains(.modelDependant) {
+                let triangleIndexCoordId = #id
+                let triangleIndexTexLoadId = #id
+                let int2Type = #typeDeclaration(opCode: SpirvOpTypeVector, [intType, 2])
+                switch spirvDimensionality {
+                case SpirvDim1D:
+                    #functionBody(opCode: SpirvOpVectorShuffle, [int2Type, triangleIndexCoordId, globalInvocationLoadId, globalInvocationLoadId, 0, 0xFFFFFFFF])
+                case SpirvDim2D, SpirvDim3D:
+                    #functionBody(opCode: SpirvOpVectorShuffle, [int2Type, triangleIndexCoordId, globalInvocationLoadId, globalInvocationLoadId, 0, 1])
+                default:
+                    fatalError("Unexpected Dimensionality")
+                }
+                
+                #functionBody(opCode: SpirvOpLoad, [triangleIndexTextureTypeId!, triangleIndexTexLoadId, triangleIndexInputId!])
+                let triangleIndex = #id
+                #functionBody(opCode: SpirvOpImageRead, [intType, triangleIndex, triangleIndexTexLoadId, triangleIndexCoordId])
+                let threeInt = #id
+                let oneInt = #id
+                let indicesIndex1 = #id
+                let indicesIndex2 = #id
+                let indicesIndex3 = #id
+                let indicesIndexAccessChain1 = #id
+                let indicesIndexAccessChain2 = #id
+                let indicesIndexAccessChain3 = #id
+                let index1 = #id
+                let index2 = #id
+                let index3 = #id
+                let vertexAccessChain1 = #id
+                let vertexAccessChain2 = #id
+                let vertexAccessChain3 = #id
+                let vertex1 = #id
+                let vertex2 = #id
+                let vertex3 = #id
+                let uv1 = #id
+                let uv2 = #id
+                let uv3 = #id
+                #globalDeclaration(opCode: SpirvOpConstant, [intType, threeInt, 3])
+                #globalDeclaration(opCode: SpirvOpConstant, [intType, oneInt, 1])
+                #functionBody(opCode: SpirvOpIMul, [intType, indicesIndex1, triangleIndex, threeInt])
+                #functionBody(opCode: SpirvOpIAdd, [intType, indicesIndex2, indicesIndex1, oneInt])
+                #functionBody(opCode: SpirvOpIAdd, [intType, indicesIndex3, indicesIndex2, oneInt])
+                let zeroInt = #id
+                #globalDeclaration(opCode: SpirvOpConstant, [intType, zeroInt, 0])
+                let intStorageBufferPointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, intType])
+                #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain1, indicesDataBuffer!, zeroInt, indicesIndex1])
+                #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain2, indicesDataBuffer!, zeroInt, indicesIndex2])
+                #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain3, indicesDataBuffer!, zeroInt, indicesIndex3])
+                #functionBody(opCode: SpirvOpLoad, [intType, index1, indicesIndexAccessChain1])
+                #functionBody(opCode: SpirvOpLoad, [intType, index2, indicesIndexAccessChain2])
+                #functionBody(opCode: SpirvOpLoad, [intType, index3, indicesIndexAccessChain3])
+                
+                let vertexStorageBufferPointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataTypeId!])
+                #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain1, verticesDataBuffer!, zeroInt, index1])
+                #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain2, verticesDataBuffer!, zeroInt, index2])
+                #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain3, verticesDataBuffer!, zeroInt, index3])
+                #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId!, vertex1, vertexAccessChain1])
+                #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId!, vertex2, vertexAccessChain3])
+                #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId!, vertex3, vertexAccessChain3])
+                
+                let float2Type = declareType(dataType: .float2)
+                #functionBody(opCode: SpirvOpCompositeExtract, [float2Type, uv1, vertex1, 1])
+                #functionBody(opCode: SpirvOpCompositeExtract, [float2Type, uv2, vertex2, 1])
+                #functionBody(opCode: SpirvOpCompositeExtract, [float2Type, uv3, vertex3, 1])
+                
+                let thisUV = #id
+                let zeroFloat = declareNullValueConstant(dataType: .float)
+                let oneFloat = #id
+                #globalDeclaration(opCode: SpirvOpConstant, [floatType, oneFloat], float(1))
+                let float4Type = declareType(dataType: .float4)
+                if case .dimension(let x, let y, let z) = computationDimension {
+                    switch spirvDimensionality {
+                    case SpirvDim1D:
+                        let triangleIndexCoordIdFloat2 = #id
+                        #functionBody(opCode: SpirvOpConvertSToF, [float2Type, triangleIndexCoordIdFloat2, triangleIndexCoordId])
+                        let triangleIndexCoordIdFloat4 = #id
+                        #functionBody(opCode: SpirvOpCompositeConstruct, [float4Type, triangleIndexCoordIdFloat4, triangleIndexCoordIdFloat2, zeroFloat, zeroFloat])
+                        let dimX = #id
+                        let dim = #id
+                        #globalDeclaration(opCode: SpirvOpConstant, [floatType, dimX], float(Float(x)))
+                        #globalDeclaration(opCode: SpirvOpConstantComposite, [float4Type, dim, dimX, oneFloat, oneFloat, oneFloat])
+                        #functionBody(opCode: SpirvOpFDiv, [float4Type, thisUV, triangleIndexCoordIdFloat4, dim])
+                    case SpirvDim2D:
+                        let triangleIndexCoordIdFloat2 = #id
+                        #functionBody(opCode: SpirvOpConvertSToF, [float2Type, triangleIndexCoordIdFloat2, triangleIndexCoordId])
+                        let triangleIndexCoordIdFloat4 = #id
+                        #functionBody(opCode: SpirvOpCompositeConstruct, [float4Type, triangleIndexCoordIdFloat4, triangleIndexCoordIdFloat2, zeroFloat, zeroFloat])
+                        let dimX = #id
+                        let dimY = #id
+                        let dim = #id
+                        #globalDeclaration(opCode: SpirvOpConstant, [floatType, dimX], float(Float(x)))
+                        #globalDeclaration(opCode: SpirvOpConstant, [floatType, dimY], float(Float(y)))
+                        #globalDeclaration(opCode: SpirvOpConstantComposite, [float4Type, dim, dimX, dimY, oneFloat, oneFloat])
+                        #functionBody(opCode: SpirvOpFDiv, [float4Type, thisUV, triangleIndexCoordIdFloat4, dim])
+                    case SpirvDim3D:
+                        let triangleIndexCoordIdFloat2 = #id
+                        #functionBody(opCode: SpirvOpConvertSToF, [float2Type, triangleIndexCoordIdFloat2, triangleIndexCoordId])
+                        let triangleIndexCoordIdFloat4 = #id
+                        #functionBody(opCode: SpirvOpCompositeConstruct, [float4Type, triangleIndexCoordIdFloat4, triangleIndexCoordIdFloat2, zeroFloat])
+                        let dimX = #id
+                        let dimY = #id
+                        let dimZ = #id
+                        let dim = #id
+                        #globalDeclaration(opCode: SpirvOpConstant, [floatType, dimX], float(Float(x)))
+                        #globalDeclaration(opCode: SpirvOpConstant, [floatType, dimY], float(Float(y)))
+                        #globalDeclaration(opCode: SpirvOpConstant, [floatType, dimZ], float(Float(z)))
+                        #globalDeclaration(opCode: SpirvOpConstantComposite, [float4Type, dim, dimX, dimY, dimZ, oneFloat])
+                        #functionBody(opCode: SpirvOpFDiv, [float4Type, thisUV, triangleIndexCoordIdFloat4, dim])
+                    default:
+                        fatalError("Unexpected Dimensionality")
+                    }
+                }
+                JelloCompilerBlackboard.texCoordId = thisUV
+                let v0 = #id
+                let v1 = #id
+                let v2 = #id
+                let thisUVFloat2 = #id
+                #functionBody(opCode: SpirvOpVectorShuffle, [float2Type, thisUVFloat2, thisUV, thisUV, 0, 1])
+                #functionBody(opCode: SpirvOpFSub, [float2Type, v0, uv2, uv1])
+                #functionBody(opCode: SpirvOpFSub, [float2Type, v1, uv3, uv1])
+                #functionBody(opCode: SpirvOpFSub, [float2Type, v2, thisUVFloat2, uv1])
+                let d00 = #id
+                let d01 = #id
+                let d11 = #id
+                let d20 = #id
+                let d21 = #id
+                #functionBody(opCode: SpirvOpDot, [floatType, d00, v0, v0])
+                #functionBody(opCode: SpirvOpDot, [floatType, d01, v0, v1])
+                #functionBody(opCode: SpirvOpDot, [floatType, d11, v1, v1])
+                #functionBody(opCode: SpirvOpDot, [floatType, d20, v2, v0])
+                #functionBody(opCode: SpirvOpDot, [floatType, d21, v2, v1])
+                
+                let d00_m_d11 = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, d00_m_d11, d00, d11])
+                let d01_m_d01 = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, d01_m_d01, d01, d01])
+                let denom = #id
+                #functionBody(opCode: SpirvOpFSub, [floatType, denom, d00_m_d11, d01_m_d01])
+                let invDenom = #id
+                #functionBody(opCode: SpirvOpFDiv, [floatType, invDenom, oneFloat, denom])
+                
+                let d11_m_d20 = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, d11_m_d20, d11, d20])
+                let d01_m_d21 = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, d01_m_d21, d01, d21])
+                
+                let d00_m_d21 = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, d00_m_d21, d00, d21])
+                let d01_m_d20 = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, d01_m_d20, d01, d20])
+                let vWithoutDenom = #id
+                #functionBody(opCode: SpirvOpFSub, [floatType, vWithoutDenom, d11_m_d20, d01_m_d21])
+                let v = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, v, vWithoutDenom, invDenom])
+                
+                let wWithoutDenom = #id
+                #functionBody(opCode: SpirvOpFSub, [floatType, wWithoutDenom, d00_m_d21, d01_m_d20])
+                let w = #id
+                #functionBody(opCode: SpirvOpFMul, [floatType, w, wWithoutDenom, invDenom])
+                
+                let oneMinusV = #id
+                #functionBody(opCode: SpirvOpFSub, [floatType, oneMinusV, oneFloat, v])
+                let u = #id
+                #functionBody(opCode: SpirvOpFSub, [floatType, u, oneMinusV, w])
+                
+                let float3TypeId = declareType(dataType: .float3)
+                if JelloCompilerBlackboard.requireWorldPos {
+                    fatalError("We're not taking in model view matrix yet")
+                }
+                if JelloCompilerBlackboard.requireNormal {
+                    JelloCompilerBlackboard.normalId = interpolateBarycentric(typeId: float3TypeId, index: 2, vertex1: vertex1, vertex2: vertex2, vertex3: vertex3, u: u, v: v, w: w)
+                }
+                if JelloCompilerBlackboard.requireTangent {
+                    JelloCompilerBlackboard.tangentId = interpolateBarycentric(typeId: float3TypeId, index: 3, vertex1: vertex1, vertex2: vertex2, vertex3: vertex3, u: u, v: v, w: w)
+                }
+                if JelloCompilerBlackboard.requireBitangent {
+                    JelloCompilerBlackboard.bitangentId = interpolateBarycentric(typeId: float3TypeId, index: 4, vertex1: vertex1, vertex2: vertex2, vertex3: vertex3, u: u, v: v, w: w)
+                }
+                if JelloCompilerBlackboard.requireModelPos {
+                    JelloCompilerBlackboard.modelPosId = interpolateBarycentric(typeId: float3TypeId, index: 0, vertex1: vertex1, vertex2: vertex2, vertex3: vertex3, u: u, v: v, w: w, normalize: false)
+                }
+            }
+
             for node in input.graph.nodes {
                 node.write(input: input)
             }
-            writeTimeVaryingOrConstantShaderOutput(outputIds.texId, outputIds.texTypeId)
+            if let inputPort = inputPorts.first, let inputEdge = inputPort.incomingEdge {
+                let otherOutputPort = inputEdge.outputPort
+                let inputId = otherOutputPort.getOrReserveId()
+                let outputTexLoadId = #id
+                #functionBody(opCode: SpirvOpLoad, [outputTexTypeId, outputTexLoadId, outputTexId])
+                let intType = declareType(dataType: .int)
+                var coordExtractedId: UInt32 = 0
+                switch spirvDimensionality {
+                case SpirvDim1D:
+                    coordExtractedId = #id
+                    #functionBody(opCode: SpirvOpCompositeExtract, [intType, coordExtractedId, globalInvocationLoadId, 0])
+                case SpirvDim2D:
+                    coordExtractedId = #id
+                    let int2Type = #typeDeclaration(opCode: SpirvOpTypeVector, [intType, 2])
+                    #functionBody(opCode: SpirvOpVectorShuffle, [int2Type, coordExtractedId, globalInvocationLoadId, globalInvocationLoadId, 0, 1])
+                case SpirvDim3D:
+                    coordExtractedId = globalInvocationLoadId
+                default:
+                    fatalError("Unexpected Dimensionality")
+                }
+                var writeValueId: UInt32 = 0
+                let float4TypeId = declareType(dataType: .float4)
+                switch packing {
+                case .int:
+                    fatalError("Unsupported Type")
+                case .float:
+                    writeValueId = inputId
+                case .float2:
+                    writeValueId = #id
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, writeValueId, inputId, inputId, 0, 1, 0xFFFFFFFF, 0xFFFFFFFF])
+                case .float3:
+                    writeValueId = #id
+                    #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, writeValueId, inputId, inputId, 0, 1, 2, 0xFFFFFFFF])
+                case .float4:
+                    writeValueId = inputId
+                }
+                #functionBody(opCode: SpirvOpImageWrite, [outputTexLoadId, coordExtractedId, writeValueId, 0])
+            }
             #functionBody(opCode: SpirvOpReturn)
             #functionBody(opCode: SpirvOpFunctionEnd)
             SpirvFunction.instance.writeFunction()
@@ -2055,66 +2560,33 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         for outputPort in nodes.flatMap({$0.outputPorts}) {
             outputPort.clearReservation()
         }
-        
-        return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: computationDomain!, shaders: [.compute(self.computationDimension, compute, inputTextures,  JelloIOTexture(originatingStage: self.id, size: computationDimension, format: format, packing: packing))])
+        let computeShader = SpirvComputeShader(shader: compute, outputComputeTexture: outputTextureBinding!, inputComputeTextures: inputTextures)
+        return SpirvShader.compute(computeShader)
     }
-    
-    private func setupShaderOutput() -> (texId: UInt32, texTypeId: UInt32) {
-        let index = JelloCompilerBlackboard.inputComputeIds.count
-        let floatType = declareType(dataType: .float)
-        let imageTypeId = #typeDeclaration(opCode: SpirvOpTypeImage, [floatType, spirvDimensionality.rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* Single sampled */, 2 /* Compatible w/ Read Write */, spirvFormat.rawValue, 1 /* Write Only */])
 
-        // Compute shader texture inputs get binding 4
-        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationDescriptorSet.rawValue, 4])
-        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationBinding.rawValue, UInt32(index)])
-
-        let imagePointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, imageTypeId])
-        #globalDeclaration(opCode: SpirvOpVariable, [imagePointerTypeId, inputTexId, SpirvStorageClassUniformConstant.rawValue])
-        JelloCompilerBlackboard.inputComputeIds.append(inputTexId)
-        
-        return (texId: inputTexId, texTypeId: imageTypeId)
-    }
-    
-    
-    private func writeTimeVaryingOrConstantShaderOutput(_ outputTexId: UInt32, _ imageTypeId: UInt32){
-        if let inputPort = inputPorts.first, let inputEdge = inputPort.incomingEdge {
-            let otherOutputPort = inputEdge.outputPort
-            let inputId = otherOutputPort.getOrReserveId()
-            let textureLoadId = #id
-            #functionBody(opCode: SpirvOpLoad, [imageTypeId, textureLoadId, outputTexId])
-            let intType = declareType(dataType: .int)
-            let coordId = #id
-            var coordExtractedId: UInt32 = 0
-            #functionBody(opCode: SpirvOpLoad, [intType, coordId, JelloCompilerBlackboard.gl_GlobalInvocationID])
-            switch spirvDimensionality {
-            case SpirvDim1D:
-                coordExtractedId = #id
-                #functionBody(opCode: SpirvOpCompositeExtract, [intType, coordExtractedId, 0])
-            case SpirvDim2D:
-                coordExtractedId = #id
-                let int2Type = #typeDeclaration(opCode: SpirvOpTypeVector, [intType, 2])
-                #functionBody(opCode: SpirvOpVectorShuffle, [int2Type, coordExtractedId, coordId, coordId, 0, 1])
-            case SpirvDim3D:
-                coordExtractedId = coordId
-            default:
-                fatalError("Unexpected Dimensionality")
-            }
-            var writeValueId: UInt32 = 0
-            let float4TypeId = declareType(dataType: .float4)
-            switch packing {
-            case .float:
-                writeValueId = inputId
-            case .float2:
-                writeValueId = #id
-                #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, writeValueId, inputId, inputId, 0, 1, 0xFFFFFFFF, 0xFFFFFFFF])
-            case .float3:
-                writeValueId = #id
-                #functionBody(opCode: SpirvOpVectorShuffle, [float4TypeId, writeValueId, inputId, inputId, 0, 1, 2, 0xFFFFFFFF])
-            case .float4:
-                writeValueId = inputId
-            }
-            #functionBody(opCode: SpirvOpImageWrite, [textureLoadId, coordExtractedId, writeValueId, 0])
+    private func interpolateBarycentric(typeId: UInt32, index: UInt32, vertex1: UInt32, vertex2: UInt32, vertex3: UInt32, u: UInt32, v: UInt32, w: UInt32, normalize: Bool = true) -> UInt32 {
+        let v1 = #id
+        let v2 = #id
+        let v3 = #id
+        #functionBody(opCode: SpirvOpCompositeExtract, [typeId, v1, vertex1, index])
+        #functionBody(opCode: SpirvOpCompositeExtract, [typeId, v2, vertex2, index])
+        #functionBody(opCode: SpirvOpCompositeExtract, [typeId, v3, vertex3, index])
+        let w1 = #id
+        let w2 = #id
+        let w3 = #id
+        let sumW1W2 = #id
+        let sumW = #id
+        #functionBody(opCode: SpirvOpVectorTimesScalar, [typeId, w1, v1, u])
+        #functionBody(opCode: SpirvOpVectorTimesScalar, [typeId, w2, v2, v])
+        #functionBody(opCode: SpirvOpVectorTimesScalar, [typeId, w3, v3, w])
+        #functionBody(opCode: SpirvOpFAdd, [typeId, sumW1W2, w1, w2])
+        #functionBody(opCode: SpirvOpFAdd, [typeId, sumW, sumW1W2, w3])
+        if normalize {
+            let result = #id
+            #functionBody(opCode: SpirvOpExtInst, [typeId, result, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450Normalize.rawValue, sumW])
+            return result
         }
+        return w3
     }
     
     var spirvDimensionality: SpirvDim {
@@ -2126,12 +2598,14 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         }
     }
     
-    var format: JelloIOTexture.TextureFormat {
+    var format: JelloComputeIOTexture.TextureFormat {
         switch inputPorts.first!.concreteDataType {
-        case .float: JelloIOTexture.TextureFormat.R32f
-        case .float2: JelloIOTexture.TextureFormat.Rgba32f
-        case .float3: JelloIOTexture.TextureFormat.Rgba32f
-        case .float4: JelloIOTexture.TextureFormat.Rgba32f
+        case .int: JelloComputeIOTexture.TextureFormat.R32f
+
+        case .float: JelloComputeIOTexture.TextureFormat.R32f
+        case .float2: JelloComputeIOTexture.TextureFormat.Rgba32f
+        case .float3: JelloComputeIOTexture.TextureFormat.Rgba32f
+        case .float4: JelloComputeIOTexture.TextureFormat.Rgba32f
         default: fatalError("Unsupported Data Type")
         }
     }
@@ -2146,7 +2620,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         }
     }
     
-    var packing: JelloIOTexture.TexturePacking {
+    var packing: JelloComputeIOTexture.TexturePacking {
         switch inputPorts.first!.concreteDataType {
         case .float: .float
         case .float2: .float2
@@ -2158,19 +2632,19 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
 
     
     public func install(input: JelloCompilerInput) {
-        let index = JelloCompilerBlackboard.inputComputeIds.count
+        let index = JelloCompilerBlackboard.inputComputeTextures.count
         let floatType = declareType(dataType: .float)
-        let imageType = #typeDeclaration(opCode: SpirvOpTypeImage, [floatType, spirvDimensionality.rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* single sampled */, 1 /* Sampled */, spirvFormat.rawValue, 0 /* Read Only */])
+        let imageType = #typeDeclaration(opCode: SpirvOpTypeImage, [floatType, spirvDimensionality.rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* single sampled */, 1 /* Sampled */, spirvFormat.rawValue])
         sampledImageTypeId = #typeDeclaration(opCode: SpirvOpTypeSampledImage, [imageType])
         inputTexId = #id
-        // Compute shader texture inputs get binding 4
-        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationDescriptorSet.rawValue, 4])
+        // Compute shader texture inputs get binding 3
+        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationDescriptorSet.rawValue, 3])
         #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationBinding.rawValue, UInt32(index)])
 
         let imagePointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, sampledImageTypeId])
         #globalDeclaration(opCode: SpirvOpVariable, [imagePointerTypeId, inputTexId, SpirvStorageClassUniformConstant.rawValue])
-        JelloCompilerBlackboard.inputComputeTextures.append(JelloIOTexture(originatingStage: self.id, size: self.computationDimension,  format: format, packing: packing))
-        JelloCompilerBlackboard.inputComputeIds.append(inputTexId)
+        JelloCompilerBlackboard.inputComputeTextures.append(.init(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass: (self.computationDomain ?? .constant).contains(.modelDependant) ? 1: 0, size: self.computationDimension, format: format, packing: packing), spirvId: inputTexId))
+        JelloCompilerBlackboard.entryPointInterfaceIds.append(inputTexId)
     }
     
     public func write(input: JelloCompilerInput) {

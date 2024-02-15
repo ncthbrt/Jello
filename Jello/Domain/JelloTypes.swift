@@ -40,6 +40,7 @@ enum JelloBuiltInNodeSubtype : Int, Codable, CaseIterable, Hashable, Equatable {
     case normal = 403
     case tangent = 404
     case bitangent = 405
+    case modelPosition = 406
     
     
     // Procedural

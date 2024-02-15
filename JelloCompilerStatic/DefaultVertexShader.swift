@@ -134,35 +134,40 @@ public let defaultVertexShader: [UInt32] = #document({
     let positionOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float4OutputPointerTypeId, positionOutId, SpirvStorageClassOutput.rawValue])
     #annotation(opCode: SpirvOpDecorate, [positionOutId, SpirvDecorationBuiltIn.rawValue, SpirvBuiltInPosition.rawValue])
-    
+
+    let modelPositionOutId = #id
+    #globalDeclaration(opCode: SpirvOpVariable, [float4OutputPointerTypeId, modelPositionOutId, SpirvStorageClassOutput.rawValue])
+    #debugNames(opCode: SpirvOpName, [modelPositionOutId], #stringLiteral("modelPos"))
+    #annotation(opCode: SpirvOpDecorate, [modelPositionOutId, SpirvDecorationLocation.rawValue, 0])
+
     // World Pos Out
     let worldPosOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float4OutputPointerTypeId, worldPosOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [worldPosOutId], #stringLiteral("worldPos"))
-    #annotation(opCode: SpirvOpDecorate, [worldPosOutId, SpirvDecorationLocation.rawValue, 0])
+    #annotation(opCode: SpirvOpDecorate, [worldPosOutId, SpirvDecorationLocation.rawValue, 1])
 
     // TexCoord Out
     let texCoordOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float2OutputPointerTypeId, texCoordOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [texCoordOutId], #stringLiteral("texCoord"))
-    #annotation(opCode: SpirvOpDecorate, [texCoordOutId, SpirvDecorationLocation.rawValue, 1])
+    #annotation(opCode: SpirvOpDecorate, [texCoordOutId, SpirvDecorationLocation.rawValue, 2])
     // Tangent Out
     let tangentOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float3OutputPointerTypeId, tangentOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [tangentOutId], #stringLiteral("tangent"))
-    #annotation(opCode: SpirvOpDecorate, [tangentOutId, SpirvDecorationLocation.rawValue, 2])
+    #annotation(opCode: SpirvOpDecorate, [tangentOutId, SpirvDecorationLocation.rawValue, 3])
     
     // Bitangent Out
     let bitangentOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float3OutputPointerTypeId, bitangentOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [bitangentOutId], #stringLiteral("bitangent"))
-    #annotation(opCode: SpirvOpDecorate, [bitangentOutId, SpirvDecorationLocation.rawValue, 3])
+    #annotation(opCode: SpirvOpDecorate, [bitangentOutId, SpirvDecorationLocation.rawValue, 4])
     
     // Normal Out
     let normalOutId = #id
     #globalDeclaration(opCode: SpirvOpVariable, [float3OutputPointerTypeId, normalOutId, SpirvStorageClassOutput.rawValue])
     #debugNames(opCode: SpirvOpName, [normalOutId], #stringLiteral("normal"))
-    #annotation(opCode: SpirvOpDecorate, [normalOutId, SpirvDecorationLocation.rawValue, 4])
+    #annotation(opCode: SpirvOpDecorate, [normalOutId, SpirvDecorationLocation.rawValue, 5])
     
     
     #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelVertex.rawValue], [vertexEntryPoint], #stringLiteral("vertexMain"), [positionInId, texCoordInId, normalInId, tangentInId, bitangentInId, frameDataId, positionOutId, worldPosOutId, texCoordOutId, tangentOutId, bitangentOutId, normalOutId])

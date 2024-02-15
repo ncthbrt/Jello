@@ -11,28 +11,49 @@ import Foundation
 public class JelloCompilerBlackboard {
     public static var fragOutputColorId : UInt32 = 0
     public static var frameDataId : UInt32 = 0
+
+    public static var modelPosId: UInt32 = 0
+    public static var worldPosId: UInt32 = 0
+    public static var texCoordId: UInt32 = 0
+    public static var tangentId: UInt32 = 0
+    public static var bitangentId: UInt32 = 0
+    public static var normalId: UInt32 = 0
     
-    public static var worldPosInId: UInt32 = 0
-    public static var texCoordInId: UInt32 = 0
-    public static var tangentInId: UInt32 = 0
-    public static var bitangentInId: UInt32 = 0
-    public static var normalInId: UInt32 = 0
+    
     
     public static var glsl450ExtId : UInt32 = 0
     public static var gl_GlobalInvocationID: UInt32 = 0
-    public static var inputComputeTextures: [JelloIOTexture] = []
-    public static var inputComputeIds: [UInt32] = []
+    
+    public static var outputComputeTexture: SpirvTextureBinding? = nil
+    public static var inputComputeTextures: [SpirvTextureBinding] = []
+    public static var entryPointInterfaceIds: [UInt32] = []
+    
+
+    public static var requireModelPos: Bool = false
+    public static var requireWorldPos: Bool = false
+    public static var requireTexCoordinates: Bool = false
+    public static var requireTangent: Bool = false
+    public static var requireBitangent: Bool = false
+    public static var requireNormal: Bool = false
+
     public static func clear(){
         fragOutputColorId = 0
         frameDataId = 0
-        worldPosInId = 0
-        texCoordInId = 0
-        tangentInId = 0
-        bitangentInId = 0
-        normalInId = 0
+        worldPosId = 0
+        texCoordId = 0
+        tangentId = 0
+        bitangentId = 0
+        normalId = 0
         glsl450ExtId = 0
         gl_GlobalInvocationID = 0
+        outputComputeTexture = nil
         inputComputeTextures = []
-        inputComputeIds = []
+        entryPointInterfaceIds = []
+        requireTexCoordinates = false
+        requireWorldPos = false
+        requireTangent = false
+        requireBitangent = false
+        requireNormal = false
+        requireModelPos = false
     }
 }

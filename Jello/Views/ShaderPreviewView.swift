@@ -300,7 +300,6 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             (modelIOVertexDescriptor!.attributes[2] as! MDLVertexAttribute).name = MDLVertexAttributeNormal
             (modelIOVertexDescriptor!.attributes[3] as! MDLVertexAttribute).name  = MDLVertexAttributeTangent
             (modelIOVertexDescriptor!.attributes[4] as! MDLVertexAttribute).name = MDLVertexAttributeBitangent
-
         }
         
         func setShaders(metalKitView: MTKView, vertexShader: String, fragmentShader: String) {

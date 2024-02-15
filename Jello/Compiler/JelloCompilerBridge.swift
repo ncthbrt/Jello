@@ -98,16 +98,18 @@ class JelloCompilerBridge {
                 return node
             }
             return nil
+        case .builtIn(.modelPosition):
+            return BuiltInCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.modelPosId }, requestPointerId: { JelloCompilerBlackboard.requireModelPos = true }, normalize: false, computationDomain: CompilerComputationDomain.modelDependant)
         case .builtIn(.worldPosition):
-            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float4, getPointerId: { JelloCompilerBlackboard.worldPosInId }, normalize: false)
+            return BuiltInCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float4, getPointerId: { JelloCompilerBlackboard.worldPosId }, requestPointerId: { JelloCompilerBlackboard.requireWorldPos = true }, normalize: false, computationDomain: CompilerComputationDomain([CompilerComputationDomain.modelDependant, CompilerComputationDomain.transformDependant]))
         case .builtIn(.texCoord):
-            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float2, getPointerId: { JelloCompilerBlackboard.texCoordInId }, normalize: false)
+            return BuiltInCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float4, getPointerId: { JelloCompilerBlackboard.texCoordId }, requestPointerId: { JelloCompilerBlackboard.requireTexCoordinates = true }, normalize: false, computationDomain: CompilerComputationDomain.constant)
         case .builtIn(.normal):
-            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.normalInId }, normalize: true)
+            return BuiltInCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.normalId }, requestPointerId: { JelloCompilerBlackboard.requireNormal = true }, normalize: true, computationDomain: CompilerComputationDomain.modelDependant)
         case .builtIn(.tangent):
-            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.tangentInId }, normalize: true)
+            return BuiltInCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.tangentId }, requestPointerId: { JelloCompilerBlackboard.requireTangent = true }, normalize: true, computationDomain: CompilerComputationDomain.modelDependant)
         case .builtIn(.bitangent):
-            return LoadCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.bitangentInId }, normalize: true)
+            return BuiltInCompilerNode(id: jelloNode.uuid, outputPort: compilerOutputPorts.first!, type: .float3, getPointerId: { JelloCompilerBlackboard.bitangentId }, requestPointerId: { JelloCompilerBlackboard.requireBitangent = true }, normalize: true, computationDomain: CompilerComputationDomain.modelDependant)
         case .builtIn(.swizzle):
             let componentCount = jelloNodeData[JelloNodeDataKey.componentCount.rawValue] ?? .null
             let value = jelloNodeData[JelloNodeDataKey.value.rawValue] ?? .null

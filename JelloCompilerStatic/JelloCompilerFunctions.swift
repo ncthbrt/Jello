@@ -52,7 +52,7 @@ public func labelComputationDomains(input: JelloCompilerInput){
         var node = nodes[i]
         var domain: CompilerComputationDomain = node.computationDomain ?? .constant
         for inputPort in node.inputPorts {
-            if let edge = inputPort.incomingEdge, let outputNode = edge.outputPort.node, outputNode.subgraphTags.contains(input.id), let thisComputationDomain = outputNode.computationDomain {
+            if let edge = inputPort.incomingEdge, let outputNode = edge.outputPort.node, let thisComputationDomain = outputNode.computationDomain {
                 domain = thisComputationDomain.union(domain)
             }
         }
@@ -276,7 +276,7 @@ public func decomposeBranches(input: JelloCompilerInput) {
 public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: () -> ()) throws -> JelloCompilerOutputStage {
     let vertex: [UInt32] = defaultVertexShader
     let nodes = input.graph.nodes
-    var inputComputeTextures: [JelloIOTexture] = []
+    var inputComputeTextureBindings: [SpirvTextureBinding] = []
     let fragment = #document({
         let fragmentEntryPoint = #id
         JelloCompilerBlackboard.fragOutputColorId = #id
@@ -344,6 +344,7 @@ public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: ()
         #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationNonWritable.rawValue])
 
         JelloCompilerBlackboard.frameDataId = frameDataId
+        JelloCompilerBlackboard.entryPointInterfaceIds.append(frameDataId)
 
         let float4TypeId = declareType(dataType: .float4)
         let float3TypeId = declareType(dataType: .float3)
@@ -353,52 +354,87 @@ public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: ()
         let float3InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float3TypeId])
         let float2InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float2TypeId])
         
+        // Model Pos In
+        let modelPosInId = #id
+        JelloCompilerBlackboard.entryPointInterfaceIds.append(modelPosInId)
+        #globalDeclaration(opCode: SpirvOpVariable, [float4InputPointerTypeId, modelPosInId, SpirvStorageClassInput.rawValue])
+        #debugNames(opCode: SpirvOpName, [modelPosInId], #stringLiteral("modelPos"))
+        #annotation(opCode: SpirvOpDecorate, [modelPosInId, SpirvDecorationLocation.rawValue, 0])
+
         
         // World Pos In
         let worldPosInId = #id
-        JelloCompilerBlackboard.worldPosInId = worldPosInId
+        JelloCompilerBlackboard.entryPointInterfaceIds.append(worldPosInId)
         #globalDeclaration(opCode: SpirvOpVariable, [float4InputPointerTypeId, worldPosInId, SpirvStorageClassInput.rawValue])
         #debugNames(opCode: SpirvOpName, [worldPosInId], #stringLiteral("worldPos"))
-        #annotation(opCode: SpirvOpDecorate, [worldPosInId, SpirvDecorationLocation.rawValue, 0])
+        #annotation(opCode: SpirvOpDecorate, [worldPosInId, SpirvDecorationLocation.rawValue, 1])
 
         // TexCoord In
         let texCoordInId = #id
-        JelloCompilerBlackboard.texCoordInId = texCoordInId
+        JelloCompilerBlackboard.entryPointInterfaceIds.append(texCoordInId)
         #globalDeclaration(opCode: SpirvOpVariable, [float2InputPointerTypeId, texCoordInId, SpirvStorageClassInput.rawValue])
         #debugNames(opCode: SpirvOpName, [texCoordInId], #stringLiteral("texCoord"))
-        #annotation(opCode: SpirvOpDecorate, [texCoordInId, SpirvDecorationLocation.rawValue, 1])
+        #annotation(opCode: SpirvOpDecorate, [texCoordInId, SpirvDecorationLocation.rawValue, 2])
         // Tangent In
         let tangentInId = #id
-        JelloCompilerBlackboard.tangentInId = tangentInId
+        JelloCompilerBlackboard.entryPointInterfaceIds.append(tangentInId)
         #globalDeclaration(opCode: SpirvOpVariable, [float3InputPointerTypeId, tangentInId, SpirvStorageClassInput.rawValue])
         #debugNames(opCode: SpirvOpName, [tangentInId], #stringLiteral("tangent"))
-        #annotation(opCode: SpirvOpDecorate, [tangentInId, SpirvDecorationLocation.rawValue, 2])
+        #annotation(opCode: SpirvOpDecorate, [tangentInId, SpirvDecorationLocation.rawValue, 3])
         
         // Bitangent In
         let bitangentInId = #id
-        JelloCompilerBlackboard.bitangentInId = bitangentInId
+        JelloCompilerBlackboard.entryPointInterfaceIds.append(bitangentInId)
         #globalDeclaration(opCode: SpirvOpVariable, [float3InputPointerTypeId, bitangentInId, SpirvStorageClassInput.rawValue])
         #debugNames(opCode: SpirvOpName, [bitangentInId], #stringLiteral("bitangent"))
-        #annotation(opCode: SpirvOpDecorate, [bitangentInId, SpirvDecorationLocation.rawValue, 3])
+        #annotation(opCode: SpirvOpDecorate, [bitangentInId, SpirvDecorationLocation.rawValue, 4])
         
         // Normal In
         let normalInId = #id
-        JelloCompilerBlackboard.normalInId = normalInId
+        JelloCompilerBlackboard.entryPointInterfaceIds.append(normalInId)
         #globalDeclaration(opCode: SpirvOpVariable, [float3InputPointerTypeId, normalInId, SpirvStorageClassInput.rawValue])
         #debugNames(opCode: SpirvOpName, [normalInId], #stringLiteral("normal"))
-        #annotation(opCode: SpirvOpDecorate, [normalInId, SpirvDecorationLocation.rawValue, 4])
+        #annotation(opCode: SpirvOpDecorate, [normalInId, SpirvDecorationLocation.rawValue, 5])
         
         for node in nodes {
             node.install(input: input)
         }
         let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
         
-        inputComputeTextures = JelloCompilerBlackboard.inputComputeTextures
+        inputComputeTextureBindings = JelloCompilerBlackboard.inputComputeTextures
         
-        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [JelloCompilerBlackboard.fragOutputColorId, JelloCompilerBlackboard.frameDataId, worldPosInId, texCoordInId, tangentInId, bitangentInId, normalInId], JelloCompilerBlackboard.inputComputeIds)
+        #entryPoint(opCode: SpirvOpEntryPoint, [SpirvExecutionModelFragment.rawValue], [fragmentEntryPoint], #stringLiteral("fragmentMain"), [JelloCompilerBlackboard.fragOutputColorId], JelloCompilerBlackboard.entryPointInterfaceIds)
         let typeFragmentFunction = #typeDeclaration(opCode: SpirvOpTypeFunction, [typeVoid])
         #functionHead(opCode: SpirvOpFunction, [typeVoid, fragmentEntryPoint, 0, typeFragmentFunction])
         #functionHead(opCode: SpirvOpLabel, [#id])
+        if JelloCompilerBlackboard.requireWorldPos {
+            JelloCompilerBlackboard.worldPosId = #id
+            #functionBody(opCode: SpirvOpLoad, [float4TypeId, JelloCompilerBlackboard.worldPosId, worldPosInId])
+        }
+        if JelloCompilerBlackboard.requireNormal {
+            JelloCompilerBlackboard.normalId = #id
+            #functionBody(opCode: SpirvOpLoad, [float3TypeId, JelloCompilerBlackboard.normalId, normalInId])
+        }
+        if JelloCompilerBlackboard.requireTangent {
+            JelloCompilerBlackboard.tangentId = #id
+            #functionBody(opCode: SpirvOpLoad, [float3TypeId, JelloCompilerBlackboard.tangentId, tangentInId])
+        }
+        if JelloCompilerBlackboard.requireBitangent {
+            JelloCompilerBlackboard.bitangentId = #id
+            #functionBody(opCode: SpirvOpLoad, [float3TypeId, JelloCompilerBlackboard.bitangentId, bitangentInId])
+        }
+        if JelloCompilerBlackboard.requireTexCoordinates {
+            JelloCompilerBlackboard.texCoordId = #id
+            let float2TexCoord = #id
+            #functionBody(opCode: SpirvOpLoad, [float2TypeId, float2TexCoord, texCoordInId])
+            let zeroFloat = declareNullValueConstant(dataType: .float)
+            #functionBody(opCode: SpirvOpCompositeConstruct, [float4TypeId, JelloCompilerBlackboard.texCoordId, float2TexCoord, zeroFloat, zeroFloat])
+        }
+        if JelloCompilerBlackboard.requireModelPos {
+            JelloCompilerBlackboard.modelPosId = #id
+            #functionBody(opCode: SpirvOpLoad, [float4TypeId, JelloCompilerBlackboard.modelPosId, modelPosInId])
+        }
+        
         for node in input.graph.nodes {
             node.write(input: input)
         }
@@ -413,7 +449,10 @@ public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: ()
         outputPort.clearReservation()
     }
     
-    return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: .modelDependant, shaders: [.vertex(vertex, []), .fragment(fragment, inputComputeTextures)])
+    let fragmentShader = SpirvFragmentShader(shader: fragment, inputTextures: inputComputeTextureBindings)
+    let vertexShader = SpirvVertexShader(shader: vertex, inputTextures: [])
+    
+    return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: .modelDependant, shaders: [.vertex(vertexShader), .fragment(fragmentShader)])
 }
 
 

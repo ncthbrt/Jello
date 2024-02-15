@@ -674,8 +674,9 @@ struct JelloNodeControllerFactory {
         .spline: JelloSplineNodeController(),
         
         .worldPosition: JelloConstantFunctionNodeController(builtIn: .worldPosition, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float4, name: "")]),
-        .texCoord: JelloConstantFunctionNodeController(builtIn: .texCoord, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float2, name: "")]),
+        .texCoord: JelloConstantFunctionNodeController(builtIn: .texCoord, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float4, name: "")]),
         .normal: JelloConstantFunctionNodeController(builtIn: .normal, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float3, name: "")]),
+        .modelPosition: JelloConstantFunctionNodeController(builtIn: .modelPosition, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float3, name: "")]),
         .tangent: JelloConstantFunctionNodeController(builtIn: .tangent, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float3, name: "")]),
         .bitangent: JelloConstantFunctionNodeController(builtIn: .bitangent, category: .value, inputPorts: [], outputPorts: [PortDefinition(dataType: .float3, name: "")]),
     ]

@@ -9,5 +9,6 @@
 #define JelloSharedHeader_h
 
 #include "FrameDataC.h"
+#include "VertexDataC.h"
 
 #endif /* JelloSharedHeader_h */

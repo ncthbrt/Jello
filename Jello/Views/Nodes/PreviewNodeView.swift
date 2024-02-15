@@ -28,7 +28,7 @@ fileprivate struct PreviewNodeViewImpl: View {
                 
                 let maybeVertex = lastStage.shaders.filter({shader in
                     switch shader {
-                    case .vertex(_, _):
+                    case .vertex(_):
                         return true
                     default:
                         return true
@@ -38,17 +38,45 @@ fileprivate struct PreviewNodeViewImpl: View {
                 
                 let maybeFragment = lastStage.shaders.filter({shader in
                     switch shader {
-                    case .fragment(_, _):
+                    case .fragment(_):
                         return true
                     default:
                         return false
                     }
                 }).first
                 
-                if case .vertex(let vertexSpirv, let vertexInputTextures) = maybeVertex,
-                   case .fragment(let fragmentSpirv, let fragmentInputTextures) = maybeFragment,
-                   let vertexMSL = try? JelloCompilerStatic.compileMSLShader(spirv: vertexSpirv),
-                   let fragmentMSL = try? JelloCompilerStatic.compileMSLShader(spirv: fragmentSpirv) {
+                let maybeRaster = result.stages.flatMap({$0.shaders}).filter({shader in
+                    switch shader {
+                    case .computeRasterizer(_):
+                        return true
+                    default:
+                        return false
+                    }
+                }).first
+
+                let maybeCompute = result.stages.flatMap({$0.shaders}).filter({shader in
+                    switch shader {
+                    case .compute(_):
+                        return true
+                    default:
+                        return false
+                    }
+                }).first
+                
+                if case .compute(let computeSpirv) = maybeCompute {
+                    let _ = print("Compute:\n\(computeSpirv.shader)")
+                    let _ = try? JelloCompilerStatic.compileMSLShader(input: maybeCompute!)
+                }
+                
+                if case .computeRasterizer(let computeSpirv) = maybeRaster {
+                    let _ = print("Raster:\n\(computeSpirv.shader)")
+                    let _ = try? JelloCompilerStatic.compileMSLShader(input: maybeRaster!)
+                }
+
+                if case .vertex(let vertexSpirv) = maybeVertex,
+                   case .fragment(let fragmentSpirv) = maybeFragment,
+                   let vertexMSL = try? JelloCompilerStatic.compileMSLShader(input: maybeVertex!),
+                   let fragmentMSL = try? JelloCompilerStatic.compileMSLShader(input: maybeFragment!) {
                     ShaderPreviewView(vertexShader: vertexMSL, fragmentShader: fragmentMSL, previewGeometry: .sphere)
                 }
             }

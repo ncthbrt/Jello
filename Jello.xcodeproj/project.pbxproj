@@ -92,6 +92,7 @@
 		BCD6826A2B6CCAA300C70ABF /* FavouriteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD682692B6CCAA300C70ABF /* FavouriteButton.swift */; };
 		BCD6826C2B6CCD5D00C70ABF /* Favourites.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD6826B2B6CCD5D00C70ABF /* Favourites.swift */; };
 		BCD6826E2B6CE5CC00C70ABF /* SplineNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD6826D2B6CE5CC00C70ABF /* SplineNodeView.swift */; };
+		BCD84FAC2B7BBFD9002F6E82 /* VertexData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD84FAB2B7BBFD9002F6E82 /* VertexData.swift */; };
 		BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */; };
 		BCE067562AF8B8C10066F8D4 /* JelloBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067552AF8B8C10066F8D4 /* JelloBox.swift */; };
 		BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE067572AF8B8E00066F8D4 /* PointExtensions.swift */; };
@@ -232,6 +233,8 @@
 		BCD682692B6CCAA300C70ABF /* FavouriteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouriteButton.swift; sourceTree = "<group>"; };
 		BCD6826B2B6CCD5D00C70ABF /* Favourites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Favourites.swift; sourceTree = "<group>"; };
 		BCD6826D2B6CE5CC00C70ABF /* SplineNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplineNodeView.swift; sourceTree = "<group>"; };
+		BCD84FAB2B7BBFD9002F6E82 /* VertexData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VertexData.swift; sourceTree = "<group>"; };
+		BCD84FAD2B7BC77F002F6E82 /* VertexDataC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VertexDataC.h; sourceTree = "<group>"; };
 		BCDA24372B220851002DCFCB /* SpirvGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpirvGenerator.swift; sourceTree = "<group>"; };
 		BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerTypes.swift; sourceTree = "<group>"; };
 		BCDB32542B0DF0D20086BA2B /* SimulationRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationRunner.swift; sourceTree = "<group>"; };
@@ -364,6 +367,7 @@
 				BC0C97C12B3C74E3001A672D /* JelloCompilerBlackboard.swift */,
 				BCE63ACB2B5513D500DC3D4B /* FrameData.swift */,
 				BCAAD4002B63B73A007BDCFC /* JelloMathExpressionTypes.swift */,
+				BCD84FAB2B7BBFD9002F6E82 /* VertexData.swift */,
 			);
 			path = JelloCompilerStatic;
 			sourceTree = "<group>";
@@ -421,6 +425,7 @@
 				BC9BBFBF2AEFDE3E00FC068C /* Preview Content */,
 				BCEAFD1C2B21A36700D23E1F /* JelloBridgingHeader.h */,
 				BC36321D2B566048006A0AE2 /* FrameDataC.h */,
+				BCD84FAD2B7BC77F002F6E82 /* VertexDataC.h */,
 			);
 			path = Jello;
 			sourceTree = "<group>";
@@ -696,6 +701,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BC2F077C2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift in Sources */,
+				BCD84FAC2B7BBFD9002F6E82 /* VertexData.swift in Sources */,
 				BCAAD4012B63B73A007BDCFC /* JelloMathExpressionTypes.swift in Sources */,
 				BC3DD0132B35796700F27E8D /* JelloCompilerFunctions.swift in Sources */,
 				BC3DD0122B35796700F27E8D /* JelloCompilerTypes.swift in Sources */,
