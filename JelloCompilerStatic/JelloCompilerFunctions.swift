@@ -449,8 +449,8 @@ public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: ()
         outputPort.clearReservation()
     }
     
-    let fragmentShader = SpirvFragmentShader(shader: fragment, inputTextures: inputComputeTextureBindings)
-    let vertexShader = SpirvVertexShader(shader: vertex, inputTextures: [])
+    let fragmentShader = SpirvFragmentShader(shader: fragment, inputComputeTextures: inputComputeTextureBindings)
+    let vertexShader = SpirvVertexShader(shader: vertex, inputComputeTextures: [])
     
     return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: .modelDependant, shaders: [.vertex(vertexShader), .fragment(fragmentShader)])
 }

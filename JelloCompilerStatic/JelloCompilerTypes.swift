@@ -1047,17 +1047,17 @@ public struct SpirvComputeShader: Codable, Equatable {
 
 public struct SpirvComputeRasterizerShader: Codable, Equatable {
     public let shader: [UInt32]
-    public let outputTexture: SpirvTextureBinding
+    public let outputComputeTexture: SpirvTextureBinding
 }
 
 public struct SpirvVertexShader: Codable, Equatable {
     public let shader: [UInt32]
-    public let inputTextures: [SpirvTextureBinding]
+    public let inputComputeTextures: [SpirvTextureBinding]
 }
 
 public struct SpirvFragmentShader: Codable, Equatable {
     public let shader: [UInt32]
-    public let inputTextures: [SpirvTextureBinding]
+    public let inputComputeTextures: [SpirvTextureBinding]
 }
 
 

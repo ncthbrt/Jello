@@ -1755,6 +1755,8 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         let compute = #document({
             let entryPoint = #id
             #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
+            #capability(opCode: SpirvOpCapability, [SpirvCapabilityVariablePointersStorageBuffer.rawValue])
+
             let glsl450Id = #id
             #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
             JelloCompilerBlackboard.glsl450ExtId = glsl450Id
@@ -1785,47 +1787,40 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let vertexDataTypeId = VertexData.register()
             var vertexDataOffset: UInt32 = 0
             #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 0, SpirvDecorationOffset.rawValue, vertexDataOffset])
-            vertexDataOffset += 12
+            vertexDataOffset += 16
             #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 1, SpirvDecorationOffset.rawValue, vertexDataOffset])
-            vertexDataOffset += 8
+            vertexDataOffset += 16
             #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 2, SpirvDecorationOffset.rawValue, vertexDataOffset])
-            vertexDataOffset += 12
+            vertexDataOffset += 16
             #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 3, SpirvDecorationOffset.rawValue, vertexDataOffset])
-            vertexDataOffset += 12
+            vertexDataOffset += 16
             #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId, 4, SpirvDecorationOffset.rawValue, vertexDataOffset])
-            vertexDataOffset += 12
-            
-            let runtimeVertexDataArrayTypeId = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [vertexDataTypeId])
-            #annotation(opCode: SpirvOpDecorate, [runtimeVertexDataArrayTypeId, SpirvDecorationArrayStride.rawValue, vertexDataOffset])
-            let vertexDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [runtimeVertexDataArrayTypeId])
-            #debugNames(opCode: SpirvOpMemberName, [vertexDataBufferTypeId, 0], #stringLiteral("vertices"))
-            
+            vertexDataOffset += 16
 
-            #annotation(opCode: SpirvOpDecorate, [vertexDataBufferTypeId, SpirvDecorationBlock.rawValue])
-            #annotation(opCode: SpirvOpMemberDecorate, [vertexDataBufferTypeId, 0, SpirvDecorationOffset.rawValue, 0])
-
-            let vertexDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataBufferTypeId])
+            #annotation(opCode: SpirvOpDecorate, [vertexDataTypeId, SpirvDecorationBlock.rawValue])
+            let vertexDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataTypeId])
+            #annotation(opCode: SpirvOpDecorate, [vertexDataBufferPointerTypeId, SpirvDecorationArrayStride.rawValue, vertexDataOffset])
             
             // Vertex Data buffer gets set 1 and binding 1
             let verticesDataBuffer = #id
             #globalDeclaration(opCode: SpirvOpVariable, [vertexDataBufferPointerTypeId, verticesDataBuffer, SpirvStorageClassStorageBuffer.rawValue])
-            #debugNames(opCode: SpirvOpName, [verticesDataBuffer], #stringLiteral("verticesBuffer"))
+            #debugNames(opCode: SpirvOpName, [verticesDataBuffer], #stringLiteral("vertices"))
             #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationDescriptorSet.rawValue, 1])
             #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationBinding.rawValue, 1])
             JelloCompilerBlackboard.entryPointInterfaceIds.append(verticesDataBuffer)
             
-            let runtimeIntArrayTypeId = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [intType])
-            #annotation(opCode: SpirvOpDecorate, [runtimeIntArrayTypeId, SpirvDecorationArrayStride.rawValue, 4])
-            let indicesDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [runtimeIntArrayTypeId])
-            #debugNames(opCode: SpirvOpMemberName, [indicesDataBufferTypeId, 0], #stringLiteral("indices"))
+            
+            
+            let indicesDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [intType])
+            #debugNames(opCode: SpirvOpMemberName, [indicesDataBufferTypeId, 0], #stringLiteral("index"))
             #annotation(opCode: SpirvOpDecorate, [indicesDataBufferTypeId, SpirvDecorationBlock.rawValue])
             #annotation(opCode: SpirvOpMemberDecorate, [indicesDataBufferTypeId, 0, SpirvDecorationOffset.rawValue, 0])
             let indicesDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, indicesDataBufferTypeId])
-            
+            #annotation(opCode: SpirvOpDecorate, [indicesDataBufferPointerTypeId, SpirvDecorationArrayStride.rawValue, 4])
 
             // Indices Data buffer gets set 1 and binding 2
             let indicesDataBuffer = #id
-            #debugNames(opCode: SpirvOpName, [indicesDataBuffer], #stringLiteral("indicesBuffer"))
+            #debugNames(opCode: SpirvOpName, [indicesDataBuffer], #stringLiteral("indices"))
             #globalDeclaration(opCode: SpirvOpVariable, [indicesDataBufferPointerTypeId, indicesDataBuffer, SpirvStorageClassStorageBuffer.rawValue])
             #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationDescriptorSet.rawValue, 1])
             #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationBinding.rawValue, 2])
@@ -1895,19 +1890,19 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let zeroInt = #id
             #globalDeclaration(opCode: SpirvOpConstant, [intType, zeroInt, 0])
             let intStorageBufferPointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, intType])
-            #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain1, indicesDataBuffer, zeroInt, indicesIndex1])
-            #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain2, indicesDataBuffer, zeroInt, indicesIndex2])
-            #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain3, indicesDataBuffer, zeroInt, indicesIndex3])
+            #functionBody(opCode: SpirvOpPtrAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain1, indicesDataBuffer, indicesIndex1, zeroInt])
+            #functionBody(opCode: SpirvOpPtrAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain2, indicesDataBuffer, indicesIndex2, zeroInt])
+            #functionBody(opCode: SpirvOpPtrAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain3, indicesDataBuffer, indicesIndex3, zeroInt])
             #functionBody(opCode: SpirvOpLoad, [intType, index1, indicesIndexAccessChain1])
             #functionBody(opCode: SpirvOpLoad, [intType, index2, indicesIndexAccessChain2])
             #functionBody(opCode: SpirvOpLoad, [intType, index3, indicesIndexAccessChain3])
             
             let vertexStorageBufferPointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataTypeId])
-            #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain1, verticesDataBuffer, zeroInt, index1])
-            #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain2, verticesDataBuffer, zeroInt, index2])
-            #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain3, verticesDataBuffer, zeroInt, index3])
+            #functionBody(opCode: SpirvOpPtrAccessChain, [vertexStorageBufferPointerType, vertexAccessChain1, verticesDataBuffer, index1])
+            #functionBody(opCode: SpirvOpPtrAccessChain, [vertexStorageBufferPointerType, vertexAccessChain2, verticesDataBuffer, index2])
+            #functionBody(opCode: SpirvOpPtrAccessChain, [vertexStorageBufferPointerType, vertexAccessChain3, verticesDataBuffer, index3])
             #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId, vertex1, vertexAccessChain1])
-            #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId, vertex2, vertexAccessChain3])
+            #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId, vertex2, vertexAccessChain2])
             #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId, vertex3, vertexAccessChain3])
             
             let float2Type = declareType(dataType: .float2)
@@ -1935,7 +1930,6 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let zeroF = declareNullValueConstant(dataType: .float)
             let sizeXF = #id
             let sizeYF = #id
-            let sizeZF = #id
             
             let oneFId = #id
             #globalDeclaration(opCode: SpirvOpConstant, [floatType, oneFId], float(Float(1)))
@@ -2193,6 +2187,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         let compute = #document({
             let entryPoint = #id
             #capability(opCode: SpirvOpCapability, [SpirvCapabilityShader.rawValue])
+            #capability(opCode: SpirvOpCapability, [SpirvCapabilityVariablePointersStorageBuffer.rawValue])
             let glsl450Id = #id
             #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
             JelloCompilerBlackboard.glsl450ExtId = glsl450Id
@@ -2239,8 +2234,6 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             var triangleIndexInputId: UInt32? = nil
             var triangleIndexTextureTypeId: UInt32? = nil
             var vertexDataTypeId: UInt32? = nil
-            var runtimeVertexDataArrayTypeId: UInt32? = nil
-            var vertexDataBufferTypeId: UInt32? = nil
             var verticesDataBuffer: UInt32? = nil
             var indicesDataBuffer: UInt32? = nil
             if (computationDomain ?? .constant).contains(.modelDependant) {
@@ -2248,47 +2241,39 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
                 vertexDataTypeId = VertexData.register()
                 var vertexDataOffset: UInt32 = 0
                 #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 0, SpirvDecorationOffset.rawValue, vertexDataOffset])
-                vertexDataOffset += 12
+                vertexDataOffset += 16
                 #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 1, SpirvDecorationOffset.rawValue, vertexDataOffset])
-                vertexDataOffset += 8
+                vertexDataOffset += 16
                 #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 2, SpirvDecorationOffset.rawValue, vertexDataOffset])
-                vertexDataOffset += 12
+                vertexDataOffset += 16
                 #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 3, SpirvDecorationOffset.rawValue, vertexDataOffset])
-                vertexDataOffset += 12
+                vertexDataOffset += 16
                 #annotation(opCode: SpirvOpMemberDecorate, [vertexDataTypeId!, 4, SpirvDecorationOffset.rawValue, vertexDataOffset])
-                vertexDataOffset += 12
-                
-                runtimeVertexDataArrayTypeId = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [vertexDataTypeId!])
-                #annotation(opCode: SpirvOpDecorate, [runtimeVertexDataArrayTypeId!, SpirvDecorationArrayStride.rawValue, vertexDataOffset])
-                vertexDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [runtimeVertexDataArrayTypeId!])
-                #debugNames(opCode: SpirvOpMemberName, [vertexDataBufferTypeId!, 0], #stringLiteral("vertices"))
-                
+                vertexDataOffset += 16
+                #annotation(opCode: SpirvOpDecorate, [vertexDataTypeId!, SpirvDecorationBlock.rawValue])
 
-                #annotation(opCode: SpirvOpDecorate, [vertexDataBufferTypeId!, SpirvDecorationBlock.rawValue])
-                #annotation(opCode: SpirvOpMemberDecorate, [vertexDataBufferTypeId!, 0, SpirvDecorationOffset.rawValue, 0])
+                let vertexDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataTypeId!])
+                #annotation(opCode: SpirvOpDecorate, [vertexDataBufferPointerTypeId, SpirvDecorationArrayStride.rawValue, vertexDataOffset])
 
-                let vertexDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataBufferTypeId!])
-                
                 // Vertex Data buffer gets set 1 and binding 1
                 verticesDataBuffer = #id
                 #globalDeclaration(opCode: SpirvOpVariable, [vertexDataBufferPointerTypeId, verticesDataBuffer!, SpirvStorageClassStorageBuffer.rawValue])
-                #debugNames(opCode: SpirvOpName, [verticesDataBuffer!], #stringLiteral("verticesBuffer"))
+                #debugNames(opCode: SpirvOpName, [verticesDataBuffer!], #stringLiteral("vertices"))
                 #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationDescriptorSet.rawValue, 1])
                 #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationBinding.rawValue, 1])
                 JelloCompilerBlackboard.entryPointInterfaceIds.append(verticesDataBuffer!)
                 
-                let runtimeIntArrayTypeId = #typeDeclaration(opCode: SpirvOpTypeRuntimeArray, [intType])
-                #annotation(opCode: SpirvOpDecorate, [runtimeIntArrayTypeId, SpirvDecorationArrayStride.rawValue, 4])
-                let indicesDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [runtimeIntArrayTypeId])
-                #debugNames(opCode: SpirvOpMemberName, [indicesDataBufferTypeId, 0], #stringLiteral("indices"))
+                let indicesDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [intType])
+                #debugNames(opCode: SpirvOpMemberName, [indicesDataBufferTypeId, 0], #stringLiteral("index"))
                 #annotation(opCode: SpirvOpDecorate, [indicesDataBufferTypeId, SpirvDecorationBlock.rawValue])
                 #annotation(opCode: SpirvOpMemberDecorate, [indicesDataBufferTypeId, 0, SpirvDecorationOffset.rawValue, 0])
                 let indicesDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, indicesDataBufferTypeId])
-                
+                #annotation(opCode: SpirvOpDecorate, [indicesDataBufferPointerTypeId, SpirvDecorationArrayStride.rawValue, 4])
+
 
                 // Indices Data buffer gets set 1 and binding 2
                 indicesDataBuffer = #id
-                #debugNames(opCode: SpirvOpName, [indicesDataBuffer!], #stringLiteral("indicesBuffer"))
+                #debugNames(opCode: SpirvOpName, [indicesDataBuffer!], #stringLiteral("indices"))
                 #globalDeclaration(opCode: SpirvOpVariable, [indicesDataBufferPointerTypeId, indicesDataBuffer!, SpirvStorageClassStorageBuffer.rawValue])
                 #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationDescriptorSet.rawValue, 1])
                 #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationBinding.rawValue, 2])
@@ -2372,19 +2357,19 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
                 let zeroInt = #id
                 #globalDeclaration(opCode: SpirvOpConstant, [intType, zeroInt, 0])
                 let intStorageBufferPointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, intType])
-                #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain1, indicesDataBuffer!, zeroInt, indicesIndex1])
-                #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain2, indicesDataBuffer!, zeroInt, indicesIndex2])
-                #functionBody(opCode: SpirvOpAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain3, indicesDataBuffer!, zeroInt, indicesIndex3])
+                #functionBody(opCode: SpirvOpPtrAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain1, indicesDataBuffer!, indicesIndex1, zeroInt])
+                #functionBody(opCode: SpirvOpPtrAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain2, indicesDataBuffer!, indicesIndex2, zeroInt])
+                #functionBody(opCode: SpirvOpPtrAccessChain, [intStorageBufferPointerType, indicesIndexAccessChain3, indicesDataBuffer!, indicesIndex3, zeroInt])
                 #functionBody(opCode: SpirvOpLoad, [intType, index1, indicesIndexAccessChain1])
                 #functionBody(opCode: SpirvOpLoad, [intType, index2, indicesIndexAccessChain2])
                 #functionBody(opCode: SpirvOpLoad, [intType, index3, indicesIndexAccessChain3])
                 
                 let vertexStorageBufferPointerType = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataTypeId!])
-                #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain1, verticesDataBuffer!, zeroInt, index1])
-                #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain2, verticesDataBuffer!, zeroInt, index2])
-                #functionBody(opCode: SpirvOpAccessChain, [vertexStorageBufferPointerType, vertexAccessChain3, verticesDataBuffer!, zeroInt, index3])
+                #functionBody(opCode: SpirvOpPtrAccessChain, [vertexStorageBufferPointerType, vertexAccessChain1, verticesDataBuffer!, index1])
+                #functionBody(opCode: SpirvOpPtrAccessChain, [vertexStorageBufferPointerType, vertexAccessChain2, verticesDataBuffer!, index2])
+                #functionBody(opCode: SpirvOpPtrAccessChain, [vertexStorageBufferPointerType, vertexAccessChain3, verticesDataBuffer!, index3])
                 #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId!, vertex1, vertexAccessChain1])
-                #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId!, vertex2, vertexAccessChain3])
+                #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId!, vertex2, vertexAccessChain2])
                 #functionBody(opCode: SpirvOpLoad, [vertexDataTypeId!, vertex3, vertexAccessChain3])
                 
                 let float2Type = declareType(dataType: .float2)
