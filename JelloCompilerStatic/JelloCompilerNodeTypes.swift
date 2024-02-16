@@ -2171,7 +2171,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         }
         
         if case .dimension(let x, let y, _) = computationDimension {
-            return .computeRasterizer(SpirvComputeRasterizerShader(shader: compute, outputTexture: SpirvTextureBinding(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass: 0, size: .dimension(x, y, 1), format: .R32i, packing: .int), spirvId: outputTextureId)))
+            return .computeRasterizer(SpirvComputeRasterizerShader(shader: compute, outputComputeTexture: SpirvTextureBinding(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass: 0, size: .dimension(x, y, 1), format: .R32i, packing: .int), spirvId: outputTextureId)))
         }
         fatalError("Computation Dimension Required")
     }

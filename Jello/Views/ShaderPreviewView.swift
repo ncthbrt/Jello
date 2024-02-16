@@ -14,12 +14,12 @@ import JelloCompilerStatic
 let maxBuffersInFlight = 3
 
 fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
-    let vertexShader: String
-    let fragmentShader: String
+    let vertexShader: MslSpirvVertexShaderOutput
+    let fragmentShader: MslSpirvFragmentShaderOutput
     let geometry: JelloPreviewGeometry
     let frame: CGRect
     
-    init(vertexShader: String, fragmentShader: String, geometry: JelloPreviewGeometry, frame: CGRect){
+    init(vertexShader: MslSpirvVertexShaderOutput, fragmentShader: MslSpirvFragmentShaderOutput, geometry: JelloPreviewGeometry, frame: CGRect){
         self.vertexShader = vertexShader
         self.fragmentShader = fragmentShader
         self.geometry = geometry
@@ -210,7 +210,7 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             }
         }
         
-        func setup(metalKitView: MTKView, vertexShader: String, fragmentShader: String){
+        func setup(metalKitView: MTKView, vertexShader: MslSpirvVertexShaderOutput, fragmentShader: MslSpirvFragmentShaderOutput){
             self.frameDataBuffers.reserveCapacity(maxBuffersInFlight)
             self.device = metalKitView.device!
 
@@ -302,7 +302,7 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             (modelIOVertexDescriptor!.attributes[4] as! MDLVertexAttribute).name = MDLVertexAttributeBitangent
         }
         
-        func setShaders(metalKitView: MTKView, vertexShader: String, fragmentShader: String) {
+        func setShaders(metalKitView: MTKView, vertexShader: MslSpirvVertexShaderOutput, fragmentShader: MslSpirvFragmentShaderOutput) {
             let compileOptions = MTLCompileOptions()
             let renderPipelineStateDescriptor = MTLRenderPipelineDescriptor()
 
@@ -312,8 +312,8 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             renderPipelineStateDescriptor.colorAttachments[0].pixelFormat = metalKitView.colorPixelFormat
             renderPipelineStateDescriptor.depthAttachmentPixelFormat = .depth32Float
 
-            let vertexLibrary = try! metalKitView.device!.makeLibrary(source: vertexShader, options: compileOptions)
-            let fragmentLibrary = try! metalKitView.device!.makeLibrary(source: fragmentShader, options: compileOptions)
+            let vertexLibrary = try! metalKitView.device!.makeLibrary(source: vertexShader.shader, options: compileOptions)
+            let fragmentLibrary = try! metalKitView.device!.makeLibrary(source: fragmentShader.shader, options: compileOptions)
             
             let vertexFunction = vertexLibrary.makeFunction(name: "vertexMain")
             let fragmentFunction = fragmentLibrary.makeFunction(name: "fragmentMain")
@@ -385,8 +385,8 @@ func radians_from_degrees(_ degrees: Float) -> Float {
 }
 
 struct ShaderPreviewView: View {
-    let vertexShader: String
-    let fragmentShader: String
+    let vertexShader: MslSpirvVertexShaderOutput
+    let fragmentShader: MslSpirvFragmentShaderOutput
     let previewGeometry: JelloPreviewGeometry
     
     var body: some View {

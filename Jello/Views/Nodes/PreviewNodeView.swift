@@ -75,8 +75,8 @@ fileprivate struct PreviewNodeViewImpl: View {
 
                 if case .vertex(let vertexSpirv) = maybeVertex,
                    case .fragment(let fragmentSpirv) = maybeFragment,
-                   let vertexMSL = try? JelloCompilerStatic.compileMSLShader(input: maybeVertex!),
-                   let fragmentMSL = try? JelloCompilerStatic.compileMSLShader(input: maybeFragment!) {
+                   case .vertex(let vertexMSL) = try? JelloCompilerStatic.compileMSLShader(input: maybeVertex!),
+                   case .fragment(let fragmentMSL) = try? JelloCompilerStatic.compileMSLShader(input: maybeFragment!) {
                     ShaderPreviewView(vertexShader: vertexMSL, fragmentShader: fragmentMSL, previewGeometry: .sphere)
                 }
             }
