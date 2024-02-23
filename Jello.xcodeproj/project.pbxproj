@@ -36,6 +36,11 @@
 		BC31EB732B039291004401FC /* JelloTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB722B039291004401FC /* JelloTypes.swift */; };
 		BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */; };
 		BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB7A2B049428004401FC /* EdgeView.swift */; };
+		BC37F5C42B832D2400F7B338 /* CompilerConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5C32B832D2400F7B338 /* CompilerConstants.swift */; };
+		BC37F5C62B83463D00F7B338 /* JelloComputeShaderExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5C52B83463D00F7B338 /* JelloComputeShaderExecutor.swift */; };
+		BC37F5C82B83470400F7B338 /* JelloPreviewBakingCacheTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5C72B83470400F7B338 /* JelloPreviewBakingCacheTypes.swift */; };
+		BC37F5CA2B837DE100F7B338 /* JelloPreviewBaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5C92B837DE100F7B338 /* JelloPreviewBaker.swift */; };
+		BC37F5CC2B83A4FD00F7B338 /* DataHashing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5CB2B83A4FD00F7B338 /* DataHashing.swift */; };
 		BC3DD0122B35796700F27E8D /* JelloCompilerTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDA24392B221367002DCFCB /* JelloCompilerTypes.swift */; };
 		BC3DD0132B35796700F27E8D /* JelloCompilerFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */; };
 		BC3DD0142B35796700F27E8D /* SpirvGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDA24372B220851002DCFCB /* SpirvGenerator.swift */; };
@@ -112,6 +117,7 @@
 		BCF4E98B2B644B29004B88AB /* MathExpressionLexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF4E98A2B644B29004B88AB /* MathExpressionLexer.swift */; };
 		BCFC210E2B42B38E004FF404 /* JelloNodeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFC210D2B42B38E004FF404 /* JelloNodeData.swift */; };
 		BCFC21102B42EFDB004FF404 /* ColorNodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */; };
+		BCFE34622B88B8C6003FCBC1 /* MTLTextureExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFE34612B88B8C6003FCBC1 /* MTLTextureExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -188,6 +194,11 @@
 		BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeMenu.swift; sourceTree = "<group>"; };
 		BC31EB7A2B049428004401FC /* EdgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeView.swift; sourceTree = "<group>"; };
 		BC36321D2B566048006A0AE2 /* FrameDataC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameDataC.h; sourceTree = "<group>"; };
+		BC37F5C32B832D2400F7B338 /* CompilerConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompilerConstants.swift; sourceTree = "<group>"; };
+		BC37F5C52B83463D00F7B338 /* JelloComputeShaderExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloComputeShaderExecutor.swift; sourceTree = "<group>"; };
+		BC37F5C72B83470400F7B338 /* JelloPreviewBakingCacheTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloPreviewBakingCacheTypes.swift; sourceTree = "<group>"; };
+		BC37F5C92B837DE100F7B338 /* JelloPreviewBaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloPreviewBaker.swift; sourceTree = "<group>"; };
+		BC37F5CB2B83A4FD00F7B338 /* DataHashing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataHashing.swift; sourceTree = "<group>"; };
 		BC3DD0042B356C7D00F27E8D /* JelloGraphProcessingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloGraphProcessingTests.swift; sourceTree = "<group>"; };
 		BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libJelloCompilerStatic.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerFunctions.swift; sourceTree = "<group>"; };
@@ -257,6 +268,7 @@
 		BCF4E98A2B644B29004B88AB /* MathExpressionLexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathExpressionLexer.swift; sourceTree = "<group>"; };
 		BCFC210D2B42B38E004FF404 /* JelloNodeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloNodeData.swift; sourceTree = "<group>"; };
 		BCFC210F2B42EFDB004FF404 /* ColorNodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorNodeView.swift; sourceTree = "<group>"; };
+		BCFE34612B88B8C6003FCBC1 /* MTLTextureExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTLTextureExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -326,6 +338,8 @@
 			isa = PBXGroup;
 			children = (
 				BC258A8D2B46AB0200FEB690 /* JelloMesh.swift */,
+				BC37F5C52B83463D00F7B338 /* JelloComputeShaderExecutor.swift */,
+				BCFE34612B88B8C6003FCBC1 /* MTLTextureExtensions.swift */,
 			);
 			path = Rendering;
 			sourceTree = "<group>";
@@ -368,6 +382,7 @@
 				BCE63ACB2B5513D500DC3D4B /* FrameData.swift */,
 				BCAAD4002B63B73A007BDCFC /* JelloMathExpressionTypes.swift */,
 				BCD84FAB2B7BBFD9002F6E82 /* VertexData.swift */,
+				BC37F5C32B832D2400F7B338 /* CompilerConstants.swift */,
 			);
 			path = JelloCompilerStatic;
 			sourceTree = "<group>";
@@ -380,6 +395,7 @@
 				BC2AE5752B07AFDD008F75C2 /* FreeEdgesEnvironmentKey.swift */,
 				BC2AE5772B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift */,
 				BC57B8AC2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift */,
+				BC37F5CB2B83A4FD00F7B338 /* DataHashing.swift */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -453,6 +469,7 @@
 				BCFC210D2B42B38E004FF404 /* JelloNodeData.swift */,
 				BCE65EEF2B6CBF9200414B2C /* ClampedSplines.swift */,
 				BCD6826B2B6CCD5D00C70ABF /* Favourites.swift */,
+				BC37F5C72B83470400F7B338 /* JelloPreviewBakingCacheTypes.swift */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -474,6 +491,7 @@
 				BC31EB7A2B049428004401FC /* EdgeView.swift */,
 				BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */,
 				BC258A872B469AD600FEB690 /* ShaderPreviewView.swift */,
+				BC37F5C92B837DE100F7B338 /* JelloPreviewBaker.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -701,6 +719,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BC2F077C2B3B1BBC00D0A668 /* JelloCompilerTypeUtilities.swift in Sources */,
+				BC37F5C42B832D2400F7B338 /* CompilerConstants.swift in Sources */,
 				BCD84FAC2B7BBFD9002F6E82 /* VertexData.swift in Sources */,
 				BCAAD4012B63B73A007BDCFC /* JelloMathExpressionTypes.swift in Sources */,
 				BC3DD0132B35796700F27E8D /* JelloCompilerFunctions.swift in Sources */,
@@ -734,11 +753,13 @@
 				BC876D9A2B5A716300B8E62F /* SwizzleNodeView.swift in Sources */,
 				BCCE16102B172426000370CB /* TwoParameterControl.swift in Sources */,
 				BC8618132B5C315200AF6EE8 /* HSBEffect.metal in Sources */,
+				BC37F5CC2B83A4FD00F7B338 /* DataHashing.swift in Sources */,
 				BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */,
 				BCEAFD172B205E9100D23E1F /* JelloCompilerBridge.swift in Sources */,
 				BCCE161F2B1724C4000370CB /* ArcKnob.swift in Sources */,
 				BC31EB732B039291004401FC /* JelloTypes.swift in Sources */,
 				BCCE160C2B1723F3000370CB /* PlanarGeometry.swift in Sources */,
+				BCFE34622B88B8C6003FCBC1 /* MTLTextureExtensions.swift in Sources */,
 				BC1153052B6B935300C7F0BD /* GridEffect.metal in Sources */,
 				BC2AE5742B0764FA008F75C2 /* VertletShared.swift in Sources */,
 				BCE65EF02B6CBF9200414B2C /* ClampedSplines.swift in Sources */,
@@ -765,6 +786,8 @@
 				BCE067582AF8B8E00066F8D4 /* PointExtensions.swift in Sources */,
 				BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */,
 				BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */,
+				BC37F5CA2B837DE100F7B338 /* JelloPreviewBaker.swift in Sources */,
+				BC37F5C62B83463D00F7B338 /* JelloComputeShaderExecutor.swift in Sources */,
 				BC9668932B68092000B0227A /* ClampedSplineEditor.swift in Sources */,
 				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
 				BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */,
@@ -782,6 +805,7 @@
 				BC9BBFEB2AEFEFB400FC068C /* JelloFunction.swift in Sources */,
 				BC9BBFB62AEFDE3D00FC068C /* JelloApp.swift in Sources */,
 				BC258A8E2B46AB0200FEB690 /* JelloMesh.swift in Sources */,
+				BC37F5C82B83470400F7B338 /* JelloPreviewBakingCacheTypes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -825,6 +849,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = DPXLR65392;
 				ENABLE_CODE_COVERAGE = NO;
 				EXCLUDED_ARCHS = x86_64;
@@ -832,6 +857,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				STRIP_INSTALLED_PRODUCT = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -841,6 +867,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = DPXLR65392;
 				ENABLE_CODE_COVERAGE = NO;
 				EXCLUDED_ARCHS = x86_64;
@@ -889,11 +916,12 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_CODE_COVERAGE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				EXCLUDED_ARCHS = x86_64;
 				GCC_C_LANGUAGE_STANDARD = c17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -914,7 +942,9 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -962,6 +992,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				EXCLUDED_ARCHS = x86_64;
 				GCC_C_LANGUAGE_STANDARD = c17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -976,6 +1007,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;

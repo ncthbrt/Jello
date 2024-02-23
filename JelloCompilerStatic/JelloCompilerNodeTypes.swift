@@ -199,7 +199,7 @@ public class PreviewOutputCompilerNode: CompilerNode & SubgraphCompilerNode {
     public var inputPorts: [InputCompilerPort]
     public var outputPorts: [OutputCompilerPort] = []
     public var subgraphTags: Set<UUID> = []
-    public var computationDomain: CompilerComputationDomain?
+    public var computationDomain: CompilerComputationDomain? = .transformDependant
     public var subgraph: JelloCompilerInput? = nil
     
     public func buildShader(input: JelloCompilerInput) throws -> JelloCompilerOutputStage {
@@ -1745,8 +1745,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             shaders.append(try buildComputeRasterizerShader(input: input))
         }
         shaders.append(try buildOutputSpirvShader(input: input))
-        return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: computationDomain!, shaders: shaders)
-
+        return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, shaders: shaders)
     }
     
     private func buildComputeRasterizerShader(input: JelloCompilerInput) throws -> SpirvShader {
@@ -1801,14 +1800,14 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let vertexDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataTypeId])
             #annotation(opCode: SpirvOpDecorate, [vertexDataBufferPointerTypeId, SpirvDecorationArrayStride.rawValue, vertexDataOffset])
             
-            // Vertex Data buffer gets set 1 and binding 1
             let verticesDataBuffer = #id
             #globalDeclaration(opCode: SpirvOpVariable, [vertexDataBufferPointerTypeId, verticesDataBuffer, SpirvStorageClassStorageBuffer.rawValue])
             #debugNames(opCode: SpirvOpName, [verticesDataBuffer], #stringLiteral("vertices"))
-            #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationDescriptorSet.rawValue, 1])
-            #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationBinding.rawValue, 1])
+            #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationDescriptorSet.rawValue, geometryInputDescriptorSet])
+            #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationBinding.rawValue, verticesBinding])
             JelloCompilerBlackboard.entryPointInterfaceIds.append(verticesDataBuffer)
-            
+            #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer, SpirvDecorationNonWritable.rawValue])
+
             
             
             let indicesDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [intType])
@@ -1818,13 +1817,13 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let indicesDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, indicesDataBufferTypeId])
             #annotation(opCode: SpirvOpDecorate, [indicesDataBufferPointerTypeId, SpirvDecorationArrayStride.rawValue, 4])
 
-            // Indices Data buffer gets set 1 and binding 2
             let indicesDataBuffer = #id
             #debugNames(opCode: SpirvOpName, [indicesDataBuffer], #stringLiteral("indices"))
             #globalDeclaration(opCode: SpirvOpVariable, [indicesDataBufferPointerTypeId, indicesDataBuffer, SpirvStorageClassStorageBuffer.rawValue])
-            #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationDescriptorSet.rawValue, 1])
-            #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationBinding.rawValue, 2])
+            #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationDescriptorSet.rawValue, geometryInputDescriptorSet])
+            #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationBinding.rawValue, indicesBinding])
             JelloCompilerBlackboard.entryPointInterfaceIds.append(indicesDataBuffer)
+            #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer, SpirvDecorationNonWritable.rawValue])
 
 
             // Declare output for triangle IDs
@@ -1834,10 +1833,9 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             JelloCompilerBlackboard.entryPointInterfaceIds.append(triangleIndexOutputId)
             outputTextureId = triangleIndexOutputId
 
-            // Compute shader texture output gets set 4 and binding 1
-            #annotation(opCode: SpirvOpDecorate, [triangleIndexOutputId, SpirvDecorationDescriptorSet.rawValue, 4])
-            #annotation(opCode: SpirvOpDecorate, [triangleIndexOutputId, SpirvDecorationBinding.rawValue, 1])
-            
+            #annotation(opCode: SpirvOpDecorate, [triangleIndexOutputId, SpirvDecorationDescriptorSet.rawValue, computeTextureInputOutputDescriptorSet])
+            #annotation(opCode: SpirvOpDecorate, [triangleIndexOutputId, SpirvDecorationBinding.rawValue, computeTextureOutputBinding])
+
             let triangleIndexTexPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniform.rawValue, triangleIndexTextureTypeId])
             #globalDeclaration(opCode: SpirvOpVariable, [triangleIndexTexPointerTypeId, triangleIndexOutputId, SpirvStorageClassUniform.rawValue])
             
@@ -2171,7 +2169,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         }
         
         if case .dimension(let x, let y, _) = computationDimension {
-            return .computeRasterizer(SpirvComputeRasterizerShader(shader: compute, outputComputeTexture: SpirvTextureBinding(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass: 0, size: .dimension(x, y, 1), format: .R32i, packing: .int), spirvId: outputTextureId)))
+            return .computeRasterizer(SpirvComputeRasterizerShader(shader: compute, outputComputeTexture: SpirvTextureBinding(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass: 0, size: .dimension(x, y, 1), format: .R32i, packing: .int), spirvId: outputTextureId), domain: .modelDependant))
         }
         fatalError("Computation Dimension Required")
     }
@@ -2221,9 +2219,8 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let outputTexId = #id
             let outputTexTypeId = #typeDeclaration(opCode: SpirvOpTypeImage, [floatType, self.spirvDimensionality.rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* Single sampled */, 2 /* Compatible w/ Read Write */, self.spirvFormat.rawValue])
 
-            // Compute shader texture output gets set 4 and binding 1
-            #annotation(opCode: SpirvOpDecorate, [outputTexId, SpirvDecorationDescriptorSet.rawValue, 4])
-            #annotation(opCode: SpirvOpDecorate, [outputTexId, SpirvDecorationBinding.rawValue, UInt32(1)])
+            #annotation(opCode: SpirvOpDecorate, [outputTexId, SpirvDecorationDescriptorSet.rawValue, computeTextureInputOutputDescriptorSet])
+            #annotation(opCode: SpirvOpDecorate, [outputTexId, SpirvDecorationBinding.rawValue, computeTextureOutputBinding])
             #debugNames(opCode: SpirvOpName, [outputTexId], #stringLiteral("outputTex"))
 
             let outputTexPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniform.rawValue, outputTexTypeId])
@@ -2255,14 +2252,14 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
                 let vertexDataBufferPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, vertexDataTypeId!])
                 #annotation(opCode: SpirvOpDecorate, [vertexDataBufferPointerTypeId, SpirvDecorationArrayStride.rawValue, vertexDataOffset])
 
-                // Vertex Data buffer gets set 1 and binding 1
                 verticesDataBuffer = #id
                 #globalDeclaration(opCode: SpirvOpVariable, [vertexDataBufferPointerTypeId, verticesDataBuffer!, SpirvStorageClassStorageBuffer.rawValue])
                 #debugNames(opCode: SpirvOpName, [verticesDataBuffer!], #stringLiteral("vertices"))
-                #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationDescriptorSet.rawValue, 1])
-                #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationBinding.rawValue, 1])
+                #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationDescriptorSet.rawValue, geometryInputDescriptorSet])
+                #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationBinding.rawValue, verticesBinding])
                 JelloCompilerBlackboard.entryPointInterfaceIds.append(verticesDataBuffer!)
-                
+                #annotation(opCode: SpirvOpDecorate, [verticesDataBuffer!, SpirvDecorationNonWritable.rawValue])
+
                 let indicesDataBufferTypeId = #typeDeclaration(opCode: SpirvOpTypeStruct, [intType])
                 #debugNames(opCode: SpirvOpMemberName, [indicesDataBufferTypeId, 0], #stringLiteral("index"))
                 #annotation(opCode: SpirvOpDecorate, [indicesDataBufferTypeId, SpirvDecorationBlock.rawValue])
@@ -2271,13 +2268,13 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
                 #annotation(opCode: SpirvOpDecorate, [indicesDataBufferPointerTypeId, SpirvDecorationArrayStride.rawValue, 4])
 
 
-                // Indices Data buffer gets set 1 and binding 2
                 indicesDataBuffer = #id
                 #debugNames(opCode: SpirvOpName, [indicesDataBuffer!], #stringLiteral("indices"))
                 #globalDeclaration(opCode: SpirvOpVariable, [indicesDataBufferPointerTypeId, indicesDataBuffer!, SpirvStorageClassStorageBuffer.rawValue])
-                #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationDescriptorSet.rawValue, 1])
-                #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationBinding.rawValue, 2])
+                #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationDescriptorSet.rawValue, geometryInputDescriptorSet])
+                #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationBinding.rawValue, indicesBinding])
                 JelloCompilerBlackboard.entryPointInterfaceIds.append(indicesDataBuffer!)
+                #annotation(opCode: SpirvOpDecorate, [indicesDataBuffer!, SpirvDecorationNonWritable.rawValue])
 
 
                 // Declare input for triangle IDs
@@ -2287,9 +2284,8 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
                     JelloCompilerBlackboard.inputComputeTextures.append(.init(texture: JelloComputeIOTexture(originatingStage: self.id, originatingPass: 0, size: .dimension(Int(x), Int(y), 1), format: .R32i, packing: .int), spirvId: triangleIndexInputId!))
                 }
 
-                // Triangle ID texture input get set 2 and binding 1
-                #annotation(opCode: SpirvOpDecorate, [triangleIndexInputId!, SpirvDecorationDescriptorSet.rawValue, 2])
-                #annotation(opCode: SpirvOpDecorate, [triangleIndexInputId!, SpirvDecorationBinding.rawValue, 1])
+                #annotation(opCode: SpirvOpDecorate, [triangleIndexInputId!, SpirvDecorationDescriptorSet.rawValue, geometryInputDescriptorSet])
+                #annotation(opCode: SpirvOpDecorate, [triangleIndexInputId!, SpirvDecorationBinding.rawValue, triangleIndexBinding])
 
                 JelloCompilerBlackboard.entryPointInterfaceIds.append(triangleIndexInputId!)
                 let triangleIndexTexPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, triangleIndexTextureTypeId!])
@@ -2545,7 +2541,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         for outputPort in nodes.flatMap({$0.outputPorts}) {
             outputPort.clearReservation()
         }
-        let computeShader = SpirvComputeShader(shader: compute, outputComputeTexture: outputTextureBinding!, inputComputeTextures: inputTextures)
+        let computeShader = SpirvComputeShader(shader: compute, outputComputeTexture: outputTextureBinding!, inputComputeTextures: inputTextures, domain: computationDomain ?? .constant)
         return SpirvShader.compute(computeShader)
     }
 
@@ -2622,9 +2618,9 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
         let imageType = #typeDeclaration(opCode: SpirvOpTypeImage, [floatType, spirvDimensionality.rawValue], [0 /* No depth */, 0 /* Not arrayed */, 0 /* single sampled */, 1 /* Sampled */, spirvFormat.rawValue])
         sampledImageTypeId = #typeDeclaration(opCode: SpirvOpTypeSampledImage, [imageType])
         inputTexId = #id
-        // Compute shader texture inputs get binding 3
-        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationDescriptorSet.rawValue, 3])
-        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationBinding.rawValue, UInt32(index)])
+        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationDescriptorSet.rawValue, computeTextureInputOutputDescriptorSet])
+        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationBinding.rawValue, UInt32(index)+1])
+        #annotation(opCode: SpirvOpDecorate, [inputTexId, SpirvDecorationNonWritable.rawValue])
 
         let imagePointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, sampledImageTypeId])
         #globalDeclaration(opCode: SpirvOpVariable, [imagePointerTypeId, inputTexId, SpirvStorageClassUniformConstant.rawValue])

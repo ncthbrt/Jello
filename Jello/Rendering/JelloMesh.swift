@@ -13,6 +13,7 @@ import simd
 class JelloSubmesh : NSObject {
     internal init(modelIOSubmesh: MDLSubmesh, metalKitSubmesh: MTKSubmesh, metalKitTextureLoader: MTKTextureLoader) throws {
         self.metalKitSubmesh = metalKitSubmesh
+        
         super.init()
     }
     

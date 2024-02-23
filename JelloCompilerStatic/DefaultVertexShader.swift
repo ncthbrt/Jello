@@ -69,8 +69,8 @@ public let defaultVertexShader: [UInt32] = #document({
     #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 7, SpirvDecorationRowMajor.rawValue])
     #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 8, SpirvDecorationRowMajor.rawValue])
     
-    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationDescriptorSet.rawValue, 0])
-    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, 2])
+    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationDescriptorSet.rawValue, frameDataDescriptorSet])
+    #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, frameDataBinding])
     #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationNonWritable.rawValue])
 
     let intTypeId = declareType(dataType: .int)

@@ -339,8 +339,8 @@ public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: ()
         #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 7, SpirvDecorationRowMajor.rawValue])
         #annotation(opCode: SpirvOpMemberDecorate, [frameDataTypeId, 8, SpirvDecorationRowMajor.rawValue])
         
-        #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationDescriptorSet.rawValue, 0])
-        #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, 2])
+        #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationDescriptorSet.rawValue, frameDataDescriptorSet])
+        #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationBinding.rawValue, frameDataBinding])
         #annotation(opCode: SpirvOpDecorate, [frameDataId, SpirvDecorationNonWritable.rawValue])
 
         JelloCompilerBlackboard.frameDataId = frameDataId
@@ -452,7 +452,7 @@ public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: ()
     let fragmentShader = SpirvFragmentShader(shader: fragment, inputComputeTextures: inputComputeTextureBindings)
     let vertexShader = SpirvVertexShader(shader: vertex, inputComputeTextures: [])
     
-    return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, domain: .modelDependant, shaders: [.vertex(vertexShader), .fragment(fragmentShader)])
+    return JelloCompilerOutputStage(id: input.id, dependencies: input.dependencies, dependants: input.dependants, shaders: [.vertex(vertexShader), .fragment(fragmentShader)])
 }
 
 

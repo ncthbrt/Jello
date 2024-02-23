@@ -293,7 +293,6 @@ fileprivate struct ShaderPreviewViewRepresentable: UIViewRepresentable {
             // Creata a Model I/O vertex descriptor so that the format and layout of Model I/O mesh vertices
             //   fits the Metal render pipeline's vertex descriptor layout.
             self.modelIOVertexDescriptor = MTKModelIOVertexDescriptorFromMetal(vertexDescriptor!)
-            
             // Indicate how each Metal vertex descriptor attribute maps to each Model I/O attribute.
             (modelIOVertexDescriptor!.attributes[0] as! MDLVertexAttribute).name  = MDLVertexAttributePosition
             (modelIOVertexDescriptor!.attributes[1] as! MDLVertexAttribute).name = MDLVertexAttributeTextureCoordinate

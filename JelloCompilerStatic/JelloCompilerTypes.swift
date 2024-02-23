@@ -1043,11 +1043,13 @@ public struct SpirvComputeShader: Codable, Equatable {
     public let shader: [UInt32]
     public let outputComputeTexture: SpirvTextureBinding
     public let inputComputeTextures: [SpirvTextureBinding]
+    public var domain: CompilerComputationDomain
 }
 
 public struct SpirvComputeRasterizerShader: Codable, Equatable {
     public let shader: [UInt32]
     public let outputComputeTexture: SpirvTextureBinding
+    public var domain: CompilerComputationDomain
 }
 
 public struct SpirvVertexShader: Codable, Equatable {
@@ -1067,7 +1069,7 @@ public enum SpirvShader: Codable, Equatable {
     case vertex(SpirvVertexShader)
     case fragment(SpirvFragmentShader)
     
-    var shader: [UInt32] {
+    public var shader: [UInt32] {
         switch self {
         case .compute(let c):
             c.shader
@@ -1077,6 +1079,33 @@ public enum SpirvShader: Codable, Equatable {
             f.shader
         case .vertex(let v):
             v.shader
+        }
+    }
+    
+    public var domain: CompilerComputationDomain {
+        switch self {
+        case .compute(let c):
+            c.domain
+        case .computeRasterizer(let r):
+            r.domain
+        case .fragment(_):
+            [CompilerComputationDomain.modelDependant, CompilerComputationDomain.transformDependant, CompilerComputationDomain.timeVarying]
+        case .vertex(_):
+            [CompilerComputationDomain.modelDependant, CompilerComputationDomain.transformDependant, CompilerComputationDomain.timeVarying]
+        }
+    }
+    
+    
+    public var inputComputeTextures: [SpirvTextureBinding] {
+        switch self {
+        case .compute(let c):
+            return c.inputComputeTextures
+        case .computeRasterizer(_):
+            return []
+        case .fragment(let f):
+            return f.inputComputeTextures
+        case .vertex(let v):
+            return v.inputComputeTextures
         }
     }
 }
@@ -1117,8 +1146,16 @@ public struct JelloCompilerOutputStage: Codable, Equatable, Hashable {
     public var id: UUID
     public var dependencies: Set<UUID>
     public var dependants: Set<UUID>
-    public var domain: CompilerComputationDomain
+
     public var shaders: [SpirvShader]
+    
+    public var domain: CompilerComputationDomain {
+        var domain: CompilerComputationDomain = .constant
+        for s in shaders {
+            domain.formUnion(s.domain)
+        }
+        return domain
+    }
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)

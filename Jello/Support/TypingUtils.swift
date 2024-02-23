@@ -544,7 +544,6 @@ func updateTypesInGraph(modelContext: ModelContext, graphId: UUID) throws {
         
         let graphInput = JelloCompilerBridge.buildGraph(jelloGraph: graphs.first!, jelloNodes: nodes, jelloNodeData: nodeData, jelloEdges: edges, jelloInputPorts: inputPorts, jelloOutputPorts: outputPorts, useBaseDataTypes: true)
         
-        
         let assignments = try resolveTypesInGraph(graph: graphInput)
         
         var changedInputPorts: [UUID: (JelloGraphDataType, JelloInputPort)] = [:]

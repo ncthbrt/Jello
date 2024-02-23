@@ -24,7 +24,8 @@ func makeMSLVersion(_ major: UInt32, _ minor: UInt32, _ patch: UInt32 = 0) -> UI
 
 public struct MslSpirvTextureBindingOutput : Codable, Equatable {
     public let texture: JelloComputeIOTexture
-    public let bufferBindingIndex: Int32
+    public let bufferIndex: UInt32
+    public let bufferBindingIndex: UInt32
     public let sampled: Bool
 }
 
@@ -32,15 +33,15 @@ public struct MslSpirvComputeShaderOutput: Codable, Equatable {
     public let shader: String
     public let outputComputeTexture: MslSpirvTextureBindingOutput
     public let inputComputeTextures: [MslSpirvTextureBindingOutput]
-    public let verticesBindingIndex: Int32?
-    public let indicesBindingIndex: Int32?
+    public let verticesBindingIndex: UInt32?
+    public let indicesBindingIndex: UInt32?
 }
 
 public struct MslSpirvComputeRasterizerShaderOutput: Codable, Equatable {
     public let shader: String
     public let outputComputeTexture: MslSpirvTextureBindingOutput
-    public let verticesBindingIndex: Int32?
-    public let indicesBindingIndex: Int32?
+    public let verticesBindingIndex: UInt32?
+    public let indicesBindingIndex: UInt32?
 }
 
 public struct MslSpirvVertexShaderOutput: Codable, Equatable {
@@ -120,7 +121,8 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, makeMSLVersion(2, 1, 0))
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS, 1)
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS_TIER, 1)
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_PLATFORM, 0)
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_PLATFORM, SPVC_MSL_PLATFORM_IOS.rawValue)
+    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_FORCE_ACTIVE_ARGUMENT_BUFFER_RESOURCES, 1)
     
     if let errValue = errorContext.errorValue {
         throw SpirvCompilationError.compilationError(errValue)
@@ -135,8 +137,6 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
     
     
     var resources: spvc_resources? = nil
-    var inputCount = 0
-    var inputList: UnsafePointer<spvc_reflected_resource>? = nil
     var storageBufferCount = 0
     var storageBufferList: UnsafePointer<spvc_reflected_resource>? = nil
 
@@ -146,12 +146,12 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
     var sampledImageCount = 0
     var sampledImageList: UnsafePointer<spvc_reflected_resource>? = nil
 
-    var uniformCount = 0
-    var uniformList: UnsafePointer<spvc_reflected_resource>? = nil
+//    var uniformCount = 0
+//    var uniformList: UnsafePointer<spvc_reflected_resource>? = nil
 
     
-    var separateImageCount = 0
-    var separateImageList: UnsafePointer<spvc_reflected_resource>? = nil
+//    var separateImageCount = 0
+//    var separateImageList: UnsafePointer<spvc_reflected_resource>? = nil
 
     spvc_compiler_create_shader_resources(compiler_msl, &resources)
 //    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_INPUT, &inputList, &inputCount)
@@ -161,22 +161,23 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
 //    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_SEPARATE_IMAGE, &separateImageList, &separateImageCount)
     spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_SAMPLED_IMAGE, &sampledImageList, &sampledImageCount)
 
-    var verticesBindingIndex: Int32?
-    var indicesBindingIndex: Int32?
+    var verticesBindingIndex: UInt32?
+    var indicesBindingIndex: UInt32?
+    var outputImageBindingIndex: (UInt32, UInt32, sampled: Bool) = (0, 0, false)
     
     for i in 0..<storageBufferCount {
         let bufferInfo = storageBufferList![i]
         let set = spvc_compiler_get_decoration(compiler_msl, bufferInfo.id, SpvDecorationDescriptorSet)
         let binding = spvc_compiler_get_decoration(compiler_msl, bufferInfo.id, SpvDecorationBinding)
-        if set == 1 {
-            let resourceBinding = Int32(bitPattern: spvc_compiler_msl_get_automatic_resource_binding(compiler_msl, bufferInfo.id))
-            if binding == 1 {
+        if set == geometryInputDescriptorSet {
+            let resourceBinding = UInt32(Int32(bitPattern: spvc_compiler_msl_get_automatic_resource_binding(compiler_msl, bufferInfo.id)))
+            if binding == verticesBinding {
                 // Vertex Data
                 verticesBindingIndex = resourceBinding
-            } else if binding == 2 {
+            } else if binding == indicesBinding {
                 // Indices
                 indicesBindingIndex = resourceBinding
-            }
+            } 
         }
     }
     
@@ -189,27 +190,41 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
 //            print("Resource Binding: \(Int32(bitPattern: resourceBinding))")
 //    }
     
-    var outputImageBindingIndex: Int32 = 0
-    var inputImagesBindingIndices: [UInt32: (Int32, sampled: Bool)] = [:]
+    var imagesBindingIndices: [UInt32: (UInt32, UInt32, sampled: Bool)] = [:]
 
     for i in 0..<imageCount {
         let imageInfo = imageList![i]
         let set = spvc_compiler_get_decoration(compiler_msl, imageInfo.id, SpvDecorationDescriptorSet)
+        let binding = spvc_compiler_get_decoration(compiler_msl, imageInfo.id, SpvDecorationBinding)
         let resourceBinding = spvc_compiler_msl_get_automatic_resource_binding(compiler_msl, imageInfo.id)
-        if set == 2 {
+        if set == computeTextureInputOutputDescriptorSet {
+            if binding == computeTextureOutputBinding {
+                outputImageBindingIndex = (computeTextureInputOutputDescriptorSet, UInt32(Int32(bitPattern: resourceBinding)), sampled: false)
+            } else {
+                // Input images
+                imagesBindingIndices[imageInfo.id] = (computeTextureInputOutputDescriptorSet, UInt32(Int32(bitPattern: resourceBinding)), sampled: false)
+            }
+        } else if set == geometryInputDescriptorSet && binding == triangleIndexBinding {
             // Input images
-            inputImagesBindingIndices[imageInfo.id] = (Int32(bitPattern: resourceBinding), sampled: false)
+            imagesBindingIndices[imageInfo.id] = (geometryInputDescriptorSet, UInt32(Int32(bitPattern: resourceBinding)), sampled: false)
         }
     }
     
     for i in 0..<sampledImageCount {
         let imageInfo = sampledImageList![i]
-            let set = spvc_compiler_get_decoration(compiler_msl, imageInfo.id, SpvDecorationDescriptorSet)
-            let resourceBinding = spvc_compiler_msl_get_automatic_resource_binding(compiler_msl, imageInfo.id)
-            if set == 2 {
+        let set = spvc_compiler_get_decoration(compiler_msl, imageInfo.id, SpvDecorationDescriptorSet)
+        let binding = spvc_compiler_get_decoration(compiler_msl, imageInfo.id, SpvDecorationBinding)
+        let resourceBinding = spvc_compiler_msl_get_automatic_resource_binding(compiler_msl, imageInfo.id)
+        if set == computeTextureInputOutputDescriptorSet {
+            if binding == computeTextureOutputBinding {
+                outputImageBindingIndex = (computeTextureInputOutputDescriptorSet, UInt32(Int32(bitPattern: resourceBinding)), sampled: true)
+            } else {
                 // Input images
-                inputImagesBindingIndices[imageInfo.id] = (Int32(bitPattern: resourceBinding), sampled: true)
+                imagesBindingIndices[imageInfo.id] = (computeTextureInputOutputDescriptorSet, UInt32(Int32(bitPattern: resourceBinding)), sampled: true)
             }
+        } else if set == geometryInputDescriptorSet {
+            imagesBindingIndices[imageInfo.id] = (geometryInputDescriptorSet, UInt32(Int32(bitPattern: resourceBinding)), sampled: true)
+        }
     }
     
 //    for i in 0..<uniformCount {
@@ -241,16 +256,17 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
     
     func mapInputBindings(_ inputTextures: [SpirvTextureBinding]) -> [MslSpirvTextureBindingOutput] {
         return inputTextures.map({
-            let bufferIndex = inputImagesBindingIndices[$0.spirvId]?.0 ?? 0
-            let sampled = inputImagesBindingIndices[$0.spirvId]?.sampled ?? false
-            return MslSpirvTextureBindingOutput(texture: $0.texture, bufferBindingIndex: bufferIndex, sampled: sampled)
+            let bufferIndex = imagesBindingIndices[$0.spirvId]?.1 ?? 0
+            let bufferBindingIndex = imagesBindingIndices[$0.spirvId]?.0 ?? 0
+            let sampled = imagesBindingIndices[$0.spirvId]?.sampled ?? false
+            return MslSpirvTextureBindingOutput(texture: $0.texture, bufferIndex: bufferIndex, bufferBindingIndex: bufferBindingIndex, sampled: sampled)
         })
     }
     switch input {
     case .compute(let c):
-        return .compute(MslSpirvComputeShaderOutput(shader: str, outputComputeTexture: MslSpirvTextureBindingOutput(texture: c.outputComputeTexture.texture, bufferBindingIndex: outputImageBindingIndex, sampled: false), inputComputeTextures: mapInputBindings(c.inputComputeTextures), verticesBindingIndex: verticesBindingIndex, indicesBindingIndex: indicesBindingIndex))
+        return .compute(MslSpirvComputeShaderOutput(shader: str, outputComputeTexture: MslSpirvTextureBindingOutput(texture: c.outputComputeTexture.texture, bufferIndex: outputImageBindingIndex.0, bufferBindingIndex: outputImageBindingIndex.1, sampled: outputImageBindingIndex.sampled), inputComputeTextures: mapInputBindings(c.inputComputeTextures), verticesBindingIndex: UInt32(verticesBindingIndex!), indicesBindingIndex: UInt32(indicesBindingIndex!)))
     case .computeRasterizer(let r):
-        return .computeRasterizer(MslSpirvComputeRasterizerShaderOutput(shader: str, outputComputeTexture: MslSpirvTextureBindingOutput(texture: r.outputComputeTexture.texture, bufferBindingIndex: outputImageBindingIndex, sampled: false), verticesBindingIndex: verticesBindingIndex, indicesBindingIndex: indicesBindingIndex))
+        return .computeRasterizer(MslSpirvComputeRasterizerShaderOutput(shader: str, outputComputeTexture: MslSpirvTextureBindingOutput(texture: r.outputComputeTexture.texture, bufferIndex: outputImageBindingIndex.0, bufferBindingIndex: outputImageBindingIndex.1, sampled: outputImageBindingIndex.sampled), verticesBindingIndex: UInt32(verticesBindingIndex!), indicesBindingIndex: UInt32(indicesBindingIndex!)))
     case .vertex(let v):
         return .vertex(MslSpirvVertexShaderOutput(shader: str, inputTextures: mapInputBindings(v.inputComputeTextures)))
     case .fragment(let f):
