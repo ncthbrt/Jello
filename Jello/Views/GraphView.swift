@@ -57,117 +57,119 @@ struct GraphView<AddNodeMenu: View> : View {
 
     var body: some View {
         GeometryReader { geometry in
-            JelloCanvasRepresentable(onPanZoomGesture: { gesture in
-                withAnimation(.easeInOut) {
-                    let magnification = gesture.currentDistance / gesture.startDistance
-                    currentZoom = magnification - 1
-                    currentZoom = max(min(maxZoom, totalZoom + currentZoom), minZoom) - totalZoom
-                    let panOffset = gesture.currentCentroid / (totalZoom + currentZoom) - (gesture.startCentroid / totalZoom)
-                    let zoomOffset = (-1 * (gesture.startCentroid / (totalZoom+currentZoom)) * currentZoom)
-                    offset = panOffset + zoomOffset
-                }
-            }, onPanZoomGestureEnd: {
-                totalZoom += currentZoom
-                currentZoom = 0
-                position = position + offset
-                offset = .zero
-            })
-            {
-                ZStack {
+            JelloPreviewBaker(graphId: graphId) {
+                JelloCanvasRepresentable(onPanZoomGesture: { gesture in
+                    withAnimation(.easeInOut) {
+                        let magnification = gesture.currentDistance / gesture.startDistance
+                        currentZoom = magnification - 1
+                        currentZoom = max(min(maxZoom, totalZoom + currentZoom), minZoom) - totalZoom
+                        let panOffset = gesture.currentCentroid / (totalZoom + currentZoom) - (gesture.startCentroid / totalZoom)
+                        let zoomOffset = (-1 * (gesture.startCentroid / (totalZoom+currentZoom)) * currentZoom)
+                        offset = panOffset + zoomOffset
+                    }
+                }, onPanZoomGestureEnd: {
+                    totalZoom += currentZoom
+                    currentZoom = 0
+                    position = position + offset
+                    offset = .zero
+                })
+                {
                     ZStack {
-                        ForEach(nodes) { node in
-                            if !node.isDeleted {
-                                NodeControllerView(node: node, showInspector: $showNodeInspector)
-                            }
-                        }
-                        .freeEdges(freeEdgesEnvironmentValue)
-                        .boxSelection(selection)
-                        ForEach(edges) { edge in
-                            if !edge.isDeleted {
-                                EdgeView(edge: edge)
-                            }
-                        }
-                        if (isDragging) {
-                            BoxSelectionView(start: selection.startPosition, end: selection.endPosition)
-                        }
-                    }
-                    .environmentObject(simulationRunner)
-                    .frame(width: geometry.size.width / (currentZoom + totalZoom), height: geometry.size.height / (currentZoom + totalZoom))
-                    .scaleEffect(currentZoom + totalZoom)
-                    .canvasTransform(canvasTransform)
-                }
-                .onBoxSelectionChange({items in selection.selectedNodes = items })
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .contentShape(Rectangle())
-                .onTapGesture(count: 2) { location in
-                    tapLocation = location
-                    showNodeMenu = true
-                }
-                .onTapGesture(count: 1) { location in
-                    selection.selectedNodes.removeAll()
-                    showNodeInspector = false
-                }
-                .gesture(DragGesture()
-                    .onChanged { event in
-                        if !isDragging {
-                            isDragging = true
-                            selection.startPosition = canvasTransform.transform(viewPosition: event.startLocation)
-                            selection.selecting = true
-                        }
-                        selection.endPosition = canvasTransform.transform(viewPosition: event.location)
-                    }
-                    .onEnded {_ in
-                        isDragging = false
-                        selection.selecting = false
-                    }
-                )
-                .popover(isPresented: $showNodeMenu, attachmentAnchor: .point(UnitPoint(x: tapLocation.x / geometry.size.width, y: tapLocation.y / geometry.size.height)), content: { onOpenAddNodeMenu(canvasTransform.transform(viewPosition: tapLocation)).frame(minWidth: 400, maxWidth: 400, idealHeight: 600) })
-                .onAppear() {  simulationRunner.start() }
-                .onDisappear() {  simulationRunner.stop() }
-                .onChange(of: freeEdges, initial: true, {
-                    freeEdgesEnvironmentValue = freeEdges.map({ return (edge: $0, $0.getDependencies()) })
-                })
-                .onChange(of: totalZoom, initial: true, {
-                    canvasTransform.scale = totalZoom + currentZoom
-                    self.updateViewBounds()
-                })
-                .onChange(of: currentZoom, initial: true, {
-                    canvasTransform.scale = totalZoom + currentZoom
-                    self.updateViewBounds()
-                })
-                .onChange(of: offset, initial: true, {
-                    canvasTransform.position = position + offset
-                    self.updateViewBounds()
-                })
-                .onChange(of: position, initial: true, {
-                    canvasTransform.position = position + offset
-                    self.updateViewBounds()
-                })
-                .onChange(of: geometry.size, initial: true, {
-                    canvasTransform.viewPortSize = geometry.size
-                    self.updateViewBounds()
-                })
-            }
-        }.inspector(isPresented: $showNodeInspector, content: {
-            if selection.selectedNodes.count == 1 {
-                let nodeId  = selection.selectedNodes.first!
-                let node = nodes.first(where: {$0.uuid == nodeId})!
-                let controller = JelloNodeControllerFactory.getController(node)
-                if controller.hasSettings {
-                    controller.settingsView(node: node)
-                                .background(.ultraThinMaterial)
-                                .inspectorColumnWidth(ideal: 500)
-                                .toolbar {
-                                    Spacer()
-                                    Button {
-                                        showNodeInspector.toggle()
-                                    } label: {
-                                        Label("Toggle Inspector", systemImage: "info.circle")
-                                    }
+                        ZStack {
+                            ForEach(nodes) { node in
+                                if !node.isDeleted {
+                                    NodeControllerView(node: node, showInspector: $showNodeInspector)
                                 }
+                            }
+                            .freeEdges(freeEdgesEnvironmentValue)
+                            .boxSelection(selection)
+                            ForEach(edges) { edge in
+                                if !edge.isDeleted {
+                                    EdgeView(edge: edge)
+                                }
+                            }
+                            if (isDragging) {
+                                BoxSelectionView(start: selection.startPosition, end: selection.endPosition)
+                            }
+                        }
+                        .environmentObject(simulationRunner)
+                        .frame(width: geometry.size.width / (currentZoom + totalZoom), height: geometry.size.height / (currentZoom + totalZoom))
+                        .scaleEffect(currentZoom + totalZoom)
+                        .canvasTransform(canvasTransform)
+                    }
+                    .onBoxSelectionChange({items in selection.selectedNodes = items })
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .contentShape(Rectangle())
+                    .onTapGesture(count: 2) { location in
+                        tapLocation = location
+                        showNodeMenu = true
+                    }
+                    .onTapGesture(count: 1) { location in
+                        selection.selectedNodes.removeAll()
+                        showNodeInspector = false
+                    }
+                    .gesture(DragGesture()
+                        .onChanged { event in
+                            if !isDragging {
+                                isDragging = true
+                                selection.startPosition = canvasTransform.transform(viewPosition: event.startLocation)
+                                selection.selecting = true
+                            }
+                            selection.endPosition = canvasTransform.transform(viewPosition: event.location)
+                        }
+                        .onEnded {_ in
+                            isDragging = false
+                            selection.selecting = false
+                        }
+                    )
+                    .popover(isPresented: $showNodeMenu, attachmentAnchor: .point(UnitPoint(x: tapLocation.x / geometry.size.width, y: tapLocation.y / geometry.size.height)), content: { onOpenAddNodeMenu(canvasTransform.transform(viewPosition: tapLocation)).frame(minWidth: 400, maxWidth: 400, idealHeight: 600) })
+                    .onAppear() {  simulationRunner.start() }
+                    .onDisappear() {  simulationRunner.stop() }
+                    .onChange(of: freeEdges, initial: true, {
+                        freeEdgesEnvironmentValue = freeEdges.map({ return (edge: $0, $0.getDependencies()) })
+                    })
+                    .onChange(of: totalZoom, initial: true, {
+                        canvasTransform.scale = totalZoom + currentZoom
+                        self.updateViewBounds()
+                    })
+                    .onChange(of: currentZoom, initial: true, {
+                        canvasTransform.scale = totalZoom + currentZoom
+                        self.updateViewBounds()
+                    })
+                    .onChange(of: offset, initial: true, {
+                        canvasTransform.position = position + offset
+                        self.updateViewBounds()
+                    })
+                    .onChange(of: position, initial: true, {
+                        canvasTransform.position = position + offset
+                        self.updateViewBounds()
+                    })
+                    .onChange(of: geometry.size, initial: true, {
+                        canvasTransform.viewPortSize = geometry.size
+                        self.updateViewBounds()
+                    })
                 }
-            }
-        })
+            }.inspector(isPresented: $showNodeInspector, content: {
+                if selection.selectedNodes.count == 1 {
+                    let nodeId  = selection.selectedNodes.first!
+                    let node = nodes.first(where: {$0.uuid == nodeId})!
+                    let controller = JelloNodeControllerFactory.getController(node)
+                    if controller.hasSettings {
+                        controller.settingsView(node: node)
+                            .background(.ultraThinMaterial)
+                            .inspectorColumnWidth(ideal: 500)
+                            .toolbar {
+                                Spacer()
+                                Button {
+                                    showNodeInspector.toggle()
+                                } label: {
+                                    Label("Toggle Inspector", systemImage: "info.circle")
+                                }
+                            }
+                    }
+                }
+            })
+        }
     }
         
 }

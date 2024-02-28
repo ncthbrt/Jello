@@ -231,7 +231,7 @@ public func concretiseTypesInGraph(input: JelloCompilerInput) throws {
 
 public func decomposeSubgraphs(input: JelloCompilerInput) -> [JelloCompilerInput] {
     var inputs: [JelloCompilerInput] = []
-    
+ 
     for node in input.graph.nodes.filter({$0 is SubgraphCompilerNode}) {
         var subgraphNode = node as! SubgraphCompilerNode
         let subNodes = input.graph.nodes.filter({$0.subgraphTags.contains(node.id)})
@@ -289,7 +289,7 @@ public func compileSpirvFragmentShader(input: JelloCompilerInput, outputBody: ()
         #executionMode(opCode: SpirvOpExecutionMode, [fragmentEntryPoint, SpirvExecutionModeOriginUpperLeft.rawValue])
      
         let frameDataTypeId = FrameData.register()
-        let (_, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassUniformConstant)
+        let (_, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassStorageBuffer)
         
         let frameDataId = createFrameDataVariable()
         #debugNames(opCode: SpirvOpName, [frameDataId], #stringLiteral("frameData"))

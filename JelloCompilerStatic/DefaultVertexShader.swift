@@ -19,7 +19,7 @@ public let defaultVertexShader: [UInt32] = #document({
     let typeVoid = #typeDeclaration(opCode: SpirvOpTypeVoid)
     
     let frameDataTypeId = FrameData.register()
-    let (_, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassUniformConstant)
+    let (_, createFrameDataVariable) = FrameData.registerPointerType(storageClass: SpirvStorageClassStorageBuffer)
     
     let frameDataId = createFrameDataVariable()
     #debugNames(opCode: SpirvOpName, [frameDataId], #stringLiteral("frameData"))
@@ -81,10 +81,10 @@ public let defaultVertexShader: [UInt32] = #document({
     
 
     let float4x4TypeId = #typeDeclaration(opCode: SpirvOpTypeMatrix, [float4TypeId, 4])
-    let float4x4UniformPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, float4x4TypeId])
+    let float4x4UniformPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, float4x4TypeId])
 
     let float3x3TypeId = #typeDeclaration(opCode: SpirvOpTypeMatrix, [float3TypeId, 3])
-    let float3x3UniformPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassUniformConstant.rawValue, float3x3TypeId])
+    let float3x3UniformPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassStorageBuffer.rawValue, float3x3TypeId])
 
     
     let float4InputPointerTypeId = #typeDeclaration(opCode: SpirvOpTypePointer, [SpirvStorageClassInput.rawValue, float4TypeId])

@@ -11,102 +11,46 @@ import ModelIO
 import SwiftData
 import JelloCompilerStatic
 
-fileprivate struct PreviewNodeViewImpl: View {
-    let node: JelloNode
-    var graphs: [JelloGraph]
-    let nodes: [JelloNode]
-    let edges: [JelloEdge]
-    let nodeData: [JelloNodeData]
-    let inputPorts: [JelloInputPort]
-    let outputPorts: [JelloOutputPort]
-    
-
-    var body: some View {
-        if let graph = graphs.first, !graph.isDeleted {
-            let graphInput = JelloCompilerBridge.buildGraphInput(outputNode: node, jelloGraph: graph, jelloNodes: nodes, jelloNodeData: nodeData.filter({$0.node?.graph?.uuid == node.graph?.uuid}), jelloEdges: edges, jelloInputPorts: inputPorts.filter({$0.node?.graph?.uuid == graph.uuid}), jelloOutputPorts: outputPorts.filter({$0.node?.graph?.uuid == graph.uuid}))
-            if let result = try? JelloCompilerStatic.compileToSpirv(input: graphInput), let lastStage = result.stages.last {
-                
-                let maybeVertex = lastStage.shaders.filter({shader in
-                    switch shader {
-                    case .vertex(_):
-                        return true
-                    default:
-                        return true
-                    }
-                }).first
-                
-                
-                let maybeFragment = lastStage.shaders.filter({shader in
-                    switch shader {
-                    case .fragment(_):
-                        return true
-                    default:
-                        return false
-                    }
-                }).first
-                
-                let maybeRaster = result.stages.flatMap({$0.shaders}).filter({shader in
-                    switch shader {
-                    case .computeRasterizer(_):
-                        return true
-                    default:
-                        return false
-                    }
-                }).first
-
-                let maybeCompute = result.stages.flatMap({$0.shaders}).filter({shader in
-                    switch shader {
-                    case .compute(_):
-                        return true
-                    default:
-                        return false
-                    }
-                }).first
-                
-                if case .compute(let computeSpirv) = maybeCompute {
-                    let _ = print("Compute:\n\(computeSpirv.shader)")
-                    let _ = try? JelloCompilerStatic.compileMSLShader(input: maybeCompute!)
-                }
-                
-                if case .computeRasterizer(let computeSpirv) = maybeRaster {
-                    let _ = print("Raster:\n\(computeSpirv.shader)")
-                    let _ = try? JelloCompilerStatic.compileMSLShader(input: maybeRaster!)
-                }
-
-                if case .vertex(_) = maybeVertex,
-                   case .fragment(_) = maybeFragment,
-                   case .vertex(let vertexMSL) = try? JelloCompilerStatic.compileMSLShader(input: maybeVertex!),
-                   case .fragment(let fragmentMSL) = try? JelloCompilerStatic.compileMSLShader(input: maybeFragment!) {
-                    ShaderPreviewView(vertexShader: vertexMSL, fragmentShader: fragmentMSL, previewGeometry: .sphere)
-                }
-            }
-        }
-    }
-}
-
 struct PreviewNodeView: View {
-    @Query var graphs: [JelloGraph]
-    @Query var nodes: [JelloNode]
-    @Query var edges: [JelloEdge]
-    @Query var nodeData: [JelloNodeData]
-    @Query(sort: \JelloInputPort.index) var inputPorts: [JelloInputPort]
-    @Query(sort: \JelloOutputPort.index) var outputPorts: [JelloOutputPort]
     let node: JelloNode
     let drawBounds: (inout Path) -> ()
+    @Environment(\.modelContext) var modelContext
     
     init(node: JelloNode, drawBounds: @escaping (inout Path) -> ()) {
         self.node = node
         self.drawBounds = drawBounds
-        let graphId: UUID = node.graph?.uuid ?? UUID()
-        self._graphs = Query(FetchDescriptor(predicate: #Predicate { $0.uuid == graphId }))
-        self._nodes = Query(FetchDescriptor(predicate: #Predicate { $0.graph?.uuid == graphId }))
-        self._edges = Query(FetchDescriptor(predicate: #Predicate { $0.graph?.uuid == graphId }))
     }
-
+    
+    private func getOutput(nodeData: [JelloNodeData]) -> Data? {
+        let nodeId = node.uuid
+        var outputDescriptor = FetchDescriptor(predicate: #Predicate<JelloPersistedTextureResource> { $0.originatingStage == nodeId && $0.originatingPass == 1 })
+       // outputDescriptor.includePendingChanges = true
+        outputDescriptor.sortBy = [SortDescriptor(\JelloPersistedTextureResource.created, order: .reverse)]
+        let outputs = try! modelContext.fetch(outputDescriptor)
+        let wedgeSha256 = (try! PropertyListEncoder().encode(JelloPreviewGeometry.sphere).sha256())
+        let output = outputs.first(where: { $0.wedgeSha256 == wedgeSha256 })
+        let texture = output?.texture
+        return texture
+    }
+    
+    private func makeImage(imageData: Data) -> UIImage? {
+        let ciImage = CIImage(bitmapData: imageData, bytesPerRow: 256*16, size: .init(width: 256, height: 256), format: .RGBAf, colorSpace: nil)
+        
+        let uiImage = UIImage(ciImage: ciImage)
+        return UIImage(data: uiImage.pngData()!)
+    }
+    
     var body: some View {
-        // TODO: Make compilation asynchronous
         ZStack {
-            PreviewNodeViewImpl(node: node, graphs: graphs, nodes: nodes, edges: edges, nodeData: nodeData, inputPorts: inputPorts, outputPorts: outputPorts) .clipShape(Path(drawBounds)).clipped(antialiased: true)
+            TimelineView(.animation) { _ in
+                let nodeId = node.uuid
+                let nodeData = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloNodeData> { $0.node?.uuid == nodeId }))
+                if let tex = getOutput(nodeData: nodeData), let image = makeImage(imageData: tex) {
+//                    Path(drawBounds).fill(ImagePaint(image: 
+                        Image(uiImage: image)
+                        //.resizable()))
+                }
+            }
             Path(drawBounds).fill(Gradient(colors: [.black.opacity(0.3), .clear]))
             VStack {
                 Text("Preview").font(.title2).minimumScaleFactor(0.2)

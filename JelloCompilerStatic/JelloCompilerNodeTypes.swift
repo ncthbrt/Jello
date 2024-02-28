@@ -1760,15 +1760,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             #extInstImport(opCode: SpirvOpExtInstImport, [glsl450Id], #stringLiteral("GLSL.std.450"))
             JelloCompilerBlackboard.glsl450ExtId = glsl450Id
             
-            var dimensions: [UInt32] = [1, 1, 1]
-            if case .dimension(_, let dimY, let dimZ) = self.computationDimension {
-                if dimY == 1 && dimZ == 1 {
-                    dimensions[0] = 128
-                } else {
-                    dimensions[0] = 16
-                    dimensions[1] = 8
-                }
-            }
+            let dimensions: [UInt32] = [128, 1, 1]
             
             #executionMode(opCode: SpirvOpExecutionMode, [entryPoint, SpirvExecutionModeLocalSize.rawValue], dimensions)
             
@@ -2667,7 +2659,7 @@ public class MaterialOutputCompilerNode: CompilerNode & SubgraphCompilerNode {
     public func install(input: JelloCompilerInput) {}
     public func write(input: JelloCompilerInput) {}
     public var branchTags: Set<UUID>
-    public var subgraphTags: Set<UUID>
+    public var subgraphTags: Set<UUID> = []
     public var computationDomain: CompilerComputationDomain?
     public var subgraph: JelloCompilerInput? = nil
 
@@ -2680,7 +2672,6 @@ public class MaterialOutputCompilerNode: CompilerNode & SubgraphCompilerNode {
         self.id = id
         self.inputPorts = [inputPort]
         self.branchTags = Set([self.id])
-        self.subgraphTags = Set([self.id])
         for p in inputPorts {
             p.node = self
             p.newBranchId = self.id

@@ -37,7 +37,6 @@
 		BC31EB752B0392D5004401FC /* JelloNodeMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB742B0392D5004401FC /* JelloNodeMenu.swift */; };
 		BC31EB7B2B049428004401FC /* EdgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC31EB7A2B049428004401FC /* EdgeView.swift */; };
 		BC37F5C42B832D2400F7B338 /* CompilerConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5C32B832D2400F7B338 /* CompilerConstants.swift */; };
-		BC37F5C62B83463D00F7B338 /* JelloComputeShaderExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5C52B83463D00F7B338 /* JelloComputeShaderExecutor.swift */; };
 		BC37F5C82B83470400F7B338 /* JelloPreviewBakingCacheTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5C72B83470400F7B338 /* JelloPreviewBakingCacheTypes.swift */; };
 		BC37F5CA2B837DE100F7B338 /* JelloPreviewBaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5C92B837DE100F7B338 /* JelloPreviewBaker.swift */; };
 		BC37F5CC2B83A4FD00F7B338 /* DataHashing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC37F5CB2B83A4FD00F7B338 /* DataHashing.swift */; };
@@ -50,6 +49,7 @@
 		BC3DD01F2B357A1400F27E8D /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = BC3DD01E2B357A1400F27E8D /* Collections */; };
 		BC3DD0212B357A1400F27E8D /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = BC3DD0202B357A1400F27E8D /* DequeModule */; };
 		BC3DD0232B357A1400F27E8D /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = BC3DD0222B357A1400F27E8D /* OrderedCollections */; };
+		BC54AC452B8CBA150098CD6C /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC54AC442B8CBA150098CD6C /* MathUtils.swift */; };
 		BC57B8AD2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC57B8AC2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift */; };
 		BC57B9492B5C080300DE6D8A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		BC57B94B2B5C084300DE6D8A /* CheckerboardEffect.metal in Sources */ = {isa = PBXBuildFile; fileRef = BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */; };
@@ -195,13 +195,13 @@
 		BC31EB7A2B049428004401FC /* EdgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeView.swift; sourceTree = "<group>"; };
 		BC36321D2B566048006A0AE2 /* FrameDataC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameDataC.h; sourceTree = "<group>"; };
 		BC37F5C32B832D2400F7B338 /* CompilerConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompilerConstants.swift; sourceTree = "<group>"; };
-		BC37F5C52B83463D00F7B338 /* JelloComputeShaderExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloComputeShaderExecutor.swift; sourceTree = "<group>"; };
 		BC37F5C72B83470400F7B338 /* JelloPreviewBakingCacheTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloPreviewBakingCacheTypes.swift; sourceTree = "<group>"; };
 		BC37F5C92B837DE100F7B338 /* JelloPreviewBaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloPreviewBaker.swift; sourceTree = "<group>"; };
 		BC37F5CB2B83A4FD00F7B338 /* DataHashing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataHashing.swift; sourceTree = "<group>"; };
 		BC3DD0042B356C7D00F27E8D /* JelloGraphProcessingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloGraphProcessingTests.swift; sourceTree = "<group>"; };
 		BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libJelloCompilerStatic.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC3ED8EF2B341BCC00303257 /* JelloCompilerFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloCompilerFunctions.swift; sourceTree = "<group>"; };
+		BC54AC442B8CBA150098CD6C /* MathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathUtils.swift; sourceTree = "<group>"; };
 		BC57B8AC2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoxSelectionEnvironmentKey+PreferenceKey.swift"; sourceTree = "<group>"; };
 		BC57B94A2B5C084200DE6D8A /* CheckerboardEffect.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CheckerboardEffect.metal; sourceTree = "<group>"; };
 		BC614E8B2B0B48F800AA18E5 /* BoxSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxSelectionView.swift; sourceTree = "<group>"; };
@@ -338,7 +338,6 @@
 			isa = PBXGroup;
 			children = (
 				BC258A8D2B46AB0200FEB690 /* JelloMesh.swift */,
-				BC37F5C52B83463D00F7B338 /* JelloComputeShaderExecutor.swift */,
 				BCFE34612B88B8C6003FCBC1 /* MTLTextureExtensions.swift */,
 			);
 			path = Rendering;
@@ -396,6 +395,7 @@
 				BC2AE5772B08B1C8008F75C2 /* CanvasTransformEnvironmentKey.swift */,
 				BC57B8AC2B0C910F006A2CD6 /* BoxSelectionEnvironmentKey+PreferenceKey.swift */,
 				BC37F5CB2B83A4FD00F7B338 /* DataHashing.swift */,
+				BC54AC442B8CBA150098CD6C /* MathUtils.swift */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -755,6 +755,7 @@
 				BC8618132B5C315200AF6EE8 /* HSBEffect.metal in Sources */,
 				BC37F5CC2B83A4FD00F7B338 /* DataHashing.swift in Sources */,
 				BC9BBFBA2AEFDE3D00FC068C /* JelloMaterial.swift in Sources */,
+				BC54AC452B8CBA150098CD6C /* MathUtils.swift in Sources */,
 				BCEAFD172B205E9100D23E1F /* JelloCompilerBridge.swift in Sources */,
 				BCCE161F2B1724C4000370CB /* ArcKnob.swift in Sources */,
 				BC31EB732B039291004401FC /* JelloTypes.swift in Sources */,
@@ -787,7 +788,6 @@
 				BC2BDF7C2AF2792C00E2A242 /* EmptyStates.swift in Sources */,
 				BC2AE5722B0763ED008F75C2 /* Rope.swift in Sources */,
 				BC37F5CA2B837DE100F7B338 /* JelloPreviewBaker.swift in Sources */,
-				BC37F5C62B83463D00F7B338 /* JelloComputeShaderExecutor.swift in Sources */,
 				BC9668932B68092000B0227A /* ClampedSplineEditor.swift in Sources */,
 				BC2BDF7A2AF2783B00E2A242 /* JelloDocumentView.swift in Sources */,
 				BCDB32552B0DF0D20086BA2B /* SimulationRunner.swift in Sources */,

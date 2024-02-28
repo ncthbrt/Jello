@@ -68,6 +68,8 @@ struct JelloVersionedSchemaV1: VersionedSchema {
         JelloInputPort.self,
         JelloOutputPort.self,
         JelloNodeData.self,
-        ClampedSpline.self
+        ClampedSpline.self,
+        JelloPersistedTextureResource.self,
+        JelloPersistedStageShader.self
     ]
 }

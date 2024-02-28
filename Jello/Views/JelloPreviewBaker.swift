@@ -16,13 +16,16 @@ import simd
 
 
 
-
+// TODO: Support MIP Mapping for Vert-Frag inputs
 @ModelActor
 actor JelloPreviewBakerActor {
     private var device: MTLDevice?
     private var metalKitTextureLoader: MTKTextureLoader? = nil
-    private var modelIOVertexDescriptor: MDLVertexDescriptor? = nil
-    private var vertexDescriptor: MTLVertexDescriptor? = nil
+    private var computeModelIOVertexDescriptor: MDLVertexDescriptor? = nil
+    private var vertFragModelIOVertexDescriptor: MDLVertexDescriptor? = nil
+
+    private var computeVertexDescriptor: MTLVertexDescriptor? = nil
+    private var vertexFragVertexDescriptor: MTLVertexDescriptor? = nil
     private struct ShaderKey : Hashable {
         let stageId: UUID
         let index: UInt32
@@ -53,36 +56,80 @@ actor JelloPreviewBakerActor {
         
         metalKitTextureLoader = MTKTextureLoader(device: defaultDevice)
         
-        self.vertexDescriptor = MTLVertexDescriptor()
+        vertexFragVertexDescriptor = MTLVertexDescriptor()
+        
         // Positions.
-        vertexDescriptor!.attributes[0].format = .float3
-        vertexDescriptor!.attributes[0].offset = 0
-        vertexDescriptor!.attributes[0].bufferIndex = 0
+        vertexFragVertexDescriptor!.attributes[0].format = .float3
+        vertexFragVertexDescriptor!.attributes[0].offset = 0
+        vertexFragVertexDescriptor!.attributes[0].bufferIndex = 0
 
         // Texture coordinates.
-        vertexDescriptor!.attributes[1].format = .float2
-        vertexDescriptor!.attributes[1].offset = 16
-        vertexDescriptor!.attributes[1].bufferIndex = 0
+        vertexFragVertexDescriptor!.attributes[1].format = .float2
+        vertexFragVertexDescriptor!.attributes[1].offset = 12
+        vertexFragVertexDescriptor!.attributes[1].bufferIndex = 0
 
         // Normals.
-        vertexDescriptor!.attributes[2].format = .float3
-        vertexDescriptor!.attributes[2].offset = 32
-        vertexDescriptor!.attributes[2].bufferIndex = 0
+        vertexFragVertexDescriptor!.attributes[2].format = .float3
+        vertexFragVertexDescriptor!.attributes[2].offset = 20
+        vertexFragVertexDescriptor!.attributes[2].bufferIndex = 0
 
         // Tangents.
-        vertexDescriptor!.attributes[3].format = .float3
-        vertexDescriptor!.attributes[3].offset = 48
-        vertexDescriptor!.attributes[3].bufferIndex = 0
+        vertexFragVertexDescriptor!.attributes[3].format = .float3
+        vertexFragVertexDescriptor!.attributes[3].offset = 32
+        vertexFragVertexDescriptor!.attributes[3].bufferIndex = 0
 
         // Bitangents.
-        vertexDescriptor!.attributes[4].format = .float3
-        vertexDescriptor!.attributes[4].offset = 64
-        vertexDescriptor!.attributes[4].bufferIndex = 0
+        vertexFragVertexDescriptor!.attributes[4].format = .float3
+        vertexFragVertexDescriptor!.attributes[4].offset = 44
+        vertexFragVertexDescriptor!.attributes[4].bufferIndex = 0
 
         // Generic attribute buffer layout.
-        vertexDescriptor!.layouts[0].stride = 80
+        vertexFragVertexDescriptor!.layouts[0].stride = 56
+        
+        self.computeVertexDescriptor = MTLVertexDescriptor()
+        // Positions.
+        computeVertexDescriptor!.attributes[0].format = .float3
+        computeVertexDescriptor!.attributes[0].offset = 0
+        computeVertexDescriptor!.attributes[0].bufferIndex = 0
 
-        modelIOVertexDescriptor = MTKModelIOVertexDescriptorFromMetal(vertexDescriptor!)
+        // Texture coordinates.
+        computeVertexDescriptor!.attributes[1].format = .float2
+        computeVertexDescriptor!.attributes[1].offset = 16
+        computeVertexDescriptor!.attributes[1].bufferIndex = 0
+
+        // Normals.
+        computeVertexDescriptor!.attributes[2].format = .float3
+        computeVertexDescriptor!.attributes[2].offset = 32
+        computeVertexDescriptor!.attributes[2].bufferIndex = 0
+
+        // Tangents.
+        computeVertexDescriptor!.attributes[3].format = .float3
+        computeVertexDescriptor!.attributes[3].offset = 48
+        computeVertexDescriptor!.attributes[3].bufferIndex = 0
+
+        // Bitangents.
+        computeVertexDescriptor!.attributes[4].format = .float3
+        computeVertexDescriptor!.attributes[4].offset = 64
+        computeVertexDescriptor!.attributes[4].bufferIndex = 0
+
+        // Generic attribute buffer layout.
+        computeVertexDescriptor!.layouts[0].stride = 80
+
+        computeModelIOVertexDescriptor = MTKModelIOVertexDescriptorFromMetal(computeVertexDescriptor!)
+        vertFragModelIOVertexDescriptor = MTKModelIOVertexDescriptorFromMetal(vertexFragVertexDescriptor!)
+        
+        (computeModelIOVertexDescriptor!.attributes[0] as! MDLVertexAttribute).name  = MDLVertexAttributePosition
+        (computeModelIOVertexDescriptor!.attributes[1] as! MDLVertexAttribute).name = MDLVertexAttributeTextureCoordinate
+        (computeModelIOVertexDescriptor!.attributes[2] as! MDLVertexAttribute).name = MDLVertexAttributeNormal
+        (computeModelIOVertexDescriptor!.attributes[3] as! MDLVertexAttribute).name  = MDLVertexAttributeTangent
+        (computeModelIOVertexDescriptor!.attributes[4] as! MDLVertexAttribute).name = MDLVertexAttributeBitangent
+        
+        (vertFragModelIOVertexDescriptor!.attributes[0] as! MDLVertexAttribute).name  = MDLVertexAttributePosition
+        (vertFragModelIOVertexDescriptor!.attributes[1] as! MDLVertexAttribute).name = MDLVertexAttributeTextureCoordinate
+        (vertFragModelIOVertexDescriptor!.attributes[2] as! MDLVertexAttribute).name = MDLVertexAttributeNormal
+        (vertFragModelIOVertexDescriptor!.attributes[3] as! MDLVertexAttribute).name  = MDLVertexAttributeTangent
+        (vertFragModelIOVertexDescriptor!.attributes[4] as! MDLVertexAttribute).name = MDLVertexAttributeBitangent
+
     }
     
     private func loadTexture(textureUsage: MTLTextureUsage, storageMode: MTLStorageMode, texture: Data) throws -> MTLTexture {
@@ -93,12 +140,42 @@ actor JelloPreviewBakerActor {
 
         return try metalKitTextureLoader!.newTexture(data: texture, options: textureLoaderOptions)
     }
+    
+    private func makeOutputTexture(texDefn: MslSpirvTextureBindingOutput) throws -> MTLTexture {
+        let textureDescriptor = MTLTextureDescriptor()
+        textureDescriptor.pixelFormat = switch texDefn.texture.format {
+        case .R32f:
+                .r32Float
+        case .R32i:
+                .r32Sint
+        case .Rgba32f:
+                .rgba32Float
+        case .Rgba16f:
+                .rgba16Float
+        }
+        
+        guard case .dimension(let x, let y, let z) = texDefn.texture.size else {
+            fatalError("No dimension")
+        }
+        textureDescriptor.width = x;
+        textureDescriptor.height = y;
+        textureDescriptor.depth = z
+        
+        textureDescriptor.textureType = z > 1 ? .type3D : (y > 1 ? .type2D : .type1D)
+        
+        // The image kernel only needs to read the incoming image data.
+        
+        textureDescriptor.usage = [.shaderWrite, .shaderRead];
+        textureDescriptor.storageMode = .shared
 
-    private func bindGeometry(geometry: JelloPreviewGeometry, argumentEncoder: inout MTLArgumentEncoder, indicesBinding: UInt32, verticesBinding: UInt32) throws {
+        return device!.makeTexture(descriptor: textureDescriptor)!
+    }
+
+    private func bindGeometry(geometry: JelloPreviewGeometry, triangleCount: inout Int, resources: inout [(resource: any MTLResource, usage: MTLResourceUsage)], argumentEncoder: inout MTLArgumentEncoder,  indicesBinding: UInt32, verticesBinding: UInt32) throws  {
         let g = if let geo = self.previewGeometry[geometry] {
             geo
         } else {
-            try loadPreviewGeometry(geometry, modelIOVertexDescriptor: modelIOVertexDescriptor!, device: device!)
+            try loadPreviewGeometry(geometry, modelIOVertexDescriptor: computeModelIOVertexDescriptor!, device: device!)
         }
         previewGeometry[geometry] = g
         // We assume that preview geometry only has a single mesh and submesh
@@ -106,16 +183,339 @@ actor JelloPreviewBakerActor {
         let subMesh0 = mesh0.submeshes[0]
         let indicesBuffer = subMesh0.metalKitSubmesh.indexBuffer
         let verticesBuffer = mesh0.metalKitMesh.vertexBuffers[0]
-        
+        triangleCount = subMesh0.metalKitSubmesh.indexCount
         
         argumentEncoder.setBuffer(verticesBuffer.buffer, offset: verticesBuffer.offset, index:  Int(verticesBinding))
         argumentEncoder.setBuffer(indicesBuffer.buffer, offset: indicesBuffer.offset, index: Int(indicesBinding))
+        resources.append((resource: verticesBuffer.buffer, usage: .read))
+        resources.append((resource: indicesBuffer.buffer, usage: .read))
+    }
+    
+    private func renderVertexFragment(stageId: UUID, vertexStageIndex: UInt32, fragmentStageIndex: UInt32, geometry: JelloPreviewGeometry, vertexShader: SpirvShader, fragmentShader: SpirvShader, computeTextureResources: Set<UUID>) throws -> Data {
+        if device == nil {
+            initializeSharedResources()
+        }
+        
+        var mtlResources: [(resource: any MTLResource, usage: MTLResourceUsage, stages: MTLRenderStages)] = []
+
+        // TODO: Cache textures if a dependency of timeVarying or transform dependant functions
+        var textures: [(JelloPersistedTextureResource, MTLTexture)] = []
+        for resource in computeTextureResources {
+            let id = resource
+            if let texture = (try modelContext.fetch(FetchDescriptor<JelloPersistedTextureResource>(predicate: #Predicate { $0.uuid == id }), batchSize: 1)).first {
+                textures.append(((texture,try loadTexture(textureUsage: [.shaderRead], storageMode: .private, texture: texture.texture ?? Data()))))
+            }
+        }
+        
+        let vertexKey = ShaderKey(stageId: stageId, index: vertexStageIndex)
+        let fragmentKey = ShaderKey(stageId: stageId, index: fragmentStageIndex)
+        
+        let vertexMsl: MslSpirvShaderOutput = try compiledSpirv[vertexKey] ?? compileMSLShader(input: vertexShader)
+        let fragmentMsl: MslSpirvShaderOutput = try compiledSpirv[fragmentKey] ?? compileMSLShader(input: fragmentShader)
+        compiledSpirv[vertexKey] = vertexMsl
+        compiledSpirv[fragmentKey] = fragmentMsl
+        let maybeVertexShaderLib = shaderLibs[vertexKey]
+        let maybeFragmentShaderLib = shaderLibs[fragmentKey]
+        
+        let vertexShaderLib = if let vertexShaderLib = maybeVertexShaderLib {
+            vertexShaderLib
+        } else {
+            switch vertexMsl {
+            case .vertex(let v):
+                try device!.makeLibrary(source: v.shader, options: MTLCompileOptions())
+            default:
+                fatalError("Unexpected shader type")
+            }
+        }
+        
+        let fragmentShaderLib = if let fragmentShaderLib = maybeFragmentShaderLib {
+            fragmentShaderLib
+        } else {
+            switch fragmentMsl {
+            case .fragment(let f):
+                try device!.makeLibrary(source: f.shader, options: MTLCompileOptions())
+            default:
+                fatalError("Unexpected shader type")
+            }
+        }
+        
+        shaderLibs[vertexKey] = vertexShaderLib
+        shaderLibs[fragmentKey] = fragmentShaderLib
+        
+        let vertexMain = vertexShaderLib.makeFunction(name: "vertexMain")
+        let fragmentMain = fragmentShaderLib.makeFunction(name: "fragmentMain")
+    
+        var frameDataBuffer = device!.makeBuffer(length: MemoryLayout<FrameDataC>.size, options: MTLResourceOptions.storageModeShared)!
+        var frameData = frameDataBuffer.contents().load(as: FrameDataC.self)
+        frameData.ambientLightColor = vector_float3(0.05, 0.05, 0.05)
+        let fov: Float = 60.0 * (.pi / 180.0)
+        let farPlane: Float = 4.0
+        let nearPlane: Float = 1.0
+        frameData.projectionMatrix = matrix_perspective_left_hand(fovyRadians: fov, aspectRatio: 1, nearZ: nearPlane, farZ: farPlane)
+        frameData.projectionMatrixInv = frameData.projectionMatrix.inverse
+        
+        // Set screen dimensions.
+        frameData.framebufferWidth = UInt32(256)
+        frameData.framebufferHeight = UInt32(256)
+
+        frameData.depthUnproject = vector2(farPlane / (farPlane - nearPlane), (-farPlane * nearPlane) / (farPlane - nearPlane))
+
+        let directionalLightDirection = vector_float3(1.0, -1.0, 1.0)
+        frameData.directionalLightDirection = directionalLightDirection
+
+        // Update directional light color.
+        let directionalLightColor = vector_float3(0.4, 0, 0.2)
+        frameData.directionalLightColor = directionalLightColor
+        
+        let fovScale = tanf(0.5 * fov) * 2.0;
+        let aspectRatio = Float(frameData.framebufferWidth) / Float(frameData.framebufferHeight)
+        frameData.screenToViewSpace = vector_float3(fovScale / Float(frameData.framebufferHeight), -fovScale * 0.5 * aspectRatio, -fovScale * 0.5)
+
+        // Calculate new view matrix and inverted view matrix.
+        frameData.viewMatrix = matrix_multiply(matrix4x4_translation(-0, -0.3, 3),
+                                               matrix_multiply(matrix4x4_rotation(radians: 0, axis: vector_float3(1,0,0)),
+                                                               matrix4x4_rotation(radians: 0, axis:vector_float3(0,1,0))))
+        frameData.viewMatrixInv = frameData.viewMatrix.inverse
+
+        let rotationAxis = vector_float3(0, 1, 0);
+        var modelMatrix = matrix4x4_rotation(radians:0, axis: rotationAxis)
+        let translation = matrix4x4_translation(0.0, 0, 0)
+        modelMatrix = matrix_multiply(modelMatrix, translation)
+
+        frameData.modelViewMatrix = matrix_multiply(frameData.viewMatrix, modelMatrix)
+        frameData.modelMatrix = modelMatrix
+
+        frameData.normalMatrix = matrix3x3_upper_left(frameData.modelViewMatrix)
+        frameData.normalMatrix = frameData.normalMatrix.transpose.inverse
+
+
+        withUnsafePointer(to: frameData){
+            frameDataBuffer.contents().copyMemory(from: $0, byteCount: MemoryLayout<FrameDataC>.size)
+        }
+        
+        
+        
+        var vertexTextureArgumentBuffer: (any MTLBuffer)? = nil
+        var fragmentTextureArgumentBuffer: (any MTLBuffer)? = nil
+        var vertexFrameDataArgumentBuffer: (any MTLBuffer)? = nil
+        var fragmentFrameDataArgumentBuffer: (any MTLBuffer)? = nil
+
+
+        switch vertexMsl {
+        case .vertex(let v):
+            let computeTextureInputs = v.inputComputeTextures.filter({$0.bufferIndex == computeTextureInputOutputDescriptorSet })
+            if computeTextureInputs.count > 0 {
+                let vertexTextureInputOutputEncoder = vertexMain!.makeArgumentEncoder(bufferIndex: Int(computeTextureInputOutputDescriptorSet))
+                vertexTextureArgumentBuffer = device!.makeBuffer(length: vertexTextureInputOutputEncoder.encodedLength)!
+                vertexTextureInputOutputEncoder.setArgumentBuffer(vertexTextureArgumentBuffer!, offset: 0)
+                mtlResources.append((resource: vertexTextureArgumentBuffer!, usage: [MTLResourceUsage.read, MTLResourceUsage.write], stages: .vertex))
+                for computeTextureInput in computeTextureInputs {
+                    let t = textures.first(where: {$0.0.originatingPass == computeTextureInput.texture.originatingPass && $0.0.originatingStage == computeTextureInput.texture.originatingStage })
+                    vertexTextureInputOutputEncoder.setTexture(t!.1, index: Int(computeTextureInput.bufferBindingIndex))
+                    
+                    if computeTextureInput.sampled {
+                        let samplerDesc = MTLSamplerDescriptor();
+                        samplerDesc.minFilter = .linear;
+                        samplerDesc.magFilter = .linear;
+                        samplerDesc.mipFilter = .notMipmapped;
+                        samplerDesc.normalizedCoordinates = true;
+                        samplerDesc.supportArgumentBuffers = true;
+                        
+                        let sampler = device!.makeSamplerState(descriptor: samplerDesc)
+                        // We assume that the sampler is bound to the next index as the texture
+                        vertexTextureInputOutputEncoder.setSamplerState(sampler, index: Int(computeTextureInput.bufferBindingIndex) + 1)
+                    }
+                }
+            }
+            if let idx = v.frameDataBindingIndex {
+                let vertexFrameDataEncoder = vertexMain!.makeArgumentEncoder(bufferIndex: Int(frameDataDescriptorSet))
+                vertexFrameDataArgumentBuffer = device!.makeBuffer(length: vertexFrameDataEncoder.encodedLength)!
+                vertexFrameDataEncoder.setArgumentBuffer(vertexFrameDataArgumentBuffer, offset: 0)
+                vertexFrameDataEncoder.setBuffer(frameDataBuffer, offset: 0, index: Int(idx))
+                mtlResources.append((resource: frameDataBuffer, usage: [MTLResourceUsage.read], stages: [.fragment]))
+            }
+        default:
+            fatalError("Unexpected shader type")
+        }
+        
+        switch fragmentMsl {
+        case .fragment(let f):
+            let computeTextureInputs = f.inputComputeTextures.filter({UInt32($0.bufferIndex) == computeTextureInputOutputDescriptorSet })
+            if computeTextureInputs.count > 0 {
+                let fragmentTextureInputOutputEncoder = fragmentMain!.makeArgumentEncoder(bufferIndex: Int(computeTextureInputOutputDescriptorSet))
+                fragmentTextureArgumentBuffer = device!.makeBuffer(length: fragmentTextureInputOutputEncoder.encodedLength)!
+                mtlResources.append((resource: fragmentTextureArgumentBuffer!, usage: [MTLResourceUsage.read, MTLResourceUsage.write], stages: .fragment))
+                fragmentTextureInputOutputEncoder.setArgumentBuffer(fragmentTextureArgumentBuffer, offset: 0)
+                for computeTextureInput in computeTextureInputs {
+                    let t = textures.first(where: {$0.0.originatingPass == computeTextureInput.texture.originatingPass && $0.0.originatingStage == computeTextureInput.texture.originatingStage })
+                    fragmentTextureInputOutputEncoder.setTexture(t!.1, index: Int(computeTextureInput.bufferBindingIndex))
+                    
+                    if computeTextureInput.sampled {
+                        let samplerDesc = MTLSamplerDescriptor();
+                        samplerDesc.minFilter = .linear;
+                        samplerDesc.magFilter = .linear;
+                        samplerDesc.mipFilter = .notMipmapped;
+                        samplerDesc.normalizedCoordinates = true;
+                        samplerDesc.supportArgumentBuffers = true;
+                        
+                        let sampler = device!.makeSamplerState(descriptor: samplerDesc)
+                        // We assume that the sampler is bound to the next index as the texture
+                        fragmentTextureInputOutputEncoder.setSamplerState(sampler, index: Int(computeTextureInput.bufferBindingIndex) + 1)
+                    }
+                }
+            }
+            if let idx = f.frameDataBindingIndex {
+                let fragmentFrameDataEncoder = fragmentMain!.makeArgumentEncoder(bufferIndex: Int(frameDataDescriptorSet))
+                fragmentFrameDataArgumentBuffer =  device!.makeBuffer(length: fragmentFrameDataEncoder.encodedLength)!
+                mtlResources.append((resource: fragmentFrameDataArgumentBuffer!, usage: MTLResourceUsage.read, stages: [.fragment]))
+                mtlResources.append((resource: frameDataBuffer, usage: MTLResourceUsage.read, stages: [.fragment]))
+
+                fragmentFrameDataEncoder.setArgumentBuffer(fragmentFrameDataArgumentBuffer, offset: 0)
+                fragmentFrameDataEncoder.setBuffer(frameDataBuffer, offset: 0, index: Int(idx))
+            }
+        default:
+            fatalError("Unexpected shader type")
+        }
+        
+        let texDescriptor: MTLTextureDescriptor = MTLTextureDescriptor()
+        texDescriptor.textureType = .type2D
+        texDescriptor.width = 256
+        texDescriptor.height = 256
+        texDescriptor.depth = 1
+        texDescriptor.pixelFormat = .rgba32Float
+        texDescriptor.storageMode = .shared
+        texDescriptor.usage = .renderTarget
+        let tex = device!.makeTexture(descriptor: texDescriptor)!
+        
+        let depthTexDescriptor: MTLTextureDescriptor = MTLTextureDescriptor()
+        depthTexDescriptor.textureType = .type2D
+        depthTexDescriptor.width = 256
+        depthTexDescriptor.height = 256
+        depthTexDescriptor.depth = 1
+        depthTexDescriptor.pixelFormat = .depth32Float
+        depthTexDescriptor.usage = .renderTarget
+        texDescriptor.storageMode = .memoryless
+        let depthTex = device!.makeTexture(descriptor: depthTexDescriptor)!
+        
+        let renderPipelineStateDescriptor = MTLRenderPipelineDescriptor()
+
+        renderPipelineStateDescriptor.vertexDescriptor = self.vertexFragVertexDescriptor!
+        renderPipelineStateDescriptor.rasterSampleCount = Int(1)
+
+        renderPipelineStateDescriptor.colorAttachments[0].pixelFormat = texDescriptor.pixelFormat
+        renderPipelineStateDescriptor.depthAttachmentPixelFormat = depthTexDescriptor.pixelFormat
+        renderPipelineStateDescriptor.vertexFunction = vertexMain
+        renderPipelineStateDescriptor.fragmentFunction = fragmentMain
+        let pipelineState: MTLRenderPipelineState = try device!.makeRenderPipelineState(descriptor: renderPipelineStateDescriptor)
+
+        let renderToTextureRenderPassDescriptor = MTLRenderPassDescriptor()
+        renderToTextureRenderPassDescriptor.colorAttachments[0].texture = tex
+        renderToTextureRenderPassDescriptor.colorAttachments[0].loadAction = .clear
+        renderToTextureRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0)
+        renderToTextureRenderPassDescriptor.colorAttachments[0].storeAction = .store
+        renderToTextureRenderPassDescriptor.depthAttachment.loadAction = .clear
+        renderToTextureRenderPassDescriptor.depthAttachment.texture = depthTex
+        renderToTextureRenderPassDescriptor.depthAttachment.storeAction = .dontCare
+        renderToTextureRenderPassDescriptor.stencilAttachment.loadAction = .clear
+        renderToTextureRenderPassDescriptor.stencilAttachment.storeAction = .dontCare
+        renderToTextureRenderPassDescriptor.depthAttachment.clearDepth = 1.0
+        renderToTextureRenderPassDescriptor.stencilAttachment.clearStencil = 0
+        
+        let queue = device!.makeCommandQueue()!
+        let commandBuffer = queue.makeCommandBuffer()!
+        
+        
+        let depthStateDesc = MTLDepthStencilDescriptor()
+        
+
+        // Create a depth state with depth buffer write enabled.
+                
+        // Create a depth state with depth buffer write disabled and set the comparison function to
+        //   `MTLCompareFunctionLess`.
+        
+        depthStateDesc.depthCompareFunction = .lessEqual
+        depthStateDesc.isDepthWriteEnabled = true
+        let depthState = device!.makeDepthStencilState(descriptor: depthStateDesc)!
+        
+        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderToTextureRenderPassDescriptor)!
+        renderEncoder.setCullMode(.back)
+        
+        for mtlResource in mtlResources {
+            renderEncoder.useResource(mtlResource.resource, usage: mtlResource.usage, stages: mtlResource.stages)
+        }
+        // Render objects with lighting.
+        renderEncoder.pushDebugGroup("Render Preview")
+        renderEncoder.setRenderPipelineState(pipelineState)
+        renderEncoder.setDepthStencilState(depthState)
+        //                            renderEncoder.setFragmentBuffer(frameDataBuffers[currentBufferIndex], offset:0, index: 2)
+        
+
+        if let vertexTextureArgumentBuffer = vertexTextureArgumentBuffer {
+            renderEncoder.setVertexBuffer(vertexTextureArgumentBuffer, offset: 0, index: Int(computeTextureInputOutputDescriptorSet))
+        }
+        if let fragmentTextureArgumentBuffer = fragmentTextureArgumentBuffer {
+            renderEncoder.setFragmentBuffer(fragmentTextureArgumentBuffer, offset: 0, index: Int(computeTextureInputOutputDescriptorSet))
+        }
+        if let vertexFrameDataArgumentBuffer = vertexFrameDataArgumentBuffer {
+            renderEncoder.setVertexBuffer(vertexFrameDataArgumentBuffer, offset: 0, index: Int(frameDataDescriptorSet))
+        }
+        if let fragmentFrameDataArgumentBuffer = fragmentFrameDataArgumentBuffer {
+            renderEncoder.setFragmentBuffer(fragmentFrameDataArgumentBuffer, offset: 0, index: Int(frameDataDescriptorSet))
+        }
+
+//        let meshes = if let geo = self.previewGeometry[geometry] {
+//            geo
+//        } else {
+//            try loadPreviewGeometry(geometry, modelIOVertexDescriptor: computeModelIOVertexDescriptor!, device: device!)
+//        }
+//        self.previewGeometry[geometry] = meshes
+        
+        let meshes = try loadPreviewGeometry(geometry, modelIOVertexDescriptor: vertFragModelIOVertexDescriptor!, device: device!)
+        
+        for msh in meshes {
+            let metalKitMesh = msh.metalKitMesh
+            
+            // Set the mesh's vertex buffers.
+            for bufferIndex in 0..<metalKitMesh.vertexBuffers.count {
+                let vertexBuffer = metalKitMesh.vertexBuffers[bufferIndex];
+                if(vertexBuffer.length > 0){
+                    renderEncoder.setVertexBuffer(vertexBuffer.buffer, offset:vertexBuffer.offset, index:bufferIndex);
+                }
+            }
+            
+            // Draw each submesh of the mesh.
+            for submesh in msh.submeshes
+            {
+                // Set any textures that you read or sample in the render pipeline.
+                
+                let metalKitSubmesh = submesh.metalKitSubmesh;
+                
+                renderEncoder.drawIndexedPrimitives(type: metalKitSubmesh.primitiveType,
+                                                    indexCount:metalKitSubmesh.indexCount,
+                                                    indexType:metalKitSubmesh.indexType,
+                                                    indexBuffer:metalKitSubmesh.indexBuffer.buffer,
+                                                    indexBufferOffset:metalKitSubmesh.indexBuffer.offset
+                );
+            }
+        }
+        
+        renderEncoder.popDebugGroup();
+        
+        renderEncoder.endEncoding()
+
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+
+        // Update frame stage
+        return tex.data
     }
     
     private func renderCompute(stageId: UUID, stageIndex: UInt32, geometry: JelloPreviewGeometry?, shader: SpirvShader, computeTextureResources: Set<UUID>) throws -> Data {
         if device == nil {
             initializeSharedResources()
         }
+        
+        var mtlResources: [(resource: any MTLResource, usage: MTLResourceUsage)] = []
         
         // TODO: Cache textures if a dependency of timeVarying or transform dependant functions
         var textures: [(JelloPersistedTextureResource, MTLTexture)] = []
@@ -146,62 +546,46 @@ actor JelloPreviewBakerActor {
         
         shaderLibs[key] = shaderLib
         let computeMain = shaderLib.makeFunction(name: "computeMain")
-        var geometryArgumentEncoder = computeMain!.makeArgumentEncoder(bufferIndex: Int(geometryInputDescriptorSet))
+        var geometryArgumentBuffer: (any MTLBuffer)? = nil
         
+        var triangleCount: Int = 0
         // Bind geometry and triangle index input texture
         switch msl {
         case .compute(let c):
             if let indicesBindingIndex = c.indicesBindingIndex,
                let verticesBindingIndex = c.verticesBindingIndex {
-                try bindGeometry(geometry: geometry!, argumentEncoder: &geometryArgumentEncoder, indicesBinding: indicesBindingIndex, verticesBinding: verticesBindingIndex)
+                var geometryArgumentEncoder = computeMain!.makeArgumentEncoder(bufferIndex: Int(geometryInputDescriptorSet))
+                
+                geometryArgumentBuffer = device!.makeBuffer(length: geometryArgumentEncoder.encodedLength)!
+                geometryArgumentEncoder.setArgumentBuffer(geometryArgumentBuffer!, offset: 0)
+                mtlResources.append((resource: geometryArgumentBuffer!, usage: .read))
+
+                try bindGeometry(geometry: geometry!, triangleCount: &triangleCount, resources: &mtlResources, argumentEncoder: &geometryArgumentEncoder, indicesBinding: indicesBindingIndex, verticesBinding: verticesBindingIndex)
+                
                 let geometryTextures = c.inputComputeTextures.filter({$0.bufferIndex == geometryInputDescriptorSet })
                 for geometryTexture in geometryTextures {
                     let t = textures.first(where: {$0.0.originatingPass == geometryTexture.texture.originatingPass && $0.0.originatingStage == geometryTexture.texture.originatingStage })
                     geometryArgumentEncoder.setTexture(t!.1, index: Int(geometryTexture.bufferBindingIndex))
                     assert(!geometryTexture.sampled, "Geometry Textures should never be sampled")
+                    mtlResources.append((resource: t!.1, usage: MTLResourceUsage.read))
                 }
             }
         case .computeRasterizer(let r):
             if let indicesBindingIndex = r.indicesBindingIndex,
                let verticesBindingIndex = r.verticesBindingIndex {
-                try bindGeometry(geometry: geometry!, argumentEncoder: &geometryArgumentEncoder, indicesBinding: indicesBindingIndex, verticesBinding: verticesBindingIndex)
+                var geometryArgumentEncoder = computeMain!.makeArgumentEncoder(bufferIndex: Int(geometryInputDescriptorSet))
+                
+                geometryArgumentBuffer = device!.makeBuffer(length: geometryArgumentEncoder.encodedLength)!
+                geometryArgumentEncoder.setArgumentBuffer(geometryArgumentBuffer!, offset: 0)
+                mtlResources.append((resource: geometryArgumentBuffer!, usage: .read))
+
+                try bindGeometry(geometry: geometry!, triangleCount: &triangleCount, resources: &mtlResources, argumentEncoder: &geometryArgumentEncoder, indicesBinding: indicesBindingIndex, verticesBinding: verticesBindingIndex)
            
             }
         default:
             fatalError("Unexpected shader type")
         }
         
-        func makeOutputTexture(texDefn: MslSpirvTextureBindingOutput) throws -> MTLTexture {
-            let textureDescriptor = MTLTextureDescriptor()
-            textureDescriptor.pixelFormat = switch texDefn.texture.format {
-            case .R32f:
-                    .r32Float
-            case .R32i:
-                    .r32Sint
-            case .Rgba32f:
-                    .rgba32Float
-            case .Rgba16f:
-                    .rgba16Float
-            }
-            
-            guard case .dimension(let x, let y, let z) = texDefn.texture.size else {
-                fatalError("No dimension")
-            }
-            textureDescriptor.width = x;
-            textureDescriptor.height = y;
-            textureDescriptor.depth = z
-            
-            textureDescriptor.textureType = z > 1 ? .type3D : (y > 1 ? .type2D : .type1D)
-            
-            // The image kernel only needs to read the incoming image data.
-            
-            textureDescriptor.usage = [.shaderWrite, .shaderRead];
-            textureDescriptor.storageMode = .shared
-
-            return device!.makeTexture(descriptor: textureDescriptor)!
-        }
-        
-        let computeTextureInputOutputEncoder = computeMain!.makeArgumentEncoder(bufferIndex: Int(computeTextureInputOutputDescriptorSet))
         
         let outputTexture: MTLTexture = switch msl {
         case .compute(let c):
@@ -212,26 +596,32 @@ actor JelloPreviewBakerActor {
             fatalError("Unexpected shader type")
         }
         
+        let computeTextureInputOutputEncoder = computeMain!.makeArgumentEncoder(bufferIndex: Int(computeTextureInputOutputDescriptorSet))
+        let computeTextureInputOutputArgumentBuffer = device!.makeBuffer(length: computeTextureInputOutputEncoder.encodedLength)!
+        computeTextureInputOutputEncoder.setArgumentBuffer(computeTextureInputOutputArgumentBuffer, offset: 0)
+        mtlResources.append((resource: computeTextureInputOutputArgumentBuffer, usage: [MTLResourceUsage.read, MTLResourceUsage.write]))
+        mtlResources.append((resource: outputTexture, usage: MTLResourceUsage.write))
+        
         switch msl {
         case .compute(let c):
-                let computeTextureInputs = c.inputComputeTextures.filter({$0.bufferIndex == computeTextureInputOutputDescriptorSet })
-                for computeTextureInput in computeTextureInputs {
-                    let t = textures.first(where: {$0.0.originatingPass == computeTextureInput.texture.originatingPass && $0.0.originatingStage == computeTextureInput.texture.originatingStage })
-                    computeTextureInputOutputEncoder.setTexture(t!.1, index: Int(computeTextureInput.bufferBindingIndex))
+            let computeTextureInputs = c.inputComputeTextures.filter({$0.bufferIndex == computeTextureInputOutputDescriptorSet })
+            for computeTextureInput in computeTextureInputs {
+                let t = textures.first(where: {$0.0.originatingPass == computeTextureInput.texture.originatingPass && $0.0.originatingStage == computeTextureInput.texture.originatingStage })
+                computeTextureInputOutputEncoder.setTexture(t!.1, index: Int(computeTextureInput.bufferBindingIndex))
+                mtlResources.append((resource: t!.1, usage: MTLResourceUsage.read))
+                if computeTextureInput.sampled {
+                    let samplerDesc = MTLSamplerDescriptor();
+                    samplerDesc.minFilter = .linear;
+                    samplerDesc.magFilter = .linear;
+                    samplerDesc.mipFilter = .notMipmapped;
+                    samplerDesc.normalizedCoordinates = true;
+                    samplerDesc.supportArgumentBuffers = true;
                     
-                    if computeTextureInput.sampled {
-                        let samplerDesc = MTLSamplerDescriptor();
-                        samplerDesc.minFilter = .linear;
-                        samplerDesc.magFilter = .linear;
-                        samplerDesc.mipFilter = .notMipmapped;
-                        samplerDesc.normalizedCoordinates = true;
-                        samplerDesc.supportArgumentBuffers = true;
-
-                        let sampler = device!.makeSamplerState(descriptor: samplerDesc)
-                        // We assume that the sampler is bound to the next index as the texture
-                        computeTextureInputOutputEncoder.setSamplerState(sampler, index: Int(computeTextureInput.bufferBindingIndex) + 1)
-                    }
+                    let sampler = device!.makeSamplerState(descriptor: samplerDesc)
+                    // We assume that the sampler is bound to the next index as the texture
+                    computeTextureInputOutputEncoder.setSamplerState(sampler, index: Int(computeTextureInput.bufferBindingIndex) + 1)
                 }
+            }
             computeTextureInputOutputEncoder.setTexture(outputTexture, index: Int(c.outputComputeTexture.bufferBindingIndex))
         case .computeRasterizer(let r):
             computeTextureInputOutputEncoder.setTexture(outputTexture, index: Int(r.outputComputeTexture.bufferBindingIndex))
@@ -248,6 +638,44 @@ actor JelloPreviewBakerActor {
         
         computeEncoder.setComputePipelineState(pipelineState)
         
+        var threadgroupSize: MTLSize = MTLSizeMake(128, 1, 1)
+        var threads: MTLSize = MTLSizeMake(1, 1, 1)
+        
+        switch shader {
+        case .compute(_):
+            if outputTexture.width == 1 && outputTexture.depth == 1 {
+                threads.width = outputTexture.width
+            } else if outputTexture.depth == 1 {
+                threadgroupSize.width = 16
+                threadgroupSize.height = 8
+                threads.width = outputTexture.width
+                threads.height = outputTexture.height
+            } else {
+                threadgroupSize.width = 8
+                threadgroupSize.height = 4
+                threadgroupSize.depth = 4
+                threads.width = outputTexture.width
+                threads.height = outputTexture.height
+                threads.depth = outputTexture.depth
+            }
+        case .computeRasterizer(_):
+            threads.width = triangleCount
+        default:
+            fatalError("Unexpected Shader")
+        }
+
+        computeEncoder.setComputePipelineState(pipelineState)
+        for mtlResource in mtlResources {
+            computeEncoder.useResource(mtlResource.resource, usage: mtlResource.usage)
+        }
+        computeEncoder.setBuffer(computeTextureInputOutputArgumentBuffer, offset: 0, index: Int(computeTextureInputOutputDescriptorSet))
+        if let geometryArgumentBuffer = geometryArgumentBuffer {
+            computeEncoder.setBuffer(geometryArgumentBuffer, offset: 0, index: Int(geometryInputDescriptorSet))
+        }
+        
+        computeEncoder.dispatchThreads(threads, threadsPerThreadgroup: threadgroupSize)
+
+
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
         
@@ -338,7 +766,7 @@ actor JelloPreviewBakerActor {
             var visitedStages: Set<UUID> = []
             func hasNoDependencies(stage: JelloCompilerOutputStage) -> Bool {
                 return stage.dependencies.filter({ dependency in
-                    return !visitedStages.contains(dependency)
+                    return !visitedStages.contains(dependency) && dependency != stage.id
                 }).isEmpty
             }
             var noDependencyStages: [JelloCompilerOutputStage] = stages.filter({ hasNoDependencies(stage: $0) })
@@ -362,7 +790,8 @@ actor JelloPreviewBakerActor {
                         persistedShader.argsSha256 = argsSha256
                         persistedShader.shaderSha256 = shaderSha256
                         let maybeOldId = persistedShader.output?.uuid
-                        let texture = JelloPersistedTextureResource(uuid: UUID(), texture: renderResult, originatingStage: stageId, originatingPass: persistedShader.index, wedgeSha256: persistedShader.wedgeSha256)
+                        let wedgeSha256 = persistedShader.wedgeSha256
+                        let texture = JelloPersistedTextureResource(uuid: UUID(), texture: renderResult, originatingStage: stageId, originatingPass: persistedShader.index, wedgeSha256: wedgeSha256, created: Date.now)
                         modelContext.insert(texture)
                         persistedShader.output = texture
                         // Bind resource to successor stages
@@ -398,7 +827,6 @@ actor JelloPreviewBakerActor {
                     if let geometries = geometry[item.id] {
                         for geometry in geometries {
                             let wedgeSha256 = calculateWedgeSha256(encoder: encoder, geometry: geometry)
-                            let renderResult = Data()
                             let fragmentIndex = UInt32(item.shaders.firstIndex(where: {
                                 switch $0 {
                                 case .fragment(_):
@@ -415,10 +843,15 @@ actor JelloPreviewBakerActor {
                                     return false
                                 }
                             }) ?? 0)
+                            
+
+
                             if let persistedShader = persistedShaders.first(where: { $0.index == fragmentIndex && $0.wedgeSha256 == wedgeSha256 }) {
                                 // TODO: Insert Variable Args here
                                 let argsSha256 = Data()
                                 let shaderSha256 = item.shaders[Int(fragmentIndex)].shader.withUnsafeBufferPointer { Data(buffer: $0).sha256() }
+                                let currentResources = Set(persistedShader.resources)
+                                let renderResult = try renderVertexFragment(stageId: stageId, vertexStageIndex: vertexIndex, fragmentStageIndex: fragmentIndex, geometry: geometry, vertexShader: item.shaders[Int(vertexIndex)], fragmentShader: item.shaders[Int(fragmentIndex)], computeTextureResources: currentResources)
                                 try updateDependantShaderStagesAndFreeResources(renderResult: renderResult, persistedShader: persistedShader, shaderSha256: shaderSha256, argsSha256: argsSha256)
                             }
                             
@@ -485,7 +918,7 @@ actor JelloPreviewBakerActor {
                 }
                 
                 for successorStage in item.dependants {
-                    if let stage = stagesDict[successorStage], stage.id != item.id, hasNoDependencies(stage: stage) {
+                    if successorStage != item.id, let stage = stagesDict[successorStage], stage.id != item.id, hasNoDependencies(stage: stage) {
                         noDependencyStages.append(stage)
                     }
                 }

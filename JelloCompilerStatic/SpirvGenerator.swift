@@ -46,12 +46,14 @@ public struct MslSpirvComputeRasterizerShaderOutput: Codable, Equatable {
 
 public struct MslSpirvVertexShaderOutput: Codable, Equatable {
     public let shader: String
-    public let inputTextures: [MslSpirvTextureBindingOutput]
+    public let inputComputeTextures: [MslSpirvTextureBindingOutput]
+    public let frameDataBindingIndex: UInt32?
 }
 
 public struct MslSpirvFragmentShaderOutput: Codable, Equatable {
     public let shader: String
-    public let inputTextures: [MslSpirvTextureBindingOutput]
+    public let inputComputeTextures: [MslSpirvTextureBindingOutput]
+    public let frameDataBindingIndex: UInt32?
 }
 
 
@@ -161,6 +163,8 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
 //    spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_SEPARATE_IMAGE, &separateImageList, &separateImageCount)
     spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_SAMPLED_IMAGE, &sampledImageList, &sampledImageCount)
 
+    var frameDataBindingIndex: UInt32?
+
     var verticesBindingIndex: UInt32?
     var indicesBindingIndex: UInt32?
     var outputImageBindingIndex: (UInt32, UInt32, sampled: Bool) = (0, 0, false)
@@ -178,6 +182,11 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
                 // Indices
                 indicesBindingIndex = resourceBinding
             } 
+        } else if set == frameDataDescriptorSet {
+            let resourceBinding = UInt32(Int32(bitPattern: spvc_compiler_msl_get_automatic_resource_binding(compiler_msl, bufferInfo.id)))
+            if binding == frameDataBinding {
+                frameDataBindingIndex = resourceBinding
+            }
         }
     }
     
@@ -268,9 +277,9 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
     case .computeRasterizer(let r):
         return .computeRasterizer(MslSpirvComputeRasterizerShaderOutput(shader: str, outputComputeTexture: MslSpirvTextureBindingOutput(texture: r.outputComputeTexture.texture, bufferIndex: outputImageBindingIndex.0, bufferBindingIndex: outputImageBindingIndex.1, sampled: outputImageBindingIndex.sampled), verticesBindingIndex: UInt32(verticesBindingIndex!), indicesBindingIndex: UInt32(indicesBindingIndex!)))
     case .vertex(let v):
-        return .vertex(MslSpirvVertexShaderOutput(shader: str, inputTextures: mapInputBindings(v.inputComputeTextures)))
+        return .vertex(MslSpirvVertexShaderOutput(shader: str, inputComputeTextures: mapInputBindings(v.inputComputeTextures), frameDataBindingIndex: frameDataBindingIndex))
     case .fragment(let f):
-        return .fragment(MslSpirvFragmentShaderOutput(shader: str, inputTextures: mapInputBindings(f.inputComputeTextures)))
+        return .fragment(MslSpirvFragmentShaderOutput(shader: str, inputComputeTextures: mapInputBindings(f.inputComputeTextures), frameDataBindingIndex: frameDataBindingIndex))
     }
     
 }

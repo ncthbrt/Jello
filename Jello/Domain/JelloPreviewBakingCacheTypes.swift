@@ -13,22 +13,24 @@ import JelloCompilerStatic
 @Model
 public class JelloPersistedTextureResource {
     @Attribute(.unique) var uuid: UUID
-    @Attribute(.externalStorage) var texture: Data?
+    @Attribute(.externalStorage) 
+    var texture: Data?
     var originatingStage: UUID
     var originatingPass: UInt32
     var wedgeSha256: Data
+    var created: Date?
 
-    init(uuid: UUID, texture: Data? = nil, originatingStage: UUID, originatingPass: UInt32, wedgeSha256: Data) {
+    init(uuid: UUID, texture: Data, originatingStage: UUID, originatingPass: UInt32, wedgeSha256: Data, created: Date) {
         self.texture = texture
         self.uuid = uuid
         self.originatingStage = originatingStage
         self.originatingPass = originatingPass
         self.wedgeSha256 = wedgeSha256
+        self.created = created
     }
 }
 
 
-// TODO: Clean this and associated texture up when node is deleted
 @Model
 public class JelloPersistedStageShader {
     // Constants
