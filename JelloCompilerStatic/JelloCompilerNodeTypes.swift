@@ -1986,15 +1986,15 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             let deltaUV3UV1XMdeltaUV2UV1Y = #id
             #functionBody(opCode: SpirvOpFMul, [floatType, deltaUV3UV1XMdeltaUV2UV1Y, deltaUV3UV1X, deltaUV2UV1Y])
             
-            #functionBody(opCode: SpirvOpFSub, [floatType, baryDenominator, deltaUV2UV1XMdeltaUV3UV1Y, deltaUV2UV1XMdeltaUV3UV1Y])
+            #functionBody(opCode: SpirvOpFSub, [floatType, baryDenominator, deltaUV2UV1XMdeltaUV3UV1Y, deltaUV3UV1XMdeltaUV2UV1Y])
             
-            let ifDenominatorNonZeroCondValue = #id
-            #functionBody(opCode: SpirvOpFOrdNotEqual, [boolType, ifDenominatorNonZeroCondValue, zeroF, baryDenominator])
+            let ifDenominatorZeroCondValue = #id
+            #functionBody(opCode: SpirvOpFOrdEqual, [boolType, ifDenominatorZeroCondValue, zeroF, baryDenominator])
             
             let ifDenominatorNonZeroMergeLabel = #id
             let ifDenominatorZeroLabel = #id
             #functionBody(opCode: SpirvOpSelectionMerge, [ifDenominatorNonZeroMergeLabel, 0])
-            #functionBody(opCode: SpirvOpBranchConditional, [ifDenominatorNonZeroCondValue, ifDenominatorZeroLabel, ifDenominatorNonZeroMergeLabel])
+            #functionBody(opCode: SpirvOpBranchConditional, [ifDenominatorZeroCondValue, ifDenominatorZeroLabel, ifDenominatorNonZeroMergeLabel])
             
             #functionBody(opCode: SpirvOpLabel, [ifDenominatorZeroLabel])
             #functionBody(opCode: SpirvOpReturn) // Return early if uv triangle has zero size

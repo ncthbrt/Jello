@@ -44,8 +44,9 @@ public class JelloPersistedStageShader {
     var argsSha256: Data
     var resources: [UUID]
     var output: JelloPersistedTextureResource?
-    
-    init(graphId: UUID, stageId: UUID, index: UInt32, wedgeSha256: Data, shaderSha256: Data, argsSha256: Data, resources: [UUID] = [], output: JelloPersistedTextureResource? = nil) {
+    var created: Date?
+
+    init(graphId: UUID, stageId: UUID, index: UInt32, wedgeSha256: Data, shaderSha256: Data, argsSha256: Data, resources: [UUID] = [], output: JelloPersistedTextureResource? = nil, created: Date? = nil) {
         self.graphId = graphId
         self.stageId = stageId
         self.index = index
@@ -54,6 +55,7 @@ public class JelloPersistedStageShader {
         self.argsSha256 = argsSha256
         self.resources = resources
         self.output = output
+        self.created = created
     }
 }
 

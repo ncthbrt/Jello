@@ -120,7 +120,7 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
         throw SpirvCompilationError.compilationError(errValue)
     }
     
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, makeMSLVersion(2, 1, 0))
+    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, makeMSLVersion(3, 1, 0))
     spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS, 1)
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS_TIER, 1)
     spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_PLATFORM, SPVC_MSL_PLATFORM_IOS.rawValue)
@@ -265,8 +265,8 @@ public func compileMSLShader(input: SpirvShader) throws -> MslSpirvShaderOutput 
     
     func mapInputBindings(_ inputTextures: [SpirvTextureBinding]) -> [MslSpirvTextureBindingOutput] {
         return inputTextures.map({
-            let bufferIndex = imagesBindingIndices[$0.spirvId]?.1 ?? 0
-            let bufferBindingIndex = imagesBindingIndices[$0.spirvId]?.0 ?? 0
+            let bufferIndex = imagesBindingIndices[$0.spirvId]?.0 ?? 0
+            let bufferBindingIndex = imagesBindingIndices[$0.spirvId]?.1 ?? 0
             let sampled = imagesBindingIndices[$0.spirvId]?.sampled ?? false
             return MslSpirvTextureBindingOutput(texture: $0.texture, bufferIndex: bufferIndex, bufferBindingIndex: bufferBindingIndex, sampled: sampled)
         })

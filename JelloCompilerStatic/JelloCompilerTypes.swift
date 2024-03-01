@@ -1108,6 +1108,19 @@ public enum SpirvShader: Codable, Equatable {
             return v.inputComputeTextures
         }
     }
+    
+    public var outputComputeTextures: SpirvTextureBinding? {
+        switch self {
+        case .compute(let c):
+            return c.outputComputeTexture
+        case .computeRasterizer(let r):
+            return r.outputComputeTexture
+        case .fragment(let f):
+            return nil
+        case .vertex(let v):
+            return nil
+        }
+    }
 }
 
 public struct JelloComputeIOTexture: Codable, Equatable, Hashable {

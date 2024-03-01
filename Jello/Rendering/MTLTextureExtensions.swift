@@ -21,4 +21,10 @@ extension MTLTexture {
         }
         return Data(pixelData)
     }
+    
+    var pngData : Data {
+        let ciImage = CIImage(mtlTexture: self)
+        let image = UIImage(ciImage: ciImage!)
+        return image.pngData()!
+    }
 }

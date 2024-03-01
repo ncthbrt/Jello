@@ -33,22 +33,13 @@ struct PreviewNodeView: View {
         return texture
     }
     
-    private func makeImage(imageData: Data) -> UIImage? {
-        let ciImage = CIImage(bitmapData: imageData, bytesPerRow: 256*16, size: .init(width: 256, height: 256), format: .RGBAf, colorSpace: nil)
-        
-        let uiImage = UIImage(ciImage: ciImage)
-        return UIImage(data: uiImage.pngData()!)
-    }
-    
     var body: some View {
         ZStack {
             TimelineView(.animation) { _ in
                 let nodeId = node.uuid
                 let nodeData = try! modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloNodeData> { $0.node?.uuid == nodeId }))
-                if let tex = getOutput(nodeData: nodeData), let image = makeImage(imageData: tex) {
-//                    Path(drawBounds).fill(ImagePaint(image: 
-                        Image(uiImage: image)
-                        //.resizable()))
+                if let tex = getOutput(nodeData: nodeData), let image = UIImage(data: tex) {
+                    Path(drawBounds).fill(ImagePaint(image: Image(uiImage: image).resizable()))
                 }
             }
             Path(drawBounds).fill(Gradient(colors: [.black.opacity(0.3), .clear]))

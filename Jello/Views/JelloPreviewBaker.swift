@@ -49,8 +49,8 @@ actor JelloPreviewBakerActor {
             fatalError("Metal is not supported")
         }
         
-        assert(defaultDevice.supportsFamily(.apple4),
-               "Application requires MTLGPUFamilyApple4 (only available on Macs with Apple Silicon or iOS devices with an A11 or later)")
+        assert(defaultDevice.supportsFamily(.apple7),
+               "Application requires MTLGPUFamilyApple7")
         
         device = defaultDevice
         
@@ -132,13 +132,72 @@ actor JelloPreviewBakerActor {
 
     }
     
-    private func loadTexture(textureUsage: MTLTextureUsage, storageMode: MTLStorageMode, texture: Data) throws -> MTLTexture {
-        let textureLoaderOptions: [MTKTextureLoader.Option: Any] = [
-            .textureUsage: textureUsage.rawValue,
-            .textureStorageMode: storageMode.rawValue,
-        ]
+    private func convertTextureToData(texture: MTLTexture) throws -> Data {
+//        switch texture.textureType {
+//        case .type2D:
+//            switch texture.pixelFormat {
+//            case .r32Sint, .r32Float:
+//                return texture.data
+//            default:
+//                return texture.pngData
+//            }
+//        default:
+            return texture.data
+//        }
+    }
+    
+    private func loadTexture(textureDefinition: JelloComputeIOTexture, texture: Data) throws -> MTLTexture {
+        guard case .dimension(let x, let y, let z) = textureDefinition.size else {
+            fatalError("No dimension")
+        }
+        
+        // Load 2d images using metalKitTextureLoader, as these are saved as PNGs
+//        if z == 1, y > 1, textureDefinition.format != .R32i, textureDefinition.format != .R32f {
+//            let textureLoaderOptions: [MTKTextureLoader.Option: Any] = [
+//                .textureUsage: MTLTextureUsage.shaderRead,
+//                .textureStorageMode: MTLStorageMode.private,
+//            ]
+//
+//            return try! self.metalKitTextureLoader!.newTexture(data: texture, options: textureLoaderOptions)
+//        }
+        
+        
+        let descriptor = MTLTextureDescriptor()
+        descriptor.pixelFormat = switch textureDefinition.format {
+        case .R32f:
+                .r32Float
+        case .R32i:
+                .r32Sint
+        case .Rgba32f:
+                .rgba32Float
+        case .Rgba16f:
+                .rgba16Float
+        }
+        
+        descriptor.width = x
+        descriptor.height = y
+        descriptor.depth = z
+        descriptor.textureType = z > 1 ? .type3D : (y > 1 ? .type2D : .type1D)
+        descriptor.usage = .shaderRead
+        descriptor.storageMode = .shared
+        
+        let result = device!.makeTexture(descriptor: descriptor)
 
-        return try metalKitTextureLoader!.newTexture(data: texture, options: textureLoaderOptions)
+        texture.withUnsafeBytes {
+            let region: MTLRegion = .init(origin: .init(x: 0, y: 0, z: 0), size: .init(width: x, height: y, depth: z))
+            switch textureDefinition.format {
+            case .Rgba32f:
+                result!.replace(region: region, mipmapLevel: 0, withBytes: $0, bytesPerRow: x * 16)
+            case .Rgba16f:
+                result!.replace(region: region, mipmapLevel: 0, withBytes: $0, bytesPerRow: x * 8)
+            case .R32f:
+                result!.replace(region: region, mipmapLevel: 0, withBytes: $0, bytesPerRow: x * 4)
+            case .R32i:
+                result!.replace(region: region, mipmapLevel: 0, withBytes: $0, bytesPerRow: x * 4)
+            }
+        }
+        
+        return result!
     }
     
     private func makeOutputTexture(texDefn: MslSpirvTextureBindingOutput) throws -> MTLTexture {
@@ -183,7 +242,7 @@ actor JelloPreviewBakerActor {
         let subMesh0 = mesh0.submeshes[0]
         let indicesBuffer = subMesh0.metalKitSubmesh.indexBuffer
         let verticesBuffer = mesh0.metalKitMesh.vertexBuffers[0]
-        triangleCount = subMesh0.metalKitSubmesh.indexCount
+        triangleCount = subMesh0.metalKitSubmesh.indexCount / 3
         
         argumentEncoder.setBuffer(verticesBuffer.buffer, offset: verticesBuffer.offset, index:  Int(verticesBinding))
         argumentEncoder.setBuffer(indicesBuffer.buffer, offset: indicesBuffer.offset, index: Int(indicesBinding))
@@ -202,8 +261,11 @@ actor JelloPreviewBakerActor {
         var textures: [(JelloPersistedTextureResource, MTLTexture)] = []
         for resource in computeTextureResources {
             let id = resource
-            if let texture = (try modelContext.fetch(FetchDescriptor<JelloPersistedTextureResource>(predicate: #Predicate { $0.uuid == id }), batchSize: 1)).first {
-                textures.append(((texture,try loadTexture(textureUsage: [.shaderRead], storageMode: .private, texture: texture.texture ?? Data()))))
+            if let texture = (try modelContext.fetch(FetchDescriptor<JelloPersistedTextureResource>(predicate: #Predicate { $0.uuid == id }))).first {
+                if let textureDefinition = vertexShader.inputComputeTextures.first(where: { $0.texture.originatingStage == texture.originatingStage && $0.texture.originatingPass == texture.originatingPass }) ??
+                    fragmentShader.inputComputeTextures.first(where: { $0.texture.originatingStage == texture.originatingStage && $0.texture.originatingPass == texture.originatingPass }) {
+                    textures.append(((texture,try loadTexture(textureDefinition: textureDefinition.texture, texture: texture.texture ?? Data()))))
+                }
             }
         }
         
@@ -312,7 +374,7 @@ actor JelloPreviewBakerActor {
                 for computeTextureInput in computeTextureInputs {
                     let t = textures.first(where: {$0.0.originatingPass == computeTextureInput.texture.originatingPass && $0.0.originatingStage == computeTextureInput.texture.originatingStage })
                     vertexTextureInputOutputEncoder.setTexture(t!.1, index: Int(computeTextureInput.bufferBindingIndex))
-                    
+                    mtlResources.append((resource: t!.1, usage: MTLResourceUsage.read, stages: .vertex))
                     if computeTextureInput.sampled {
                         let samplerDesc = MTLSamplerDescriptor();
                         samplerDesc.minFilter = .linear;
@@ -322,8 +384,10 @@ actor JelloPreviewBakerActor {
                         samplerDesc.supportArgumentBuffers = true;
                         
                         let sampler = device!.makeSamplerState(descriptor: samplerDesc)
+//                        mtlResources.append((resource: sampler!, usage: MTLResourceUsage.read, stages: [MTLRenderStages.vertex]))
                         // We assume that the sampler is bound to the next index as the texture
                         vertexTextureInputOutputEncoder.setSamplerState(sampler, index: Int(computeTextureInput.bufferBindingIndex) + 1)
+                        
                     }
                 }
             }
@@ -349,6 +413,7 @@ actor JelloPreviewBakerActor {
                 for computeTextureInput in computeTextureInputs {
                     let t = textures.first(where: {$0.0.originatingPass == computeTextureInput.texture.originatingPass && $0.0.originatingStage == computeTextureInput.texture.originatingStage })
                     fragmentTextureInputOutputEncoder.setTexture(t!.1, index: Int(computeTextureInput.bufferBindingIndex))
+                    mtlResources.append((resource: t!.1, usage: [MTLResourceUsage.read], stages: .fragment))
                     
                     if computeTextureInput.sampled {
                         let samplerDesc = MTLSamplerDescriptor();
@@ -359,6 +424,7 @@ actor JelloPreviewBakerActor {
                         samplerDesc.supportArgumentBuffers = true;
                         
                         let sampler = device!.makeSamplerState(descriptor: samplerDesc)
+//                        mtlResources.append((resource: sampler!, usage: [MTLResourceUsage.read], stages: .fragment))
                         // We assume that the sampler is bound to the next index as the texture
                         fragmentTextureInputOutputEncoder.setSamplerState(sampler, index: Int(computeTextureInput.bufferBindingIndex) + 1)
                     }
@@ -384,7 +450,7 @@ actor JelloPreviewBakerActor {
         texDescriptor.depth = 1
         texDescriptor.pixelFormat = .rgba32Float
         texDescriptor.storageMode = .shared
-        texDescriptor.usage = .renderTarget
+        texDescriptor.usage = [.renderTarget, .shaderRead]
         let tex = device!.makeTexture(descriptor: texDescriptor)!
         
         let depthTexDescriptor: MTLTextureDescriptor = MTLTextureDescriptor()
@@ -507,7 +573,7 @@ actor JelloPreviewBakerActor {
         commandBuffer.waitUntilCompleted()
 
         // Update frame stage
-        return tex.data
+        return tex.pngData
     }
     
     private func renderCompute(stageId: UUID, stageIndex: UInt32, geometry: JelloPreviewGeometry?, shader: SpirvShader, computeTextureResources: Set<UUID>) throws -> Data {
@@ -521,8 +587,10 @@ actor JelloPreviewBakerActor {
         var textures: [(JelloPersistedTextureResource, MTLTexture)] = []
         for resource in computeTextureResources {
             let id = resource
-            if let texture = (try modelContext.fetch(FetchDescriptor<JelloPersistedTextureResource>(predicate: #Predicate { $0.uuid == id }), batchSize: 1)).first {
-                textures.append(((texture,try loadTexture(textureUsage: [.shaderRead], storageMode: .private, texture: texture.texture ?? Data()))))
+            if let texture = (try modelContext.fetch(FetchDescriptor<JelloPersistedTextureResource>(predicate: #Predicate { $0.uuid == id }))).first {
+                if let textureDefinition = shader.inputComputeTextures.first(where: { $0.texture.originatingStage == texture.originatingStage && $0.texture.originatingPass == texture.originatingPass }) {
+                    textures.append(((texture,try loadTexture(textureDefinition: textureDefinition.texture, texture: texture.texture ?? Data()))))
+                }
             }
         }
         
@@ -674,12 +742,10 @@ actor JelloPreviewBakerActor {
         }
         
         computeEncoder.dispatchThreads(threads, threadsPerThreadgroup: threadgroupSize)
-
-
+        computeEncoder.endEncoding()
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
-        
-        return outputTexture.data
+        return try convertTextureToData(texture: outputTexture)
     }
     
     
@@ -721,7 +787,7 @@ actor JelloPreviewBakerActor {
             resourceIds[stageId] = []
             for shaderIndex in stage.shaders.indices {
                 let index = UInt32(shaderIndex)
-                let persistedShaders = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloPersistedStageShader>{ $0.graphId == graphId && $0.stageId == stageId && $0.index == index }))
+                let persistedShaders = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloPersistedStageShader>{ $0.graphId == graphId && $0.stageId == stageId && $0.index == index && $0.created != nil }, sortBy: [.init(\JelloPersistedStageShader.created)]))
                 var wedges: [Data] = []
                 if let geometries = geometry[stageId] {
                     wedges = geometries.map({ self.calculateWedgeSha256(encoder: encoder, geometry: $0)})
@@ -731,7 +797,7 @@ actor JelloPreviewBakerActor {
                 for wedgeSha256 in wedges {
                     var persistedShader = persistedShaders.first(where: { $0.wedgeSha256 == wedgeSha256 })
                     if persistedShader == nil {
-                        persistedShader = JelloPersistedStageShader(graphId: graphId, stageId: stageId, index: index, wedgeSha256: wedgeSha256, shaderSha256: Data(), argsSha256: Data())
+                        persistedShader = JelloPersistedStageShader(graphId: graphId, stageId: stageId, index: index, wedgeSha256: wedgeSha256, shaderSha256: Data(), argsSha256: Data(), created: Date.now)
                         modelContext.insert(persistedShader!)
                     }
                     resourceIds[stageId]?.append([wedgeSha256: Set(persistedShader!.resources)])
@@ -740,7 +806,7 @@ actor JelloPreviewBakerActor {
         }
         
         // Clean up unused stages & wedges
-        var persistedStages = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloPersistedStageShader>{ $0.graphId == graphId }))
+        var persistedStages = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloPersistedStageShader>{ $0.graphId == graphId && $0.created != nil }, sortBy: [.init(\JelloPersistedStageShader.created)]))
         for persistedStageIndex in persistedStages.indices.reversed() {
             let persistedStage = persistedStages[persistedStageIndex]
             if resourceIds[persistedStage.stageId] == nil {
@@ -776,7 +842,9 @@ actor JelloPreviewBakerActor {
                 let item = noDependencyStages[i]
                 visitedStages.insert(item.id)
                 let stageId = item.id
-                let persistedShaders = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<JelloPersistedStageShader>{ $0.graphId == graphId && $0.stageId == stageId }))
+                var persistedShadersFetchDescriptor = FetchDescriptor(predicate: #Predicate<JelloPersistedStageShader>{ $0.graphId == graphId && $0.stageId == stageId && $0.created != nil }, sortBy: [.init(\JelloPersistedStageShader.created)])
+                persistedShadersFetchDescriptor.includePendingChanges = true
+                let persistedShaders = try modelContext.fetch(persistedShadersFetchDescriptor)
                 let isVertexFragStage = item.shaders.contains(where: {
                     switch $0 {
                     case .fragment(_), .vertex(_):
@@ -806,8 +874,8 @@ actor JelloPreviewBakerActor {
                                     if inputs.contains(where: { $0.texture.originatingPass == persistedShader.index && $0.texture.originatingStage == stageId }) {
                                         let dependantIndex = UInt32(shaderIndex)
                                         let dependantStageId = possibleDependant
-                                        let dependantShader = try modelContext.fetch(FetchDescriptor<JelloPersistedStageShader>(predicate: #Predicate { $0.index == dependantIndex && $0.stageId == dependantStageId })).first
-                                        dependantShader?.resources.append(texture.uuid)
+                                        let dependantShader = try modelContext.fetch(FetchDescriptor<JelloPersistedStageShader>(predicate: #Predicate { $0.index == dependantIndex && $0.stageId == dependantStageId && $0.created != nil })).first
+                                        dependantShader!.resources.append(texture.uuid)
                                     }
                                 }
                             }
@@ -851,7 +919,7 @@ actor JelloPreviewBakerActor {
                                 let argsSha256 = Data()
                                 let shaderSha256 = item.shaders[Int(fragmentIndex)].shader.withUnsafeBufferPointer { Data(buffer: $0).sha256() }
                                 let currentResources = Set(persistedShader.resources)
-                                let renderResult = try renderVertexFragment(stageId: stageId, vertexStageIndex: vertexIndex, fragmentStageIndex: fragmentIndex, geometry: geometry, vertexShader: item.shaders[Int(vertexIndex)], fragmentShader: item.shaders[Int(fragmentIndex)], computeTextureResources: currentResources)
+                                let renderResult = try! renderVertexFragment(stageId: stageId, vertexStageIndex: vertexIndex, fragmentStageIndex: fragmentIndex, geometry: geometry, vertexShader: item.shaders[Int(vertexIndex)], fragmentShader: item.shaders[Int(fragmentIndex)], computeTextureResources: currentResources)
                                 try updateDependantShaderStagesAndFreeResources(renderResult: renderResult, persistedShader: persistedShader, shaderSha256: shaderSha256, argsSha256: argsSha256)
                             }
                             
@@ -884,10 +952,10 @@ actor JelloPreviewBakerActor {
                         default:
                             fatalError("Unexpected shader type")
                         }
-//                        
+                        
                         let prevResources: [Data: Set<UUID>] = resourceIds[stageId]?[shaderIndex] ?? [:]
                         var wedges: [(Data, JelloPreviewGeometry?)] = []
-//                        
+
                         if let previewGeometries = geometry[item.id] {
                             wedges = previewGeometries.map({ (calculateWedgeSha256(encoder: encoder, geometry: $0), $0) })
                         } else {
@@ -904,12 +972,12 @@ actor JelloPreviewBakerActor {
                                     let isTimeVaryingOrTransformDependant: Bool = !(domain.intersection([.timeVarying, .transformDependant]).isEmpty)
                                     let differentArgsOrShader: Bool = persistedShader.argsSha256 != argsSha256 || persistedShader.shaderSha256 != shaderSha256
                                     let differentResources: Bool = prevResources[wedgeSha256] != currentResources
-                                    let dirty: Bool = isTimeVaryingOrTransformDependant || differentArgsOrShader || differentResources
+                                    let dirty: Bool = isTimeVaryingOrTransformDependant || differentArgsOrShader || differentResources || true
                                     return dirty
                                 }
                                 if isDirty() {
                                     // TODO: Look at how binding inter-stage dependencies should work
-                                    let renderResult = try renderCompute(stageId: stageId, stageIndex: index, geometry: geometry, shader: shader, computeTextureResources: currentResources)
+                                    let renderResult = try! renderCompute(stageId: stageId, stageIndex: index, geometry: geometry, shader: shader, computeTextureResources: currentResources)
                                     try updateDependantShaderStagesAndFreeResources(renderResult: renderResult, persistedShader: persistedShader, shaderSha256: shaderSha256, argsSha256: argsSha256)
                                 }
                             }

@@ -87,6 +87,7 @@
 		BCB9E5EE2B41BCDB00472DB8 /* SPIRV-Cross in Frameworks */ = {isa = PBXBuildFile; productRef = BCB9E5ED2B41BCDB00472DB8 /* SPIRV-Cross */; };
 		BCB9E5EF2B41BDD600472DB8 /* libJelloCompilerStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */; };
 		BCB9E5F02B41BDE100472DB8 /* libJelloCompilerStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BC3DD00B2B35795800F27E8D /* libJelloCompilerStatic.a */; };
+		BCC6A5E82B90A3CD004E4D9B /* TestRenderCompute.metal in Sources */ = {isa = PBXBuildFile; fileRef = BCC6A5E72B90A3CD004E4D9B /* TestRenderCompute.metal */; };
 		BCCE16062B172394000370CB /* Control.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16052B172394000370CB /* Control.swift */; };
 		BCCE16082B1723A8000370CB /* ControlGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16072B1723A8000370CB /* ControlGeometry.swift */; };
 		BCCE160A2B1723D5000370CB /* ControlHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCE16092B1723D5000370CB /* ControlHelpers.swift */; };
@@ -234,6 +235,7 @@
 		BCAAD3FB2B625DF2007BDCFC /* CalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorView.swift; sourceTree = "<group>"; };
 		BCAAD3FD2B628677007BDCFC /* RadialMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadialMenu.swift; sourceTree = "<group>"; };
 		BCAAD4002B63B73A007BDCFC /* JelloMathExpressionTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JelloMathExpressionTypes.swift; sourceTree = "<group>"; };
+		BCC6A5E72B90A3CD004E4D9B /* TestRenderCompute.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = TestRenderCompute.metal; sourceTree = "<group>"; };
 		BCCE16052B172394000370CB /* Control.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Control.swift; sourceTree = "<group>"; };
 		BCCE16072B1723A8000370CB /* ControlGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlGeometry.swift; sourceTree = "<group>"; };
 		BCCE16092B1723D5000370CB /* ControlHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlHelpers.swift; sourceTree = "<group>"; };
@@ -339,6 +341,7 @@
 			children = (
 				BC258A8D2B46AB0200FEB690 /* JelloMesh.swift */,
 				BCFE34612B88B8C6003FCBC1 /* MTLTextureExtensions.swift */,
+				BCC6A5E72B90A3CD004E4D9B /* TestRenderCompute.metal */,
 			);
 			path = Rendering;
 			sourceTree = "<group>";
@@ -758,6 +761,7 @@
 				BC54AC452B8CBA150098CD6C /* MathUtils.swift in Sources */,
 				BCEAFD172B205E9100D23E1F /* JelloCompilerBridge.swift in Sources */,
 				BCCE161F2B1724C4000370CB /* ArcKnob.swift in Sources */,
+				BCC6A5E82B90A3CD004E4D9B /* TestRenderCompute.metal in Sources */,
 				BC31EB732B039291004401FC /* JelloTypes.swift in Sources */,
 				BCCE160C2B1723F3000370CB /* PlanarGeometry.swift in Sources */,
 				BCFE34622B88B8C6003FCBC1 /* MTLTextureExtensions.swift in Sources */,
