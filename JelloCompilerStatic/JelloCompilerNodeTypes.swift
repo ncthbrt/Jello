@@ -1907,7 +1907,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
             // START CALCULATE UV BOUNDING BOX
             let minUV1UV2 = #id
             #functionBody(opCode: SpirvOpExtInst, [float2Type, minUV1UV2, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMin.rawValue, uv1, uv2])
-            #functionBody(opCode: SpirvOpExtInst, [float2Type, minUVId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, minUV1UV2, uv3])
+            #functionBody(opCode: SpirvOpExtInst, [float2Type, minUVId, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMin.rawValue, minUV1UV2, uv3])
             
             let maxUV1UV2 = #id
             #functionBody(opCode: SpirvOpExtInst, [float2Type, maxUV1UV2, JelloCompilerBlackboard.glsl450ExtId, GLSLstd450FMax.rawValue, uv1, uv2])
@@ -2093,7 +2093,7 @@ public class ComputeCompilerNode : CompilerNode & HasComputationDimensionCompile
                 
             
                 let deltaThisUVUV1YMdeltaUV2UV1XSdeltaThisUVUV1XMdeltaUV2UV1Y = #id
-                #functionBody(opCode: SpirvOpFSub, [floatType, deltaThisUVUV1YMdeltaUV2UV1XSdeltaThisUVUV1XMdeltaUV2UV1Y, deltaThisUVUV1YMdeltaUV2UV1X,  deltaThisUVUV1YMdeltaUV2UV1X])
+                #functionBody(opCode: SpirvOpFSub, [floatType, deltaThisUVUV1YMdeltaUV2UV1XSdeltaThisUVUV1XMdeltaUV2UV1Y, deltaThisUVUV1YMdeltaUV2UV1X,  deltaThisUVUV1XMdeltaUV2UV1Y])
                 #functionBody(opCode: SpirvOpFMul, [floatType, baryW, oneOverBaryDenominator,  deltaThisUVUV1YMdeltaUV2UV1XSdeltaThisUVUV1XMdeltaUV2UV1Y])
                 
                 let oneMinusBaryV = #id
