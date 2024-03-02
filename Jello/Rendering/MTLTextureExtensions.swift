@@ -13,7 +13,7 @@ extension MTLTexture {
     var data : Data {
         var pixelData = Array(repeating: UInt8(), count: self.allocatedSize)
         pixelData.withUnsafeMutableBytes {
-            if self.pixelFormat == .r32Float {
+            if self.pixelFormat == .r32Float || self.pixelFormat == .r32Sint {
                 self.getBytes($0.baseAddress!, bytesPerRow: self.width * 4, from: .init(origin: .init(x: 0, y: 0, z: 0), size: .init(width: self.width, height: self.height, depth: self.depth)), mipmapLevel: 0)
             } else if self.pixelFormat == .rgba32Float {
                 self.getBytes($0.baseAddress!, bytesPerRow: self.width * 4 * 4, from: .init(origin: .init(x: 0, y: 0, z: 0), size: .init(width: self.width, height: self.height, depth: self.depth)), mipmapLevel: 0)

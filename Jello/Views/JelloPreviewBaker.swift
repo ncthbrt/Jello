@@ -178,9 +178,8 @@ actor JelloPreviewBakerActor {
         descriptor.height = y
         descriptor.depth = z
         descriptor.textureType = z > 1 ? .type3D : (y > 1 ? .type2D : .type1D)
-        descriptor.usage = .shaderRead
+        descriptor.usage = [.shaderRead, .shaderWrite]
         descriptor.storageMode = .shared
-        
         let result = device!.makeTexture(descriptor: descriptor)
 
         texture.withUnsafeBytes {
@@ -490,7 +489,6 @@ actor JelloPreviewBakerActor {
         let queue = device!.makeCommandQueue()!
         let commandBuffer = queue.makeCommandBuffer()!
         
-        
         let depthStateDesc = MTLDepthStencilDescriptor()
         
 
@@ -505,7 +503,7 @@ actor JelloPreviewBakerActor {
         
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderToTextureRenderPassDescriptor)!
         renderEncoder.setCullMode(.back)
-        
+   
         for mtlResource in mtlResources {
             renderEncoder.useResource(mtlResource.resource, usage: mtlResource.usage, stages: mtlResource.stages)
         }
@@ -589,7 +587,7 @@ actor JelloPreviewBakerActor {
             let id = resource
             if let texture = (try modelContext.fetch(FetchDescriptor<JelloPersistedTextureResource>(predicate: #Predicate { $0.uuid == id }))).first {
                 if let textureDefinition = shader.inputComputeTextures.first(where: { $0.texture.originatingStage == texture.originatingStage && $0.texture.originatingPass == texture.originatingPass }) {
-                    textures.append(((texture,try loadTexture(textureDefinition: textureDefinition.texture, texture: texture.texture ?? Data()))))
+                    textures.append(((texture, try loadTexture(textureDefinition: textureDefinition.texture, texture: texture.texture ?? Data()))))
                 }
             }
         }
@@ -626,7 +624,7 @@ actor JelloPreviewBakerActor {
                 
                 geometryArgumentBuffer = device!.makeBuffer(length: geometryArgumentEncoder.encodedLength)!
                 geometryArgumentEncoder.setArgumentBuffer(geometryArgumentBuffer!, offset: 0)
-                mtlResources.append((resource: geometryArgumentBuffer!, usage: .read))
+                mtlResources.append((resource: geometryArgumentBuffer!, usage: [.read]))
 
                 try bindGeometry(geometry: geometry!, triangleCount: &triangleCount, resources: &mtlResources, argumentEncoder: &geometryArgumentEncoder, indicesBinding: indicesBindingIndex, verticesBinding: verticesBindingIndex)
                 
@@ -635,7 +633,7 @@ actor JelloPreviewBakerActor {
                     let t = textures.first(where: {$0.0.originatingPass == geometryTexture.texture.originatingPass && $0.0.originatingStage == geometryTexture.texture.originatingStage })
                     geometryArgumentEncoder.setTexture(t!.1, index: Int(geometryTexture.bufferBindingIndex))
                     assert(!geometryTexture.sampled, "Geometry Textures should never be sampled")
-                    mtlResources.append((resource: t!.1, usage: MTLResourceUsage.read))
+                    mtlResources.append((resource: t!.1, usage: [.read, .write]))
                 }
             }
         case .computeRasterizer(let r):
@@ -704,7 +702,6 @@ actor JelloPreviewBakerActor {
         let commandBuffer = commandQueue.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
         
-        computeEncoder.setComputePipelineState(pipelineState)
         
         var threadgroupSize: MTLSize = MTLSizeMake(128, 1, 1)
         var threads: MTLSize = MTLSizeMake(1, 1, 1)
@@ -732,7 +729,6 @@ actor JelloPreviewBakerActor {
             fatalError("Unexpected Shader")
         }
 
-        computeEncoder.setComputePipelineState(pipelineState)
         for mtlResource in mtlResources {
             computeEncoder.useResource(mtlResource.resource, usage: mtlResource.usage)
         }
@@ -741,6 +737,7 @@ actor JelloPreviewBakerActor {
             computeEncoder.setBuffer(geometryArgumentBuffer, offset: 0, index: Int(geometryInputDescriptorSet))
         }
         
+        computeEncoder.setComputePipelineState(pipelineState)
         computeEncoder.dispatchThreads(threads, threadsPerThreadgroup: threadgroupSize)
         computeEncoder.endEncoding()
         commandBuffer.commit()
